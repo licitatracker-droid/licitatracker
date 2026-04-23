@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Licita Tracker — Em Breve</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:       #0B1F3A;
+    --navy-mid:   #112B50;
+    --navy-light: #1A3F72;
+    --accent:     #2E6FD8;
+    --accent-glow:#4A8FFF;
+    --gold:       #F0B429;
+    --text:       #FFFFFF;
+    --text-muted: rgba(255,255,255,0.55);
+    --text-soft:  rgba(255,255,255,0.80);
+    --border:     rgba(255,255,255,0.10);
+    --radius:     14px;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== BACKGROUND ===== */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 20%, rgba(46,111,216,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 85% 75%, rgba(26,63,114,0.25) 0%, transparent 60%),
+      linear-gradient(160deg, #0B1F3A 0%, #0D2542 50%, #081526 100%);
+  }
+
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 90% 90% at center, black 30%, transparent 100%);
+  }
+
+  /* floating particles */
+  .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(74,143,255,0.35);
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 0.6; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* ===== LAYOUT ===== */
+  .wrapper {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 48px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--navy-light));
+    border: 1px solid rgba(74,143,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px rgba(46,111,216,0.35);
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .logo-text span { color: var(--accent-glow); }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(240,180,41,0.12);
+    border: 1px solid rgba(240,180,41,0.30);
+    border-radius: 100px;
+    padding: 7px 16px 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: blink 1.8s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%,100% { opacity: 1; box-shadow: 0 0 6px var(--gold); }
+    50%     { opacity: 0.3; box-shadow: none; }
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-glow);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.1s forwards;
+  }
+
+  .eyebrow-line {
+    width: 32px; height: 1px;
+    background: var(--accent-glow);
+    opacity: 0.6;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 7vw, 88px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.25s forwards;
+  }
+
+  .hero-title .highlight {
+    background: linear-gradient(90deg, var(--accent-glow), #89BFFF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px, 3vw, 32px);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.35s forwards;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-soft);
+    margin-bottom: 56px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.45s forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== COUNTDOWN ===== */
+  .countdown-section {
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.55s forwards;
+    margin-bottom: 60px;
+  }
+
+  .countdown-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+  }
+
+  .countdown {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    min-width: 90px;
+    transition: border-color 0.3s;
+  }
+
+  .cd-block:hover { border-color: rgba(74,143,255,0.3); }
+
+  .cd-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 40px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--accent-glow);
+    letter-spacing: -0.02em;
+  }
+
+  .cd-sep {
+    font-family: 'DM Mono', monospace;
+    font-size: 32px;
+    color: var(--border);
+    padding-top: 18px;
+    align-self: flex-start;
+  }
+
+  .cd-unit {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* ===== FEATURES ===== */
+  .features {
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.65s forwards;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 52px;
+    max-width: 760px;
+  }
+
+  .feat-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-soft);
+    transition: all 0.2s;
+  }
+
+  .feat-tag:hover {
+    background: rgba(46,111,216,0.15);
+    border-color: rgba(74,143,255,0.35);
+    color: var(--text);
+  }
+
+  .feat-tag .icon { font-size: 15px; }
+
+
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border) 30%, var(--border) 70%, transparent);
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.85s forwards;
+  }
+
+  /* ===== INFO STRIPS ===== */
+  .info-strip {
+    padding: 48px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.95s forwards;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .info-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent-glow);
+    line-height: 1;
+  }
+
+  .info-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .info-sep {
+    width: 1px;
+    height: 48px;
+    background: var(--border);
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    padding: 24px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 1.05s forwards;
+  }
+
+  .footer-copy {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .footer-copy span { color: var(--accent-glow); font-weight: 500; }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-link {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-link:hover { color: var(--accent-glow); }
+
+
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    .topbar { padding: 20px 24px; }
+    .logo-text { font-size: 18px; }
+    .info-strip { padding: 32px 24px; gap: 32px; }
+    .info-sep { display: none; }
+    .footer { padding: 20px 24px; flex-direction: column; align-items: center; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-layer"></div>
+<div class="grid-overlay"></div>
+<div class="particles" id="particles"></div>
+
+<div class="wrapper">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">📋</div>
+      <div class="logo-text">Licita<span>Tracker</span></div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      Em Desenvolvimento
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main class="hero">
+
+    <div class="eyebrow">
+      <div class="eyebrow-line"></div>
+      Plataforma de Monitoramento de Licitações
+      <div class="eyebrow-line"></div>
+    </div>
+
+    <h1 class="hero-title">
+      Algo grande<br>está <span class="highlight">chegando</span>
+    </h1>
+
+    <p class="hero-sub">Rastreie. Analise. Vença.</p>
+
+    <p class="hero-desc">
+      O <strong>Licita Tracker</strong> é o sistema inteligente para monitorar editais,
+      acompanhar prazos e gerenciar oportunidades do PNCP e portais públicos,
+      tudo em um único lugar.
+    </p>
+
+    <!-- Countdown -->
+    <div class="countdown-section">
+      <div class="countdown-label">Lançamento estimado</div>
+      <div class="countdown">
+        <div class="cd-block">
+          <div class="cd-num" id="cd-days">00</div>
+          <div class="cd-unit">Dias</div>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-block">
+          <div class="cd-num" id="cd-hours">00</div>
+          <div class="cd-unit">Horas</div>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-block">
+          <div class="cd-num" id="cd-mins">00</div>
+          <div class="cd-unit">Minutos</div>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-block">
+          <div class="cd-num" id="cd-secs">00</div>
+          <div class="cd-unit">Segundos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feat-tag"><span class="icon">🔍</span> Busca no PNCP</div>
+      <div class="feat-tag"><span class="icon">📊</span> Dashboard de Oportunidades</div>
+      <div class="feat-tag"><span class="icon">⏰</span> Alertas de Prazo</div>
+      <div class="feat-tag"><span class="icon">📁</span> Gestão de Documentos</div>
+      <div class="feat-tag"><span class="icon">🏆</span> Análise de Concorrentes</div>
+      <div class="feat-tag"><span class="icon">📧</span> Notificações Automáticas</div>
+    </div>
+
+
+
+  </main>
+
+  <!-- Divider -->
+  <div class="divider"></div>
+
+  <!-- Stats -->
+  <div class="info-strip">
+    <div class="info-item">
+      <div class="info-num">+47k</div>
+      <div class="info-label">Editais Publicados/Mês</div>
+    </div>
+    <div class="info-sep"></div>
+    <div class="info-item">
+      <div class="info-num">R$ 2B+</div>
+      <div class="info-label">Volume Monitorado</div>
+    </div>
+    <div class="info-sep"></div>
+    <div class="info-item">
+      <div class="info-num">5.000+</div>
+      <div class="info-label">Órgãos Públicos</div>
+    </div>
+    <div class="info-sep"></div>
+    <div class="info-item">
+      <div class="info-num">100%</div>
+      <div class="info-label">Dados Oficiais PNCP</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-copy">© 2026 <span>LicitaTracker</span> — Todos os direitos reservados</div>
+    <div class="footer-links">
+      <a href="mailto:licitatracker@gmail.com" class="footer-link">licitatracker@gmail.com</a>
+      <a href="#" class="footer-link">Privacidade</a>
+    </div>
+  </footer>
+
+</div>
+
+
+
+<script>
+  // ===== COUNTDOWN =====
+  // Target: 60 days from today
+  const target = new Date();
+  target.setDate(target.getDate() + 60);
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '00';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-days').textContent  = pad(d);
+    document.getElementById('cd-hours').textContent = pad(h);
+    document.getElementById('cd-mins').textContent  = pad(m);
+    document.getElementById('cd-secs').textContent  = pad(s);
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+
+
+  // ===== PARTICLES =====
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 4 + 2;
+    p.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      left: ${Math.random() * 100}%;
+      animation-duration: ${Math.random() * 18 + 12}s;
+      animation-delay: ${Math.random() * 10}s;
+      opacity: ${Math.random() * 0.5 + 0.1};
+    `;
+    container.appendChild(p);
+  }
+</script>
+</body>
+</html>
