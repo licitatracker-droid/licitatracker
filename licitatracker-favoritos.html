@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Licita Tracker — Favoritos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent:#2563EB; --accent-soft:#EEF2FF; --gold:#D97706;
+    --green:#059669; --red:#DC2626;
+    --text:#111827; --text-muted:#6B7280; --text-soft:#374151;
+    --border:#E5E7EB; --border-mid:#D1D5DB;
+    --surface:#FFFFFF; --surface-hover:#F3F4F6;
+    --radius:12px;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{font-size:14px}
+  body{font-family:'DM Sans',sans-serif;background:#F1F3F9;color:var(--text);min-height:100vh}
+
+  /* TOPBAR */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;
+    border-bottom:1px solid var(--border);background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#1E40AF);
+    display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(37,99,235,0.3)}
+  .logo-text{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text)}
+  .logo-text span{color:var(--accent)}
+  .nav-item{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);
+    cursor:pointer;transition:all .15s;border:none;background:none;text-decoration:none;
+    display:flex;align-items:center;gap:6px}
+  .nav-item:hover{color:var(--text);background:var(--surface-hover)}
+  .nav-item.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+  .topbar-nav{display:flex;align-items:center;gap:4px}
+  .badge-count{background:var(--accent-soft);border:1px solid #BFDBFE;border-radius:100px;
+    padding:3px 10px;font-size:11px;font-weight:600;color:var(--accent);font-family:'DM Mono',monospace}
+
+  /* MAIN */
+  .main{padding:24px 28px}
+  .page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:16px}
+  .page-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+  .page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
+  .page-title span{color:var(--accent)}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .search-box{display:flex;align-items:center;gap:8px;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;
+    flex:1;min-width:240px;max-width:380px}
+  .search-box:focus-within{border-color:#93C5FD}
+  .search-box input{background:none;border:none;outline:none;font-family:'DM Sans',sans-serif;
+    font-size:13px;color:var(--text);width:100%}
+  .search-box input::placeholder{color:var(--text-muted)}
+  .filter-select{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-soft);
+    cursor:pointer;outline:none}
+  .filter-select option{background:white}
+  .btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);
+    font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;
+    transition:all .15s;border:none}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(37,99,235,.3)}
+  .btn-primary:hover{background:#1D4ED8;transform:translateY(-1px)}
+  .btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text-soft)}
+  .btn-ghost:hover{background:var(--surface-hover);color:var(--text)}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--radius);padding:4px;width:fit-content}
+  .tab{padding:7px 18px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;
+    transition:all .15s;border:none;background:none;color:var(--text-muted)}
+  .tab.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(37,99,235,.3)}
+  .tab:hover:not(.active){background:var(--surface-hover);color:var(--text)}
+
+  /* CARDS */
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+
+  .fav-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:18px;transition:all .2s;cursor:pointer}
+  .fav-card:hover{border-color:#BFDBFE;box-shadow:0 4px 16px rgba(37,99,235,.08);transform:translateY(-1px)}
+  .fav-card.andamento{border-left:3px solid var(--green)}
+  .fav-card.favorito{border-left:3px solid var(--gold)}
+
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .card-objeto{font-size:13px;font-weight:500;color:var(--text);line-height:1.5;flex:1}
+  .card-status{flex-shrink:0}
+  .status-badge{display:inline-block;padding:3px 9px;border-radius:6px;
+    font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .status-favorito{background:#FFFBEB;color:var(--gold);border:1px solid #FDE68A}
+  .status-andamento{background:#ECFDF5;color:var(--green);border:1px solid #A7F3D0}
+
+  .card-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .meta-item .meta-label{font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.07em;color:var(--text-muted);margin-bottom:2px}
+  .meta-item .meta-val{font-size:12px;color:var(--text-soft);font-family:'DM Mono',monospace}
+  .meta-item .meta-val.green{color:var(--green);font-weight:600}
+
+  .card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;
+    font-size:11px;font-weight:500}
+  .tag-produto{background:#EEF2FF;color:var(--accent);border:1px solid #C7D2FE}
+  .tag-uf{background:#F3F4F6;color:var(--text-soft);border:1px solid var(--border)}
+  .tag-unidade{background:#FFF7ED;color:#92400E;border:1px solid #FED7AA}
+
+  .card-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)}
+  .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;font-weight:600;
+    cursor:pointer;transition:all .15s;border:none;display:flex;align-items:center;gap:4px}
+  .btn-sm-primary{background:var(--accent);color:#fff}
+  .btn-sm-primary:hover{background:#1D4ED8}
+  .btn-sm-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text-soft)}
+  .btn-sm-ghost:hover{background:var(--surface-hover)}
+  .btn-sm-danger{background:#FEF2F2;border:1px solid #FECACA;color:var(--red)}
+  .btn-sm-danger:hover{background:#FEE2E2}
+  .btn-sm-success{background:#ECFDF5;border:1px solid #A7F3D0;color:var(--green)}
+  .btn-sm-success:hover{background:#D1FAE5}
+
+  /* EMPTY */
+  .empty-state{text-align:center;padding:64px 24px;color:var(--text-muted);
+    background:var(--surface);border:1px solid var(--border);border-radius:14px}
+  .empty-icon{font-size:48px;margin-bottom:16px;opacity:.5}
+  .empty-text{font-size:14px;margin-bottom:8px;color:var(--text-soft)}
+  .empty-sub{font-size:12px}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;right:24px;z-index:300;background:#1F2937;
+    border:1px solid #374151;border-radius:10px;padding:12px 18px;font-size:13px;
+    font-weight:500;color:white;display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 28px rgba(0,0,0,.2);transform:translateY(60px);opacity:0;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+  .toast.show{transform:translateY(0);opacity:1}
+
+  @media(max-width:640px){
+    .main{padding:16px}
+    .cards-grid{grid-template-columns:1fr}
+    .topbar{padding:0 16px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="licitatracker-diario.html" class="logo">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">Licita<span>Tracker</span></div>
+  </a>
+  <nav class="topbar-nav">
+    <a class="nav-item" href="licitatracker-diario.html">📰 Diário</a>
+    <a class="nav-item active" href="#">⭐ Favoritos</a>
+    <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+    <a class="nav-item" href="licitatracker-config.html">⚙️ Config</a>
+  </nav>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="badge-count" id="total-badge">— favoritos</div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-label">Editais Selecionados</div>
+      <h1 class="page-title">Meus <span>Favoritos</span></h1>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="openBoletim()">📄 Gerar Boletim</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('todos',this)">⭐ Todos</button>
+    <button class="tab" onclick="setTab('favorito',this)">📌 Favoritados</button>
+    <button class="tab" onclick="setTab('andamento',this)">▶ Em Andamento</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="search-fav" placeholder="Buscar nos favoritos..." oninput="renderFavs()">
+    </div>
+    <select class="filter-select" id="fav-filter-produto" onchange="renderFavs()">
+      <option value="">Produto: Todos</option>
+    </select>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards-grid" id="favs-grid"></div>
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">OK</span></div>
+
+<script>
+const SUPABASE_URL = 'https://fzpdrobltmssrrokblnc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cGRyb2JsdG1zc3Jyb2tibG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMyNDEsImV4cCI6MjA5MjAwOTI0MX0.ifd1oB4mnL-D-28nN9Ee2ZOqrx1G13cLW03rlqq28AE';
+const TABLE = 'pncp_publicacoes';
+
+let allData    = [];
+let manualData = JSON.parse(localStorage.getItem('lt_manual') || '{}');
+let currentTab = 'todos';
+
+async function loadData() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&limit=2000`, {
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Accept':'application/json'}
+    });
+    allData = await res.json();
+    buildProdutoFilter();
+    renderFavs();
+  } catch(e) {
+    allData = [];
+    renderFavs();
+  }
+}
+
+function buildProdutoFilter() {
+  const prods = new Set();
+  Object.values(manualData).forEach(m => { if(m.produto) prods.add(m.produto); });
+  const sel = document.getElementById('fav-filter-produto');
+  sel.innerHTML = '<option value="">Produto: Todos</option>';
+  [...prods].sort().forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
+}
+
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderFavs();
+}
+
+function renderFavs() {
+  const q    = (document.getElementById('search-fav').value||'').toLowerCase();
+  const prod = document.getElementById('fav-filter-produto').value;
+
+  const favs = allData.filter(r => {
+    const m = manualData[r.id] || {};
+    if (!m.starred && m.status !== 'andamento') return false;
+    if (currentTab === 'favorito'  && m.status !== 'favorito'  && m.starred && m.status !== undefined) return m.status === 'favorito';
+    if (currentTab === 'andamento' && m.status !== 'andamento') return false;
+    if (prod && (m.produto||'') !== prod) return false;
+    if (q && !(r.objetocompra||'').toLowerCase().includes(q) &&
+             !(r.orgaoentidade_razaosocial||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('total-badge').textContent = favs.length + ' favoritos';
+
+  const grid = document.getElementById('favs-grid');
+  if (!favs.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">⭐</div>
+      <div class="empty-text">Nenhum favorito encontrado</div>
+      <div class="empty-sub">Acesse o Diário e favorite editais usando o botão ⭐ ou o modal +</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = favs.map(r => {
+    const m   = manualData[r.id] || {};
+    const st  = m.status || 'favorito';
+    const dt  = r.dataencerramentoproposta ? new Date(r.dataencerramentoproposta.replace(' ','T')) : null;
+    const dtStr = dt && !isNaN(dt) ? dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : (m.datamanual ? new Date(m.datamanual+'T00:00').toLocaleDateString('pt-BR') + ' ' + (m.horamanual||'') : '—');
+    const numPregao = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
+    const valRef = parseFloat(m.valref||0);
+    const qtd   = parseFloat(m.qtd||0);
+    const total = (valRef && qtd) ? 'R$ ' + (valRef*qtd).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—';
+    const pncpNum = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const linkPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
+    const siteVal  = m.site || r.linksistemaorigem || '';
+
+    return `<div class="fav-card ${st}" onclick="">
+      <div class="card-top">
+        <div class="card-objeto">${r.objetocompra||'—'}</div>
+        <div class="card-status">
+          <span class="status-badge status-${st}">${st === 'andamento' ? '▶ Andamento' : '⭐ Favorito'}</span>
+        </div>
+      </div>
+      <div class="card-tags">
+        ${m.produto ? `<span class="tag tag-produto">📦 ${m.produto}</span>` : ''}
+        ${r.unidadeorgao_ufsigla ? `<span class="tag tag-uf">${r.unidadeorgao_ufsigla}</span>` : ''}
+        ${m.unidade ? `<span class="tag tag-unidade">${m.unidade}</span>` : ''}
+      </div>
+      <div class="card-meta">
+        <div class="meta-item">
+          <div class="meta-label">Órgão</div>
+          <div class="meta-val" style="font-family:'DM Sans',sans-serif;font-size:11px">${r.orgaoentidade_razaosocial||'—'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Data / Hora</div>
+          <div class="meta-val">${dtStr}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Nº Pregão</div>
+          <div class="meta-val">${numPregao}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Total Estimado</div>
+          <div class="meta-val green">${total}</div>
+        </div>
+        ${m.uaseg ? `<div class="meta-item"><div class="meta-label">UASEG/Processo</div><div class="meta-val">${m.uaseg}</div></div>` : ''}
+        ${m.item  ? `<div class="meta-item"><div class="meta-label">Nº Item</div><div class="meta-val">${m.item}</div></div>` : ''}
+      </div>
+      <div class="card-actions">
+        <a href="${linkPncp}" target="_blank" class="btn-sm btn-sm-ghost">🔗 PNCP</a>
+        ${siteVal ? `<a href="${siteVal}" target="_blank" class="btn-sm btn-sm-success">🔗 Pregão</a>` : ''}
+        ${st !== 'andamento' ? `<button class="btn-sm btn-sm-primary" onclick="moverAndamento(event,'${r.id}')">▶ Em Andamento</button>` : ''}
+        <button class="btn-sm btn-sm-danger" onclick="removerFavorito(event,'${r.id}')" style="margin-left:auto">✕ Remover</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function moverAndamento(e, id) {
+  e.stopPropagation();
+  if (!manualData[id]) manualData[id] = {};
+  manualData[id].status  = 'andamento';
+  manualData[id].starred = true;
+  localStorage.setItem('lt_manual', JSON.stringify(manualData));
+  renderFavs();
+  toast('▶','Movido para Em Andamento!');
+}
+
+function removerFavorito(e, id) {
+  e.stopPropagation();
+  if (!confirm('Remover dos favoritos?')) return;
+  if (manualData[id]) {
+    manualData[id].starred = false;
+    manualData[id].status  = undefined;
+    localStorage.setItem('lt_manual', JSON.stringify(manualData));
+  }
+  renderFavs();
+  toast('✕','Removido dos favoritos');
+}
+
+function openBoletim() {
+  window.location.href = 'licitatracker-diario.html#boletim';
+}
+
+function toast(icon, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent  = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadData();
+</script>
+</body>
+</html>

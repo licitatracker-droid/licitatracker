@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Licita Tracker — Config</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#2563EB;--accent-soft:#EEF2FF;--gold:#D97706;--green:#059669;--red:#DC2626;
+    --text:#111827;--text-muted:#6B7280;--text-soft:#374151;
+    --border:#E5E7EB;--border-mid:#D1D5DB;--surface:#FFFFFF;--surface-hover:#F3F4F6;--radius:12px;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{font-size:14px}
+  body{font-family:'DM Sans',sans-serif;background:#F1F3F9;color:var(--text);min-height:100vh}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;
+    border-bottom:1px solid var(--border);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+    position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#1E40AF);
+    display:flex;align-items:center;justify-content:center;font-size:16px}
+  .logo-text{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text)}
+  .logo-text span{color:var(--accent)}
+  .topbar-nav{display:flex;align-items:center;gap:4px}
+  .nav-item{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);
+    cursor:pointer;transition:all .15s;border:none;background:none;text-decoration:none;
+    display:flex;align-items:center;gap:6px}
+  .nav-item:hover{color:var(--text);background:var(--surface-hover)}
+  .nav-item.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+
+  .main{padding:24px 28px}
+  .page-header{margin-bottom:24px}
+  .page-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:4px}
+  .page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
+  .page-title span{color:var(--accent)}
+
+  .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.config-grid{grid-template-columns:1fr}}
+
+  .config-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;
+    box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .section-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+  .section-count{font-size:11px;font-family:'DM Mono',monospace;background:var(--accent-soft);
+    color:var(--accent);border:1px solid #C7D2FE;border-radius:100px;padding:2px 8px}
+
+  .item-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;
+    max-height:280px;overflow-y:auto}
+  .list-item{display:flex;align-items:center;justify-content:space-between;
+    background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+    transition:all .15s}
+  .list-item:hover{border-color:#BFDBFE;background:#EEF2FF}
+  .item-name{font-size:13px;font-weight:500;color:var(--text)}
+  .item-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
+  .item-actions{display:flex;gap:6px}
+  .btn-icon{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;
+    font-size:14px;transition:all .15s;color:var(--text-muted)}
+  .btn-icon:hover{background:var(--surface-hover);color:var(--text)}
+  .btn-icon.del:hover{background:#FEF2F2;color:var(--red)}
+
+  .add-form{display:flex;gap:8px;flex-wrap:wrap}
+  .add-input{flex:1;min-width:140px;background:#F9FAFB;border:1px solid var(--border);
+    border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:13px;
+    color:var(--text);outline:none;transition:border-color .2s}
+  .add-input:focus{border-color:#93C5FD;background:white}
+  .btn-add{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 16px;
+    font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;
+    white-space:nowrap;transition:all .15s}
+  .btn-add:hover{background:#1D4ED8}
+
+  /* Cliente card especial */
+  .client-card{background:#F9FAFB;border:1px solid var(--border);border-radius:10px;
+    padding:14px;margin-bottom:8px;transition:all .15s}
+  .client-card:hover{border-color:#BFDBFE}
+  .client-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+  .client-meta{display:flex;gap:8px;flex-wrap:wrap}
+  .client-tag{font-size:11px;background:var(--accent-soft);color:var(--accent);
+    border:1px solid #C7D2FE;border-radius:4px;padding:1px 7px}
+
+  /* Seção sistema */
+  .sys-item{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 0;border-bottom:1px solid var(--border)}
+  .sys-item:last-child{border-bottom:none}
+  .sys-label{font-size:13px;font-weight:500;color:var(--text)}
+  .sys-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .sys-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent)}
+  .toggle{position:relative;display:inline-block;width:38px;height:22px}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;inset:0;border-radius:22px;background:#D1D5DB;cursor:pointer;transition:.3s}
+  .toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;
+    background:white;border-radius:50%;transition:.3s}
+  .toggle input:checked + .toggle-slider{background:var(--accent)}
+  .toggle input:checked + .toggle-slider::before{transform:translateX(16px)}
+
+  .toast{position:fixed;bottom:24px;right:24px;z-index:300;background:#1F2937;
+    border:1px solid #374151;border-radius:10px;padding:12px 18px;font-size:13px;
+    font-weight:500;color:white;display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 28px rgba(0,0,0,.2);transform:translateY(60px);opacity:0;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+  .toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="licitatracker-diario.html" class="logo">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">Licita<span>Tracker</span></div>
+  </a>
+  <nav class="topbar-nav">
+    <a class="nav-item" href="licitatracker-diario.html">📰 Diário</a>
+    <a class="nav-item" href="licitatracker-favoritos.html">⭐ Favoritos</a>
+    <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+    <a class="nav-item active" href="#">⚙️ Config</a>
+  </nav>
+</header>
+
+<main class="main">
+  <div class="page-header">
+    <div class="page-label">Administração</div>
+    <h1 class="page-title">Configurações do <span>Sistema</span></h1>
+  </div>
+
+  <div class="config-grid">
+
+    <!-- PRODUTOS -->
+    <div class="config-section">
+      <div class="section-header">
+        <div class="section-title">📦 Produtos <span class="section-count" id="count-produtos">0</span></div>
+      </div>
+      <div class="item-list" id="list-produtos"></div>
+      <div class="add-form">
+        <input class="add-input" id="new-produto" type="text" placeholder="Nome do produto (ex: Café 500g)">
+        <button class="btn-add" onclick="addItem('produto')">＋ Adicionar</button>
+      </div>
+    </div>
+
+    <!-- PORTAIS / SITES -->
+    <div class="config-section">
+      <div class="section-header">
+        <div class="section-title">🌐 Portais <span class="section-count" id="count-sites">0</span></div>
+      </div>
+      <div class="item-list" id="list-sites"></div>
+      <div class="add-form">
+        <input class="add-input" id="new-site-nome" type="text" placeholder="Nome (ex: BLL Compras)" style="flex:.6">
+        <input class="add-input" id="new-site-url"  type="url"  placeholder="URL (https://...)" style="flex:1">
+        <button class="btn-add" onclick="addSite()">＋</button>
+      </div>
+    </div>
+
+    <!-- UNIDADES -->
+    <div class="config-section">
+      <div class="section-header">
+        <div class="section-title">📐 Unidades <span class="section-count" id="count-unidades">0</span></div>
+      </div>
+      <div class="item-list" id="list-unidades"></div>
+      <div class="add-form">
+        <input class="add-input" id="new-unidade" type="text" placeholder="Ex: PC - 250Grs">
+        <button class="btn-add" onclick="addItem('unidade')">＋ Adicionar</button>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="config-section">
+      <div class="section-header">
+        <div class="section-title">🏢 Clientes <span class="section-count" id="count-clientes">0</span></div>
+      </div>
+      <div class="item-list" id="list-clientes"></div>
+      <div class="add-form">
+        <input class="add-input" id="new-cliente-nome" type="text" placeholder="Nome do cliente" style="flex:.7">
+        <input class="add-input" id="new-cliente-cnpj" type="text" placeholder="CNPJ (opcional)" style="flex:.5">
+        <button class="btn-add" onclick="addCliente()">＋</button>
+      </div>
+    </div>
+
+    <!-- SISTEMA -->
+    <div class="config-section" style="grid-column:1/-1">
+      <div class="section-header">
+        <div class="section-title">⚙️ Sistema</div>
+      </div>
+      <div class="sys-item">
+        <div><div class="sys-label">Usuário logado</div><div class="sys-sub" id="sys-user">—</div></div>
+        <button onclick="logout()" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;
+          padding:7px 14px;font-size:12px;font-weight:600;color:#DC2626;cursor:pointer">
+          Sair
+        </button>
+      </div>
+      <div class="sys-item">
+        <div><div class="sys-label">Limpeza automática</div>
+          <div class="sys-sub">Remover editais não favoritados após 30 dias</div></div>
+        <label class="toggle"><input type="checkbox" id="toggle-limpeza" checked>
+          <span class="toggle-slider"></span></label>
+      </div>
+      <div class="sys-item">
+        <div><div class="sys-label">Base Supabase</div>
+          <div class="sys-sub">fzpdrobltmssrrokblnc.supabase.co · pncp_publicacoes</div></div>
+        <span class="sys-val">✅ Conectado</span>
+      </div>
+      <div class="sys-item">
+        <div><div class="sys-label">Dados locais (localStorage)</div>
+          <div class="sys-sub">Favoritos, anotações e configurações salvas no navegador</div></div>
+        <button onclick="clearLocal()" style="background:#F9FAFB;border:1px solid var(--border);
+          border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer">
+          Limpar dados locais
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">OK</span></div>
+
+<script>
+// =============================================
+// DADOS
+// =============================================
+const PRODUTO_DEFAULTS  = ['Café','Palestra'];
+const SITE_DEFAULTS     = [{nome:'BLL Compras',url:'https://bllcompras.com'},{nome:'Compras.gov.br',url:'https://compras.gov.br'},{nome:'Licitar Digital',url:'https://licitardigital.com.br'}];
+const UNIDADE_DEFAULTS  = ['PC - 250Grs','PC - 500Grs','PC - 1 Kg','KG - Quilograma','LT - Litro','MT - Metro','UN - Unidade','CX - Caixa'];
+
+function getProdutos()  { return [...new Set([...PRODUTO_DEFAULTS, ...JSON.parse(localStorage.getItem('lt_produtos_list')||'[]')])].sort((a,b)=>a.localeCompare(b)); }
+function getSites()     { return [...SITE_DEFAULTS, ...JSON.parse(localStorage.getItem('lt_sites')||'[]')].sort((a,b)=>a.nome.localeCompare(b.nome)); }
+function getUnidades()  { return [...new Set([...UNIDADE_DEFAULTS, ...JSON.parse(localStorage.getItem('lt_unidades')||'[]')])].sort((a,b)=>a.localeCompare(b)); }
+function getClientes()  { return JSON.parse(localStorage.getItem('lt_clientes')||'[]'); }
+
+// =============================================
+// RENDER
+// =============================================
+function renderAll() {
+  renderProdutos();
+  renderSites();
+  renderUnidades();
+  renderClientes();
+  renderSys();
+}
+
+function renderProdutos() {
+  const list = getProdutos();
+  document.getElementById('count-produtos').textContent = list.length;
+  document.getElementById('list-produtos').innerHTML = list.map((p,i) => `
+    <div class="list-item">
+      <div><div class="item-name">${p}</div></div>
+      <div class="item-actions">
+        <button class="btn-icon del" onclick="delItem('produto','${p.replace(/'/g,"\\'")}')" title="Remover">🗑</button>
+      </div>
+    </div>`).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px">Nenhum produto cadastrado</div>';
+}
+
+function renderSites() {
+  const list = getSites();
+  document.getElementById('count-sites').textContent = list.length;
+  document.getElementById('list-sites').innerHTML = list.map(s => `
+    <div class="list-item">
+      <div>
+        <div class="item-name">${s.nome}</div>
+        <div class="item-sub">${s.url}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn-icon" onclick="window.open('${s.url}','_blank')" title="Abrir">🔗</button>
+        <button class="btn-icon del" onclick="delSite('${s.nome.replace(/'/g,"\\'")}')" title="Remover">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderUnidades() {
+  const list = getUnidades();
+  document.getElementById('count-unidades').textContent = list.length;
+  document.getElementById('list-unidades').innerHTML = list.map(u => `
+    <div class="list-item">
+      <div class="item-name">${u}</div>
+      <div class="item-actions">
+        <button class="btn-icon del" onclick="delItem('unidade','${u.replace(/'/g,"\\'")}')" title="Remover">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderClientes() {
+  const list = getClientes();
+  document.getElementById('count-clientes').textContent = list.length;
+  document.getElementById('list-clientes').innerHTML = list.length ? list.map((c,i) => `
+    <div class="client-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="client-name">🏢 ${c.nome}</div>
+          <div class="client-meta">
+            ${c.cnpj ? `<span class="client-tag">CNPJ: ${c.cnpj}</span>` : ''}
+          </div>
+        </div>
+        <button class="btn-icon del" onclick="delCliente(${i})" title="Remover">🗑</button>
+      </div>
+    </div>`).join('')
+    : '<div style="font-size:12px;color:var(--text-muted);padding:8px">Nenhum cliente cadastrado</div>';
+}
+
+function renderSys() {
+  const user = JSON.parse(localStorage.getItem('lt_user')||'null');
+  document.getElementById('sys-user').textContent = user ? `${user.nome} (${user.email})` : 'Não autenticado';
+}
+
+// =============================================
+// ACTIONS
+// =============================================
+function addItem(type) {
+  const id  = `new-${type}`;
+  const key = type === 'produto' ? 'lt_produtos_list' : 'lt_unidades';
+  const val = document.getElementById(id).value.trim();
+  if (!val) return;
+  const extra = JSON.parse(localStorage.getItem(key)||'[]');
+  if (!extra.includes(val)) { extra.push(val); localStorage.setItem(key, JSON.stringify(extra)); }
+  document.getElementById(id).value = '';
+  renderAll();
+  toast('✅', `${type === 'produto' ? 'Produto' : 'Unidade'} adicionado!`);
+}
+
+function addSite() {
+  const nome = document.getElementById('new-site-nome').value.trim();
+  const url  = document.getElementById('new-site-url').value.trim();
+  if (!nome || !url) { toast('⚠️','Preencha nome e URL'); return; }
+  const extra = JSON.parse(localStorage.getItem('lt_sites')||'[]');
+  extra.push({nome, url});
+  localStorage.setItem('lt_sites', JSON.stringify(extra));
+  document.getElementById('new-site-nome').value = '';
+  document.getElementById('new-site-url').value  = '';
+  renderAll();
+  toast('✅', `Portal "${nome}" adicionado!`);
+}
+
+function addCliente() {
+  const nome = document.getElementById('new-cliente-nome').value.trim();
+  const cnpj = document.getElementById('new-cliente-cnpj').value.trim();
+  if (!nome) { toast('⚠️','Informe o nome do cliente'); return; }
+  const list = getClientes();
+  list.push({nome, cnpj});
+  localStorage.setItem('lt_clientes', JSON.stringify(list));
+  document.getElementById('new-cliente-nome').value = '';
+  document.getElementById('new-cliente-cnpj').value = '';
+  renderAll();
+  toast('✅', `Cliente "${nome}" adicionado!`);
+}
+
+function delItem(type, val) {
+  if (!confirm(`Remover "${val}"?`)) return;
+  const key = type === 'produto' ? 'lt_produtos_list' : 'lt_unidades';
+  const extra = JSON.parse(localStorage.getItem(key)||'[]').filter(x => x !== val);
+  localStorage.setItem(key, JSON.stringify(extra));
+  renderAll();
+  toast('🗑', 'Removido');
+}
+
+function delSite(nome) {
+  if (!confirm(`Remover "${nome}"?`)) return;
+  const extra = JSON.parse(localStorage.getItem('lt_sites')||'[]').filter(s => s.nome !== nome);
+  localStorage.setItem('lt_sites', JSON.stringify(extra));
+  renderAll();
+  toast('🗑', 'Portal removido');
+}
+
+function delCliente(idx) {
+  if (!confirm('Remover este cliente?')) return;
+  const list = getClientes();
+  list.splice(idx,1);
+  localStorage.setItem('lt_clientes', JSON.stringify(list));
+  renderAll();
+  toast('🗑', 'Cliente removido');
+}
+
+function logout() {
+  if (!confirm('Deseja sair do sistema?')) return;
+  localStorage.removeItem('lt_user');
+  localStorage.removeItem('lt_cliente');
+  window.location.href = 'licitatracker-login.html';
+}
+
+function clearLocal() {
+  if (!confirm('Isso vai apagar TODOS os dados locais (favoritos, produtos, configurações). Continuar?')) return;
+  localStorage.clear();
+  toast('🗑','Dados locais limpos');
+  setTimeout(() => renderAll(), 500);
+}
+
+function toast(icon, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-msg').textContent  = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Enter nos inputs
+document.getElementById('new-produto').addEventListener('keydown', e => { if(e.key==='Enter') addItem('produto'); });
+document.getElementById('new-unidade').addEventListener('keydown', e => { if(e.key==='Enter') addItem('unidade'); });
+document.getElementById('new-site-url').addEventListener('keydown', e => { if(e.key==='Enter') addSite(); });
+document.getElementById('new-cliente-cnpj').addEventListener('keydown', e => { if(e.key==='Enter') addCliente(); });
+
+renderAll();
+</script>
+</body>
+</html>
