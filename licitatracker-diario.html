@@ -745,16 +745,16 @@
     <div class="modal-section-title">Dados para Boletim</div>
     <div class="detail-grid cols3">
       <div class="form-group">
-        <label class="form-label">Unidade</label>
-        <input class="form-input" id="det-unidade" type="text" placeholder="ex: SAAE, PM, TJ...">
+        <label class="form-label">Unidade (Embalagem)</label>
+        <select class="form-input" id="det-unidade"></select>
       </div>
       <div class="form-group">
         <label class="form-label">UASEG / Processo</label>
         <input class="form-input" id="det-uaseg" type="text" placeholder="ex: 0123/2026">
       </div>
       <div class="form-group">
-        <label class="form-label">Item</label>
-        <input class="form-input" id="det-item" type="text" placeholder="ex: Café 500g">
+        <label class="form-label">Nº Item no Pregão</label>
+        <input class="form-input" id="det-item" type="text" placeholder="ex: 18">
       </div>
     </div>
 
@@ -1054,8 +1054,35 @@ function selectRow(tr) {
 }
 
 // =============================================
-// PRODUTO LIST (igual ao Site)
+// UNIDADE LIST (Embalagem)
 // =============================================
+const UNIDADE_DEFAULTS = [
+  'PC - 250Grs',
+  'PC - 500Grs',
+  'PC - 1 Kg',
+  'KG - Quilograma',
+  'LT - Litro',
+  'MT - Metro',
+  'UN - Unidade',
+  'CX - Caixa',
+];
+
+function getUnidadeList() {
+  const extra = JSON.parse(localStorage.getItem('lt_unidades') || '[]');
+  return [...new Set([...UNIDADE_DEFAULTS, ...extra])].sort((a,b) => a.localeCompare(b));
+}
+
+function buildUnidadeOptions(current) {
+  const list = getUnidadeList();
+  let opts = `<option value="">— selecionar —</option>`;
+  list.forEach(u => {
+    opts += `<option value="${u}" ${current === u ? 'selected' : ''}>${u}</option>`;
+  });
+  opts += `<option value="__novo__">+ Nova unidade...</option>`;
+  return opts;
+}
+
+
 const PRODUTO_DEFAULTS = ['Café', 'Palestra'];
 
 function getProdutoList() {
@@ -1254,10 +1281,9 @@ function openDetail(e, id) {
   // Editable fields
   document.getElementById('det-qtd').value    = m.qtd    || '';
   document.getElementById('det-valref').value = m.valref || '';
-  document.getElementById('det-unidade').value = m.unidade || '';
-  document.getElementById('det-uaseg').value   = m.uaseg   || '';
-  document.getElementById('det-item').value    = m.item    || '';
-  document.getElementById('det-uf').value      = r.unidadeorgao_ufsigla || m.uf || '';
+  document.getElementById('det-uaseg').value  = m.uaseg  || '';
+  document.getElementById('det-item').value   = m.item   || '';
+  document.getElementById('det-uf').value     = r.unidadeorgao_ufsigla || m.uf || '';
 
   // Recalc total
   updateDetTotal();
@@ -1265,6 +1291,23 @@ function openDetail(e, id) {
   // Produto select
   const pSel = document.getElementById('det-produto');
   pSel.innerHTML = buildProdutoOptions(m.produto||'');
+
+  // Unidade select
+  const uSel = document.getElementById('det-unidade');
+  uSel.innerHTML = buildUnidadeOptions(m.unidade||'');
+  uSel.onchange = function() {
+    if (this.value === '__novo__') {
+      const nome = prompt('Nova unidade de embalagem (ex: FR - Frasco):');
+      if (!nome) { this.value = m.unidade||''; return; }
+      const extra = JSON.parse(localStorage.getItem('lt_unidades') || '[]');
+      if (!extra.includes(nome.trim())) {
+        extra.push(nome.trim());
+        localStorage.setItem('lt_unidades', JSON.stringify(extra));
+      }
+      uSel.innerHTML = buildUnidadeOptions(nome.trim());
+      toast('✅', `Unidade "${nome.trim()}" adicionada!`);
+    }
+  };
 
   // Site select — prioridade: manual > base
   const siteValDet = m.site || r.linksistemaorigem || '';
