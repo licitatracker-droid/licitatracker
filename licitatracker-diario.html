@@ -169,36 +169,19 @@
 
   /* DATE NAV */
   .date-nav {
-    display: flex; align-items: center; gap: 4px;
+    display: flex; align-items: center; gap: 8px;
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 4px 6px;
+    border-radius: var(--radius); padding: 6px 12px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
-  .date-nav-btn {
-    background: none; border: none; cursor: pointer;
-    color: var(--text-muted); font-size: 16px; font-weight: 600;
-    padding: 2px 6px; border-radius: 6px; line-height: 1;
-    transition: all 0.15s;
-  }
-  .date-nav-btn:hover { background: var(--surface-hover); color: var(--text); }
-  .date-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
-  .date-clear-btn { font-size: 11px; color: var(--red); }
-  .date-clear-btn:hover { background: #FEF2F2; }
-
-  .date-picker-wrap {
-    display: flex; align-items: center; gap: 6px;
-    position: relative; cursor: pointer;
-  }
   .date-cal-icon { font-size: 14px; }
-  .date-picker-wrap input[type="date"] {
-    position: absolute; inset: 0; opacity: 0;
-    cursor: pointer; width: 100%; border: none;
+  .date-select {
+    background: transparent; border: none; outline: none;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    font-weight: 600; color: var(--text); cursor: pointer;
+    min-width: 130px;
   }
-  .date-label {
-    font-size: 13px; font-weight: 600; color: var(--text);
-    white-space: nowrap; min-width: 90px; user-select: none;
-  }
-  .date-label.active { color: var(--accent); }
+  .date-select option { background: white; color: var(--text); font-weight: 400; }
 
   /* STATS ROW */
   .stats-row {
@@ -600,14 +583,10 @@
 
       <!-- Seletor de Data -->
       <div class="date-nav">
-        <button class="date-nav-btn" onclick="shiftDate(-1)" title="Dia anterior">‹</button>
-        <div class="date-picker-wrap">
-          <span class="date-cal-icon">📅</span>
-          <input type="date" id="filter-data" onchange="updateDateLabel(this.value); applyFilters()" title="Filtrar por data de carga na base">
-          <span class="date-label" id="date-label">Todas as datas</span>
-        </div>
-        <button class="date-nav-btn" onclick="shiftDate(1)" title="Próximo dia">›</button>
-        <button class="date-nav-btn date-clear-btn" onclick="clearDate()" title="Limpar filtro de data">✕</button>
+        <span class="date-cal-icon">📅</span>
+        <select id="filter-data" class="date-select" onchange="applyFilters()">
+          <option value="">Todas as datas</option>
+        </select>
       </div>
 
       <select class="filter-select" id="filter-uf" onchange="applyFilters()">
@@ -918,52 +897,27 @@ let availableDates = []; // ['2026-04-24', '2026-04-23', ...]
 function buildDateList() {
   const set = new Set();
   allData.forEach(r => {
-    if (r.data_carga) {
-      // Pega só a parte da data (YYYY-MM-DD)
-      set.add(r.data_carga.substring(0, 10));
-    }
+    if (r.data_carga) set.add(r.data_carga.substring(0, 10));
   });
   availableDates = [...set].sort((a,b) => b.localeCompare(a)); // mais recente primeiro
 
+  // Popula o dropdown
+  const sel = document.getElementById('filter-data');
+  sel.innerHTML = `<option value="">Todas as datas (${allData.length})</option>`;
+  availableDates.forEach(d => {
+    const dt    = new Date(d + 'T12:00:00');
+    const label = dt.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+    const count = allData.filter(r => (r.data_carga||'').substring(0,10) === d).length;
+    sel.innerHTML += `<option value="${d}">${label} (${count})</option>`;
+  });
+
   // Seleciona automaticamente a data mais recente
   if (availableDates.length > 0) {
-    const input = document.getElementById('filter-data');
-    input.value = availableDates[0];
-    updateDateLabel(availableDates[0]);
+    sel.value = availableDates[0];
   }
 }
 
-function updateDateLabel(val) {
-  const lbl = document.getElementById('date-label');
-  if (!val) {
-    lbl.textContent = 'Todas as datas';
-    lbl.classList.remove('active');
-  } else {
-    const d = new Date(val + 'T12:00:00');
-    lbl.textContent = d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
-    lbl.classList.add('active');
-  }
-}
-
-function shiftDate(dir) {
-  const input = document.getElementById('filter-data');
-  const current = input.value;
-  if (!availableDates.length) return;
-  const idx = availableDates.indexOf(current);
-  // dir = -1 → dia anterior (índice maior no array desc), dir = +1 → mais recente (índice menor)
-  const newIdx = idx + (-dir);
-  if (newIdx < 0 || newIdx >= availableDates.length) return;
-  input.value = availableDates[newIdx];
-  updateDateLabel(availableDates[newIdx]);
-  applyFilters();
-}
-
-function clearDate() {
-  const input = document.getElementById('filter-data');
-  input.value = '';
-  updateDateLabel('');
-  applyFilters();
-}
+// (date nav handled by dropdown select)
 
 // =============================================
 // DEMO DATA (para visualização sem API)
@@ -989,10 +943,7 @@ function applyFilters() {
   const uf      = document.getElementById('filter-uf').value;
   const modal   = document.getElementById('filter-modal').value;
   const produto = document.getElementById('filter-produto').value;
-  const dataSel = document.getElementById('filter-data').value; // YYYY-MM-DD
-
-  // Atualiza label da data
-  updateDateLabel(dataSel);
+  const dataSel = document.getElementById('filter-data').value;
 
   filtered = allData.filter(r => {
     const m = manualData[r.id] || {};
@@ -1016,6 +967,14 @@ function applyFilters() {
   });
 
   currentPage = 1;
+  // Atualiza stats com dados filtrados
+  const pregaoFilt = filtered.filter(r => (r.modalidadenome||'').includes('Pregão')).length;
+  const concFilt   = filtered.filter(r => (r.modalidadenome||'').includes('Concorrência')).length;
+  const volFilt    = filtered.reduce((s,r) => s + parseFloat(r.valortotalestimado||0), 0);
+  document.getElementById('stat-total').textContent  = filtered.length;
+  document.getElementById('stat-pregao').textContent = pregaoFilt;
+  document.getElementById('stat-conc').textContent   = concFilt;
+  document.getElementById('stat-volume').textContent = fmtShort(volFilt);
   renderTable();
 }
 
@@ -1318,15 +1277,16 @@ function toggleStar(e, id) {
 }
 
 // =============================================
-// STATS
+// STATS — usa dados filtrados
 // =============================================
 function updateStats() {
-  const total  = allData.length;
+  // Stats gerais sempre do total da base
+  const base   = allData.length;
   const pregao = allData.filter(r => (r.modalidadenome||'').includes('Pregão')).length;
   const conc   = allData.filter(r => (r.modalidadenome||'').includes('Concorrência')).length;
   const vol    = allData.reduce((s,r) => s + parseFloat(r.valortotalestimado||0), 0);
 
-  document.getElementById('stat-total').textContent  = total;
+  document.getElementById('stat-total').textContent  = base;
   document.getElementById('stat-pregao').textContent = pregao;
   document.getElementById('stat-conc').textContent   = conc;
   document.getElementById('stat-volume').textContent = fmtShort(vol);
