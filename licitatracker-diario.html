@@ -167,6 +167,39 @@
 
   .toolbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 
+  /* DATE NAV */
+  .date-nav {
+    display: flex; align-items: center; gap: 4px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 4px 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .date-nav-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 16px; font-weight: 600;
+    padding: 2px 6px; border-radius: 6px; line-height: 1;
+    transition: all 0.15s;
+  }
+  .date-nav-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .date-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+  .date-clear-btn { font-size: 11px; color: var(--red); }
+  .date-clear-btn:hover { background: #FEF2F2; }
+
+  .date-picker-wrap {
+    display: flex; align-items: center; gap: 6px;
+    position: relative; cursor: pointer;
+  }
+  .date-cal-icon { font-size: 14px; }
+  .date-picker-wrap input[type="date"] {
+    position: absolute; inset: 0; opacity: 0;
+    cursor: pointer; width: 100%; border: none;
+  }
+  .date-label {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    white-space: nowrap; min-width: 90px; user-select: none;
+  }
+  .date-label.active { color: var(--accent); }
+
   /* STATS ROW */
   .stats-row {
     display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
@@ -564,6 +597,19 @@
         <span class="search-icon">🔍</span>
         <input type="text" id="search-input" placeholder="Buscar por objeto, órgão, PNCP..." oninput="applyFilters()">
       </div>
+
+      <!-- Seletor de Data -->
+      <div class="date-nav">
+        <button class="date-nav-btn" onclick="shiftDate(-1)" title="Dia anterior">‹</button>
+        <div class="date-picker-wrap">
+          <span class="date-cal-icon">📅</span>
+          <input type="date" id="filter-data" onchange="updateDateLabel(this.value); applyFilters()" title="Filtrar por data de carga na base">
+          <span class="date-label" id="date-label">Todas as datas</span>
+        </div>
+        <button class="date-nav-btn" onclick="shiftDate(1)" title="Próximo dia">›</button>
+        <button class="date-nav-btn date-clear-btn" onclick="clearDate()" title="Limpar filtro de data">✕</button>
+      </div>
+
       <select class="filter-select" id="filter-uf" onchange="applyFilters()">
         <option value="">UF: Todas</option>
         <option value="SP">SP</option>
@@ -824,7 +870,7 @@ let manualData  = JSON.parse(localStorage.getItem('lt_manual')  || '{}'); // key
 async function loadData() {
   showLoading();
   try {
-    const url = `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=dataencerramentoproposta.asc&limit=1000`;
+    const url = `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=data_carga.desc,dataencerramentoproposta.asc&limit=2000`;
     const res = await fetch(url, {
       method: 'GET',
       headers: {
@@ -846,14 +892,18 @@ async function loadData() {
 
     allData = data;
     document.getElementById('last-update').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+
+    // Popula datas disponíveis e seleciona a mais recente
+    buildDateList();
+
     updateStats();
     applyFilters();
     toast('✅', `${data.length} editais carregados`);
   } catch (err) {
     console.warn('Supabase erro:', err.message);
-    // Mostra o erro real na tela para facilitar debug
     document.getElementById('last-update').textContent = '❌ Erro: ' + err.message;
     allData = getDemoData();
+    buildDateList();
     updateStats();
     applyFilters();
     toast('⚠️', 'Modo demo — ' + err.message.substring(0, 40));
@@ -861,15 +911,70 @@ async function loadData() {
 }
 
 // =============================================
+// DATE LIST — datas disponíveis na base
+// =============================================
+let availableDates = []; // ['2026-04-24', '2026-04-23', ...]
+
+function buildDateList() {
+  const set = new Set();
+  allData.forEach(r => {
+    if (r.data_carga) {
+      // Pega só a parte da data (YYYY-MM-DD)
+      set.add(r.data_carga.substring(0, 10));
+    }
+  });
+  availableDates = [...set].sort((a,b) => b.localeCompare(a)); // mais recente primeiro
+
+  // Seleciona automaticamente a data mais recente
+  if (availableDates.length > 0) {
+    const input = document.getElementById('filter-data');
+    input.value = availableDates[0];
+    updateDateLabel(availableDates[0]);
+  }
+}
+
+function updateDateLabel(val) {
+  const lbl = document.getElementById('date-label');
+  if (!val) {
+    lbl.textContent = 'Todas as datas';
+    lbl.classList.remove('active');
+  } else {
+    const d = new Date(val + 'T12:00:00');
+    lbl.textContent = d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
+    lbl.classList.add('active');
+  }
+}
+
+function shiftDate(dir) {
+  const input = document.getElementById('filter-data');
+  const current = input.value;
+  if (!availableDates.length) return;
+  const idx = availableDates.indexOf(current);
+  // dir = -1 → dia anterior (índice maior no array desc), dir = +1 → mais recente (índice menor)
+  const newIdx = idx + (-dir);
+  if (newIdx < 0 || newIdx >= availableDates.length) return;
+  input.value = availableDates[newIdx];
+  updateDateLabel(availableDates[newIdx]);
+  applyFilters();
+}
+
+function clearDate() {
+  const input = document.getElementById('filter-data');
+  input.value = '';
+  updateDateLabel('');
+  applyFilters();
+}
+
+// =============================================
 // DEMO DATA (para visualização sem API)
 // =============================================
 function getDemoData() {
   return [
-    { id:1, numerocontrolepncp:'45368545000193-1-000024/2026', objetocompra:'Aquisição de material de escritório, papel A4, canetas e suprimentos em geral para os departamentos municipais', dataencerramentoproposta:'2026-05-21T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE SANTA ROSA DE VITERBO', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:45000, linksistemaorigem:'https://pncp.gov.br' },
-    { id:2, numerocontrolepncp:'64614449000122-1-000022/2026', objetocompra:'Contratação de empresa para fornecimento de material de limpeza e higiene para as unidades de saúde municipais', dataencerramentoproposta:'2026-05-18T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE TARUMA', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:133300, linksistemaorigem:'https://app2.licitardigital.com.br/pesquisa/98031' },
-    { id:3, numerocontrolepncp:'45279635000108-1-000280/2026', objetocompra:'Aquisição de equipamentos de informática: notebooks, desktops e periféricos para renovação do parque tecnológico', dataencerramentoproposta:'2026-06-15T14:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE ATIBAIA', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:280000, linksistemaorigem:'' },
-    { id:4, numerocontrolepncp:'71480560000139-1-000055/2026', objetocompra:'Contratação de empresa especializada para fornecimento de combustíveis e lubrificantes para a frota municipal', dataencerramentoproposta:'2026-06-25T10:00:00', orgaoentidade_razaosocial:'SERVICO AUTONOMO DE AGUA E ESGOTO', unidadeorgao_ufsigla:'SP', modalidadenome:'Concorrência - Eletrônica', valortotalestimado:555999, linksistemaorigem:'https://cnetmobile.estaleiro.serpro.gov.br' },
-    { id:5, numerocontrolepncp:'45787678000102-1-000074/2026', objetocompra:'Aquisição de mobiliário para as escolas da rede municipal: mesas, cadeiras, armários e estantes', dataencerramentoproposta:'2026-05-11T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE VALINHOS', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:306465, linksistemaorigem:'https://cnetmobile.estaleiro.serpro.gov.br' },
+    { id:1, numerocontrolepncp:'45368545000193-1-000024/2026', objetocompra:'Aquisição de material de escritório, papel A4, canetas e suprimentos em geral para os departamentos municipais', dataencerramentoproposta:'2026-05-21T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE SANTA ROSA DE VITERBO', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:45000, linksistemaorigem:'https://pncp.gov.br', data_carga:'2026-04-24' },
+    { id:2, numerocontrolepncp:'64614449000122-1-000022/2026', objetocompra:'Contratação de empresa para fornecimento de material de limpeza e higiene para as unidades de saúde municipais', dataencerramentoproposta:'2026-05-18T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE TARUMA', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:133300, linksistemaorigem:'https://app2.licitardigital.com.br/pesquisa/98031', data_carga:'2026-04-24' },
+    { id:3, numerocontrolepncp:'45279635000108-1-000280/2026', objetocompra:'Aquisição de equipamentos de informática: notebooks, desktops e periféricos para renovação do parque tecnológico', dataencerramentoproposta:'2026-06-15T14:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE ATIBAIA', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:280000, linksistemaorigem:'', data_carga:'2026-04-23' },
+    { id:4, numerocontrolepncp:'71480560000139-1-000055/2026', objetocompra:'Contratação de empresa especializada para fornecimento de combustíveis e lubrificantes para a frota municipal', dataencerramentoproposta:'2026-06-25T10:00:00', orgaoentidade_razaosocial:'SERVICO AUTONOMO DE AGUA E ESGOTO', unidadeorgao_ufsigla:'SP', modalidadenome:'Concorrência - Eletrônica', valortotalestimado:555999, linksistemaorigem:'https://cnetmobile.estaleiro.serpro.gov.br', data_carga:'2026-04-23' },
+    { id:5, numerocontrolepncp:'45787678000102-1-000074/2026', objetocompra:'Aquisição de mobiliário para as escolas da rede municipal: mesas, cadeiras, armários e estantes', dataencerramentoproposta:'2026-05-11T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE VALINHOS', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:306465, linksistemaorigem:'https://cnetmobile.estaleiro.serpro.gov.br', data_carga:'2026-04-22' },
     { id:6, numerocontrolepncp:'46523270000188-1-000136/2026', objetocompra:'Contratação de empresa para serviços de manutenção preventiva e corretiva de equipamentos de ar condicionado', dataencerramentoproposta:'2026-05-29T09:00:00', orgaoentidade_razaosocial:'MUNICIPIO DE MOGI DAS CRUZES', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:116797, linksistemaorigem:'' },
     { id:7, numerocontrolepncp:'44872778000166-1-000005/2026', objetocompra:'Aquisição de medicamentos, insumos farmacêuticos e produtos para saúde destinados à farmácia municipal', dataencerramentoproposta:'2026-05-11T08:30:00', orgaoentidade_razaosocial:'MUNICIPIO DE SANDOVALINA', unidadeorgao_ufsigla:'SP', modalidadenome:'Pregão - Eletrônico', valortotalestimado:2734106, linksistemaorigem:'https://portaldecompraspublicas.com.br' },
     { id:8, numerocontrolepncp:'46523130000100-1-000087/2026', objetocompra:'Contratação de serviços de segurança patrimonial e vigilância eletrônica para os prédios públicos municipais', dataencerramentoproposta:'2026-05-07T08:59:00', orgaoentidade_razaosocial:'MUNICIPIO DE ITAPECERICA DA SERRA', unidadeorgao_ufsigla:'SP', modalidadenome:'Concorrência - Eletrônica', valortotalestimado:155695, linksistemaorigem:'' },
@@ -884,6 +989,10 @@ function applyFilters() {
   const uf      = document.getElementById('filter-uf').value;
   const modal   = document.getElementById('filter-modal').value;
   const produto = document.getElementById('filter-produto').value;
+  const dataSel = document.getElementById('filter-data').value; // YYYY-MM-DD
+
+  // Atualiza label da data
+  updateDateLabel(dataSel);
 
   filtered = allData.filter(r => {
     const m = manualData[r.id] || {};
@@ -894,7 +1003,8 @@ function applyFilters() {
     const matchUF      = !uf      || (r.unidadeorgao_ufsigla||'') === uf;
     const matchModal   = !modal   || (r.modalidadenome||'').includes(modal);
     const matchProduto = !produto || (m.produto||'') === produto;
-    return matchQ && matchUF && matchModal && matchProduto;
+    const matchData    = !dataSel || (r.data_carga||'').substring(0,10) === dataSel;
+    return matchQ && matchUF && matchModal && matchProduto && matchData;
   });
 
   // sort
