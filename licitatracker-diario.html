@@ -194,7 +194,7 @@
 
   .table-scroll { overflow-x: auto; }
 
-  table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
 
   thead tr {
     background: #F9FAFB;
@@ -202,9 +202,9 @@
   }
 
   th {
-    padding: 11px 14px; text-align: left;
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--text-muted);
+    padding: 9px 10px; text-align: left;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-muted);
     white-space: nowrap; cursor: pointer; user-select: none;
     transition: color 0.15s;
   }
@@ -222,20 +222,20 @@
   tbody tr.selected { background: #EEF2FF; border-color: #BFDBFE; }
 
   td {
-    padding: 11px 14px; font-size: 13px;
+    padding: 9px 10px; font-size: 12px;
     color: var(--text-soft); vertical-align: middle;
   }
 
   td.col-pncp {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    color: var(--text-muted); min-width: 210px;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--text-muted); min-width: 160px; max-width: 170px;
   }
-  td.col-pncp .pncp-num { color: var(--text-soft); display: block; margin-bottom: 2px; }
-  td.col-pncp .pncp-modal { font-size: 10px; opacity: 0.5; }
+  td.col-pncp .pncp-num { color: var(--text-soft); display: block; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  td.col-pncp .pncp-modal { font-size: 9px; opacity: 0.5; }
 
   td.col-objeto {
-    max-width: 300px; color: var(--text);
-    font-size: 12.5px; line-height: 1.5;
+    min-width: 200px; max-width: 260px; color: var(--text);
+    font-size: 12px; line-height: 1.4;
   }
   td.col-objeto .obj-text {
     display: -webkit-box; -webkit-line-clamp: 2;
@@ -247,61 +247,47 @@
   }
   .expand-btn {
     background: none; border: none; cursor: pointer;
-    font-size: 10px; color: var(--accent-glow); padding: 2px 0;
-    display: inline-block; margin-top: 3px;
+    font-size: 10px; color: var(--accent); padding: 1px 0;
+    display: inline-block; margin-top: 2px;
     font-family: 'DM Sans', sans-serif; font-weight: 600;
     transition: opacity 0.15s;
   }
   .expand-btn:hover { opacity: 0.7; }
 
-  td.col-data { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 12px; }
-  td.col-orgao { max-width: 240px; font-size: 12px; }
-  td.col-orgao span { display: block; white-space: normal; line-height: 1.3; overflow: hidden;
-    text-overflow: ellipsis; max-width: 240px; }
-  td.col-produto { min-width: 130px; }
-  td.col-uf { text-align: center; }
+  td.col-data { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 11px; min-width: 80px; }
+  td.col-pregao { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text); min-width: 70px; }
+  td.col-orgao { max-width: 180px; min-width: 130px; font-size: 11px; }
+  td.col-orgao span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  td.col-produto { min-width: 110px; max-width: 120px; }
+  td.col-uf { text-align: center; min-width: 44px; }
 
   .uf-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 6px;
+    display: inline-block; padding: 2px 6px; border-radius: 5px;
     background: #EEF2FF; border: 1px solid #C7D2FE;
-    font-size: 11px; font-weight: 700; color: var(--accent);
+    font-size: 10px; font-weight: 700; color: var(--accent);
     font-family: 'DM Mono', monospace;
   }
 
-  td.col-valor { text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
+  td.col-valor { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; white-space: nowrap; min-width: 80px; }
   td.col-valor .val-total { color: var(--green); font-weight: 600; }
-  td.col-valor .val-ref { color: var(--text-muted); font-size: 11px; }
 
-  td.col-item, td.col-qtd, td.col-valref { font-size: 12px; }
-
-  .editable-cell { display: flex; align-items: center; gap: 6px; }
-  .editable-cell input {
-    background: transparent; border: none; outline: none;
-    font-family: 'DM Sans', sans-serif; font-size: 12px;
-    color: var(--text-soft); width: 100%; cursor: text;
-    border-bottom: 1px dashed transparent;
-    transition: border-color 0.15s; padding: 2px 0;
-  }
-  .editable-cell input:focus { border-bottom-color: var(--accent); color: var(--text); }
-  .editable-cell input::placeholder { color: #D1D5DB; font-style: italic; }
-
-  td.col-site { min-width: 130px; }
+  td.col-site { min-width: 110px; max-width: 120px; }
   .site-select {
     background: transparent; border: none; outline: none;
-    font-family: 'DM Sans', sans-serif; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 11px;
     color: var(--text-soft); cursor: pointer; width: 100%;
     border-bottom: 1px dashed transparent;
-    transition: border-color 0.15s; padding: 2px 0;
+    transition: border-color 0.15s; padding: 1px 0;
   }
   .site-select:focus { border-bottom-color: var(--accent); color: var(--text); }
   .site-select option { background: white; color: var(--text); }
 
-  td.col-links { white-space: nowrap; min-width: 130px; }
+  td.col-links { white-space: nowrap; min-width: 90px; }
   .link-btn {
-    display: flex; align-items: center; gap: 4px;
-    padding: 4px 9px; border-radius: 6px;
-    font-size: 11px; font-weight: 600; text-decoration: none;
-    transition: all 0.15s; margin-bottom: 4px; width: fit-content;
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 3px 7px; border-radius: 5px;
+    font-size: 10px; font-weight: 600; text-decoration: none;
+    transition: all 0.15s; margin-bottom: 3px; white-space: nowrap;
   }
   .link-btn-pncp {
     background: #EEF2FF; border: 1px solid #C7D2FE;
@@ -610,7 +596,7 @@
         <table id="main-table">
           <thead>
             <tr>
-              <th style="width:32px;"></th>
+              <th style="width:28px;"></th>
               <th onclick="sortBy('numerocontrolepncp')">Nº PNCP</th>
               <th onclick="sortBy('objetocompra')">Objeto</th>
               <th onclick="sortBy('dataencerramentoproposta')">Data</th>
@@ -620,12 +606,10 @@
               <th>Produto</th>
               <th onclick="sortBy('unidadeorgao_ufsigla')">UF</th>
               <th>Site</th>
-              <th>Qtd Est.</th>
-              <th>Vlr Ref.</th>
               <th>Total</th>
               <th>Link PNCP</th>
               <th>Link Pregão</th>
-              <th style="width:80px">Status</th>
+              <th style="width:60px">Status</th>
             </tr>
           </thead>
           <tbody id="table-body">
@@ -949,7 +933,7 @@ function renderTable() {
     `Mostrando ${start+1}–${end} de ${total} editais`;
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="15"><div class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state">
       <div class="empty-icon">🔍</div>
       <div class="empty-text">Nenhum edital encontrado para os filtros aplicados.</div>
     </div></td></tr>`;
@@ -1015,7 +999,7 @@ function renderTable() {
           onchange="saveManual('${r.id}','horamanual',this.value)"
           onclick="event.stopPropagation()" title="Hora não encontrada na base — insira manualmente">`}
       </td>
-      <td class="col-data" style="color:var(--text-soft);font-weight:500">${numPregao}</td>
+      <td class="col-pregao">${numPregao}</td>
       <td class="col-orgao"><span title="${r.orgaoentidade_razaosocial||''}">${r.orgaoentidade_razaosocial||'—'}</span></td>
       <td class="col-produto">
         <select class="site-select" onchange="saveProdutoRow(event,'${r.id}',this.value)" onclick="event.stopPropagation()">
@@ -1027,20 +1011,6 @@ function renderTable() {
         <select class="site-select" onchange="saveSite(event,'${r.id}',this.value)" onclick="event.stopPropagation()">
           ${siteOptions}
         </select>
-      </td>
-      <td class="col-qtd">
-        <div class="editable-cell">
-          <input type="number" placeholder="0" value="${m.qtd||''}" style="width:60px"
-            onchange="saveManual('${r.id}','qtd',this.value); renderTable();"
-            onclick="event.stopPropagation()">
-        </div>
-      </td>
-      <td class="col-valref">
-        <div class="editable-cell">
-          <input type="number" placeholder="0,00" value="${m.valref||''}" style="width:80px"
-            onchange="saveManual('${r.id}','valref',this.value); renderTable();"
-            onclick="event.stopPropagation()">
-        </div>
       </td>
       <td class="col-valor">
         <div class="val-total">${totalVal}</div>
@@ -1495,7 +1465,7 @@ function fmtShort(v) {
 
 function showLoading() {
   document.getElementById('table-body').innerHTML =
-    `<tr class="loading-row"><td colspan="15"><span class="spinner"></span> Carregando dados...</td></tr>`;
+    `<tr class="loading-row"><td colspan="14"><span class="spinner"></span> Carregando dados...</td></tr>`;
 }
 
 function toast(icon, msg) {
