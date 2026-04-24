@@ -318,6 +318,18 @@
     color: var(--text-muted); cursor: default; pointer-events: none;
   }
 
+  .modal-lg { max-width: 860px; width: 95vw; }
+
+  .inline-date-input {
+    background: #FFFBEB; border: 1px dashed #FDE68A;
+    border-radius: 6px; padding: 3px 6px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px;
+    color: var(--text); outline: none; cursor: pointer;
+    transition: border-color 0.15s; width: 110px;
+  }
+  .inline-date-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(217,119,6,0.1); }
+  .inline-date-input[type="time"] { width: 80px; }
+
   .modal-section-title {
     font-size: 10px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.1em; color: var(--accent);
@@ -951,8 +963,12 @@ function renderTable() {
     // Normaliza formato: "2026-05-21 09:00:00" → "2026-05-21T09:00:00"
     const rawDt  = r.dataencerramentoproposta ? r.dataencerramentoproposta.replace(' ', 'T') : null;
     const dt     = rawDt ? new Date(rawDt) : null;
-    const dtStr  = dt && !isNaN(dt) ? dt.toLocaleDateString('pt-BR') : '—';
-    const hrStr  = dt && !isNaN(dt) ? dt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}) : '—';
+    const dtOk   = dt && !isNaN(dt);
+    // Fallback para data/hora inserida manualmente
+    const dtStr  = dtOk ? dt.toLocaleDateString('pt-BR')
+                        : (m.datamanual ? new Date(m.datamanual+'T00:00').toLocaleDateString('pt-BR') : '—');
+    const hrStr  = dtOk ? dt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
+                        : (m.horamanual || '—');
     const valRef = parseFloat(m.valref || 0);
     const qtd    = parseFloat(m.qtd || 0);
     const totalVal = (valRef && qtd) ? fmt(valRef * qtd) : '—';
@@ -964,8 +980,8 @@ function renderTable() {
     const pncpNum  = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
     const linkPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
 
-    // Link Pregão = site salvo manualmente
-    const siteVal    = m.site || '';
+    // Link Pregão — prioridade: manual > base (linksistemaorigem)
+    const siteVal    = m.site || r.linksistemaorigem || '';
     const siteNome   = getSiteNome(siteVal);
     const linkPregao = siteVal
       ? `<a href="${siteVal}" target="_blank" class="link-btn link-btn-pregao" onclick="event.stopPropagation()">🔗 ${siteNome}</a>`
@@ -989,8 +1005,16 @@ function renderTable() {
         <div class="obj-text" id="obj-${r.id}">${r.objetocompra||'—'}</div>
         <button class="expand-btn" onclick="toggleExpand(event,${r.id})">▼ ver mais</button>
       </td>
-      <td class="col-data">${dtStr}</td>
-      <td class="col-data">${hrStr}</td>
+      <td class="col-data">
+        ${dtStr !== '—' ? dtStr : `<input type="date" class="inline-date-input" value="${m.datamanual||''}"
+          onchange="saveManual('${r.id}','datamanual',this.value)"
+          onclick="event.stopPropagation()" title="Data não encontrada na base — insira manualmente">`}
+      </td>
+      <td class="col-data">
+        ${hrStr !== '—' ? hrStr : `<input type="time" class="inline-date-input" value="${m.horamanual||''}"
+          onchange="saveManual('${r.id}','horamanual',this.value)"
+          onclick="event.stopPropagation()" title="Hora não encontrada na base — insira manualmente">`}
+      </td>
       <td class="col-data" style="color:var(--text-soft);font-weight:500">${numPregao}</td>
       <td class="col-orgao"><span title="${r.orgaoentidade_razaosocial||''}">${r.orgaoentidade_razaosocial||'—'}</span></td>
       <td class="col-produto">
@@ -1241,9 +1265,20 @@ function openDetail(e, id) {
   document.getElementById('det-pncp').textContent    = r.numerocontrolepncp || '—';
   document.getElementById('det-ncompra').textContent = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : (r.sequencialcompra ? `${r.sequencialcompra}/${r.anocompra}` : '—');
   const dt = r.dataencerramentoproposta ? new Date(r.dataencerramentoproposta.replace(' ','T')) : null;
-  document.getElementById('det-data').textContent = dt && !isNaN(dt)
-    ? dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
-    : '—';
+  const dtOk = dt && !isNaN(dt);
+  if (dtOk) {
+    document.getElementById('det-data').innerHTML =
+      `<span>${dt.toLocaleDateString('pt-BR')} ${dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>`;
+  } else {
+    document.getElementById('det-data').innerHTML = `
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input type="date" class="inline-date-input" id="det-datamanual" value="${m.datamanual||''}"
+          style="width:130px" title="Data do pregão (manual)">
+        <input type="time" class="inline-date-input" id="det-horamanual" value="${m.horamanual||''}"
+          style="width:90px" title="Hora do pregão (manual)">
+      </div>
+      <div style="font-size:10px;color:var(--gold);margin-top:4px">⚠ Data não encontrada na base — preencha manualmente</div>`;
+  }
   document.getElementById('det-orgao').textContent = r.orgaoentidade_razaosocial || '—';
 
   // Editable fields
@@ -1261,9 +1296,10 @@ function openDetail(e, id) {
   const pSel = document.getElementById('det-produto');
   pSel.innerHTML = buildProdutoOptions(m.produto||'');
 
-  // Site select
+  // Site select — prioridade: manual > base
+  const siteValDet = m.site || r.linksistemaorigem || '';
   const sSel = document.getElementById('det-site');
-  sSel.innerHTML = buildSiteOptions(m.site||'');
+  sSel.innerHTML = buildSiteOptions(siteValDet);
 
   document.getElementById('detail-overlay').classList.add('open');
 }
@@ -1278,14 +1314,18 @@ document.addEventListener('input', e => {
 });
 
 function collectDetail() {
+  const dataManualEl = document.getElementById('det-datamanual');
+  const horaManualEl = document.getElementById('det-horamanual');
   return {
-    produto:  document.getElementById('det-produto').value,
-    site:     document.getElementById('det-site').value,
-    qtd:      document.getElementById('det-qtd').value,
-    valref:   document.getElementById('det-valref').value,
-    unidade:  document.getElementById('det-unidade').value.trim(),
-    uaseg:    document.getElementById('det-uaseg').value.trim(),
-    item:     document.getElementById('det-item').value.trim(),
+    produto:    document.getElementById('det-produto').value,
+    site:       document.getElementById('det-site').value,
+    qtd:        document.getElementById('det-qtd').value,
+    valref:     document.getElementById('det-valref').value,
+    unidade:    document.getElementById('det-unidade').value.trim(),
+    uaseg:      document.getElementById('det-uaseg').value.trim(),
+    item:       document.getElementById('det-item').value.trim(),
+    datamanual: dataManualEl ? dataManualEl.value : undefined,
+    horamanual: horaManualEl ? horaManualEl.value : undefined,
   };
 }
 
