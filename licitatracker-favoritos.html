@@ -148,6 +148,41 @@
     transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
   .toast.show{transform:translateY(0);opacity:1}
 
+  /* BOLETIM */
+  .bol-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);
+    backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .bol-overlay.open{display:flex}
+
+  @media print {
+    body * { visibility: hidden !important; }
+    .bol-print, .bol-print * { visibility: visible !important; }
+    .bol-print { position: fixed !important; inset: 0 !important; z-index: 9999 !important;
+      background: white !important; overflow: auto !important; padding: 0 !important; }
+    .bol-no-print { display: none !important; }
+  }
+
+  .bol-wrap{background:white;border-radius:16px;width:100%;max-width:1100px;max-height:90vh;
+    overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+  .bol-header{background:#C2590A;color:white;padding:18px 28px;display:flex;align-items:center;justify-content:space-between}
+  .bol-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
+  .bol-subtitle{font-size:12px;opacity:.85;margin-top:3px}
+  .bol-logo{text-align:right;font-size:13px;font-weight:600}
+  .bol-logo-sub{font-size:11px;opacity:.8;margin-top:2px}
+  .bol-body{flex:1;overflow-y:auto;padding:0}
+  .bol-table{width:100%;border-collapse:collapse}
+  .bol-table thead tr{background:#E8711A;color:white}
+  .bol-table th{padding:10px 10px;font-size:11px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;white-space:nowrap;border:1px solid #D97706}
+  .bol-table tbody tr{border-bottom:1px solid #FDE68A}
+  .bol-table tbody tr:nth-child(even){background:#FFFBEB}
+  .bol-table tbody tr:hover{background:#FEF3C7}
+  .bol-table td{padding:9px 10px;font-size:12px;color:#1F2937;border:1px solid #FDE68A;vertical-align:middle}
+  .bol-table td.num{font-family:'DM Mono',monospace;font-size:11px}
+  .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:#065F46}
+  .bol-footer-bar{padding:14px 28px;border-top:1px solid #E5E7EB;background:#F9FAFB;
+    display:flex;justify-content:center;gap:12px}
+  .bol-footer-txt{font-size:10px;color:#6B7280;text-align:right;padding:8px 28px 4px}
+
   @media(max-width:768px){.main{padding:16px}.topbar{padding:0 16px}}
 </style>
 </head>
@@ -216,10 +251,13 @@
     <div class="filters-inline">
       <div class="search-box">
         <span>🔍</span>
-        <input type="text" id="f-search" placeholder="Buscar objeto, órgão..." oninput="applyFilters()">
+        <input type="text" id="f-search" placeholder="Buscar por Nº PNCP ou órgão..." oninput="applyFilters()">
       </div>
-      <select class="filter-select" id="f-data" onchange="applyFilters()">
-        <option value="">📅 Data: Todas</option>
+      <select class="filter-select" id="f-uf" onchange="applyFilters()">
+        <option value="">Todas as UFs</option>
+      </select>
+      <select class="filter-select" id="f-produto" onchange="applyFilters()">
+        <option value="">Produto: Todos</option>
       </select>
       <select class="filter-select" id="f-status" onchange="applyFilters()">
         <option value="">Status: Todos</option>
@@ -228,12 +266,29 @@
         <option value="ganho">🏆 Ganho</option>
         <option value="perdido">✗ Perdido</option>
       </select>
-      <select class="filter-select" id="f-produto" onchange="applyFilters()">
-        <option value="">Produto: Todos</option>
-      </select>
-      <select class="filter-select" id="f-uf" onchange="applyFilters()">
-        <option value="">UF: Todas</option>
-      </select>
+      <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">De</span>
+      <input type="date" id="f-de" class="filter-select" onchange="applyFilters()" style="padding:7px 10px">
+      <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">Até</span>
+      <input type="date" id="f-ate" class="filter-select" onchange="applyFilters()" style="padding:7px 10px">
+      <button onclick="applyFilters()" style="background:#D97706;color:white;border:none;border-radius:10px;
+        padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap">
+        ▼ Filtrar
+      </button>
+      <button onclick="clearFilters()" style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;
+        padding:7px 12px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-muted);white-space:nowrap">
+        ✕ Limpar
+      </button>
+    </div>
+    <div class="hbar-div"></div>
+    <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap">
+      <button onclick="openBoletim()" style="background:#D97706;color:white;border:none;border-radius:10px;
+        padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+        👁 Visualizar Boletim
+      </button>
+      <button onclick="enviarBoletim()" style="background:#059669;color:white;border:none;border-radius:10px;
+        padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+        ✉ Enviar ⭐ para Licitações
+      </button>
     </div>
   </div>
 
@@ -282,6 +337,56 @@
     <div class="table-footer" id="table-footer">—</div>
   </div>
 </main>
+
+<!-- BOLETIM MODAL -->
+<div class="bol-overlay" id="bol-overlay">
+  <div class="bol-wrap bol-print">
+    <div class="bol-header">
+      <div>
+        <div class="bol-title" id="bol-title">📋 Boletim de Licitações</div>
+        <div class="bol-subtitle" id="bol-subtitle">—</div>
+      </div>
+      <div class="bol-logo">
+        <div id="bol-user-name">—</div>
+        <div class="bol-logo-sub" id="bol-user-email">—</div>
+      </div>
+    </div>
+    <div class="bol-body">
+      <table class="bol-table">
+        <thead>
+          <tr>
+            <th>Nº PNCP</th>
+            <th>Dt Pregão</th>
+            <th>HORA</th>
+            <th>N Pregão</th>
+            <th>Órgão Licitante</th>
+            <th>Item</th>
+            <th>UF</th>
+            <th>Site</th>
+            <th>Vl Estimado</th>
+            <th>Qtd Est.</th>
+            <th>Und</th>
+            <th>Vlr Unit.</th>
+            <th>UASEG/Processo</th>
+            <th>Nº Compra</th>
+          </tr>
+        </thead>
+        <tbody id="bol-tbody"></tbody>
+      </table>
+    </div>
+    <div class="bol-footer-txt" id="bol-footer-txt"></div>
+    <div class="bol-footer-bar bol-no-print">
+      <button onclick="printBol()" style="background:#D97706;color:white;border:none;border-radius:10px;
+        padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px">
+        🖨 Imprimir / Salvar PDF
+      </button>
+      <button onclick="closeBol()" style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:10px;
+        padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:6px">
+        ✕ Fechar
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">OK</span></div>
 
@@ -396,15 +501,6 @@ async function importFromLocal() {
 
 // FILTERS
 function buildFilters() {
-  // Datas do pregão
-  const dates = [...new Set(allFavs.filter(r=>r.dataencerramento).map(r=>r.dataencerramento.substring(0,10)))].sort();
-  const dSel = document.getElementById('f-data');
-  dSel.innerHTML = '<option value="">📅 Data: Todas</option>';
-  dates.forEach(d => {
-    const lbl = new Date(d+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
-    dSel.innerHTML += `<option value="${d}">${lbl}</option>`;
-  });
-
   // Produtos
   const prods = [...new Set(allFavs.filter(r=>r.produto).map(r=>r.produto))].sort();
   const pSel = document.getElementById('f-produto');
@@ -414,7 +510,7 @@ function buildFilters() {
   // UFs
   const ufs = [...new Set(allFavs.filter(r=>r.uf).map(r=>r.uf))].sort();
   const uSel = document.getElementById('f-uf');
-  uSel.innerHTML = '<option value="">UF: Todas</option>';
+  uSel.innerHTML = '<option value="">Todas as UFs</option>';
   ufs.forEach(u => uSel.innerHTML += `<option value="${u}">${u}</option>`);
 }
 
@@ -427,7 +523,8 @@ function setTab(tab, el) {
 
 function applyFilters() {
   const q    = (document.getElementById('f-search').value||'').toLowerCase();
-  const data = document.getElementById('f-data').value;
+  const de   = document.getElementById('f-de').value;   // YYYY-MM-DD
+  const ate  = document.getElementById('f-ate').value;  // YYYY-MM-DD
   const st   = document.getElementById('f-status').value;
   const prod = document.getElementById('f-produto').value;
   const uf   = document.getElementById('f-uf').value;
@@ -437,7 +534,12 @@ function applyFilters() {
     if (st   && r.status !== st) return false;
     if (prod && (r.produto||'') !== prod) return false;
     if (uf   && (r.uf||'') !== uf) return false;
-    if (data && (r.dataencerramento||'').substring(0,10) !== data) return false;
+    // Filtro de período (data do pregão)
+    if (de || ate) {
+      const d = (r.dataencerramento||'').substring(0,10);
+      if (de  && d < de)  return false;
+      if (ate && d > ate) return false;
+    }
     if (q && !(r.objetocompra||'').toLowerCase().includes(q) &&
              !(r.orgao||'').toLowerCase().includes(q) &&
              !(r.numerocontrolepncp||'').toLowerCase().includes(q)) return false;
@@ -460,6 +562,90 @@ function applyFilters() {
   document.getElementById('total-badge').textContent = filtered.length + ' registros';
 
   renderTable();
+}
+
+function clearFilters() {
+  document.getElementById('f-search').value  = '';
+  document.getElementById('f-de').value      = '';
+  document.getElementById('f-ate').value     = '';
+  document.getElementById('f-status').value  = '';
+  document.getElementById('f-produto').value = '';
+  document.getElementById('f-uf').value      = '';
+  applyFilters();
+}
+
+// =============================================
+// BOLETIM
+// =============================================
+function openBoletim() {
+  if (!filtered.length) { toast('⚠️','Nenhum registro para gerar o boletim'); return; }
+
+  const user   = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  const de     = document.getElementById('f-de').value;
+  const ate    = document.getElementById('f-ate').value;
+  const prod   = document.getElementById('f-produto').value || 'Todos os produtos';
+  const total  = filtered.length;
+
+  // Cabeçalho
+  document.getElementById('bol-title').textContent   = `📋 Boletim de Licitações — ${prod}`;
+  const periodo = de && ate ? `${fmtDate(de)} até ${fmtDate(ate)}` : de ? `A partir de ${fmtDate(de)}` : ate ? `Até ${fmtDate(ate)}` : 'Todos os períodos';
+  const now = new Date();
+  document.getElementById('bol-subtitle').textContent =
+    `Gerado em: ${now.toLocaleDateString('pt-BR')}, ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}  |  Período: ${periodo}  |  Total: ${total} registro(s)`;
+  document.getElementById('bol-user-name').textContent  = user.nome || '—';
+  document.getElementById('bol-user-email').textContent = user.email || '—';
+  document.getElementById('bol-footer-txt').textContent =
+    `Boletim de Licitações — ${prod} | ${now.toLocaleDateString('pt-BR')}`;
+
+  // Linhas
+  document.getElementById('bol-tbody').innerHTML = filtered.map(r => {
+    const dt    = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
+    const dtOk  = dt && !isNaN(dt);
+    const dStr  = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
+    const hStr  = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const nPregao = (r.numerocompra && r.anocompra) ? `PE ${r.numerocompra}/${r.anocompra}` : '—';
+    const nCompra = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
+    const site  = r.site ? (new URL(r.site.includes('://')?r.site:'https://'+r.site).hostname.replace('www.','')) : (r.linksistemaorigem ? (() => { try { return new URL(r.linksistemaorigem).hostname.replace('www.',''); } catch(e) { return r.linksistemaorigem.substring(0,20); } })() : '—');
+    const vEst  = r.valortotalestimado ? fmtM(r.valortotalestimado) : '—';
+    const vUnit = r.valref ? fmtM(parseFloat(r.valref)) : '—';
+
+    return `<tr>
+      <td class="num" style="font-size:10px">${r.numerocontrolepncp||'—'}</td>
+      <td class="num">${dStr}</td>
+      <td class="num">${hStr}</td>
+      <td class="num">${nPregao}</td>
+      <td style="font-size:11px">${r.orgao||'—'}</td>
+      <td class="num" style="text-align:center">${r.item_numero||'—'}</td>
+      <td style="text-align:center"><b>${r.uf||'?'}</b></td>
+      <td style="font-size:11px">${site}</td>
+      <td class="money">${vEst}</td>
+      <td class="num" style="text-align:right">${r.qtd ? parseFloat(r.qtd).toLocaleString('pt-BR') : '—'}</td>
+      <td class="num">${r.unidade||'—'}</td>
+      <td class="money">${vUnit}</td>
+      <td class="num">${r.uaseg||'—'}</td>
+      <td class="num">${nCompra}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bol-overlay').classList.add('open');
+}
+
+function closeBol() {
+  document.getElementById('bol-overlay').classList.remove('open');
+}
+
+function printBol() {
+  window.print();
+}
+
+function enviarBoletim() {
+  toast('🚧','Em breve: envio por e-mail para clientes');
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
 }
 
 function sortBy(col) {
