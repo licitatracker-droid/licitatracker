@@ -828,18 +828,25 @@ let manualData  = JSON.parse(localStorage.getItem('lt_manual')  || '{}'); // key
 async function loadData() {
   showLoading();
   try {
-    // Tenta buscar do Supabase via REST API pública
     const url = `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=dataencerramentoproposta.asc&limit=1000`;
     const res = await fetch(url, {
+      method: 'GET',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Accept': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Prefer': 'return=representation'
       }
     });
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
+
     const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('Resposta inesperada do Supabase');
 
     allData = data;
     document.getElementById('last-update').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
@@ -847,13 +854,13 @@ async function loadData() {
     applyFilters();
     toast('✅', `${data.length} editais carregados`);
   } catch (err) {
-    // Fallback: dados de demonstração para visualizar o layout
-    console.warn('Supabase não acessível — usando dados demo:', err.message);
+    console.warn('Supabase erro:', err.message);
+    // Mostra o erro real na tela para facilitar debug
+    document.getElementById('last-update').textContent = '❌ Erro: ' + err.message;
     allData = getDemoData();
-    document.getElementById('last-update').textContent = '⚠ Modo demo (configure a API key)';
     updateStats();
     applyFilters();
-    toast('⚠️', 'Usando dados demo — configure a API key');
+    toast('⚠️', 'Modo demo — ' + err.message.substring(0, 40));
   }
 }
 
