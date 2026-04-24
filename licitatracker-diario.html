@@ -880,40 +880,48 @@ let produtos    = JSON.parse(localStorage.getItem('lt_produtos') || '[]');
 let manualData  = JSON.parse(localStorage.getItem('lt_manual')  || '{}'); // keyed by id
 
 // =============================================
-// LOAD FROM SUPABASE
+// LOAD FROM SUPABASE — com paginação completa
 // =============================================
 async function loadData() {
   showLoading();
   try {
-    const url = `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=data_carga.desc,dataencerramentoproposta.asc&limit=2000`;
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Prefer': 'return=representation'
-      }
-    });
+    const headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText}`);
+    let allRows = [];
+    let from    = 0;
+    const pageSize = 1000;
+
+    // Busca em páginas até não ter mais registros
+    while (true) {
+      const url = `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=data_carga.desc,dataencerramentoproposta.asc&limit=${pageSize}&offset=${from}`;
+      const res = await fetch(url, { method: 'GET', headers });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+      }
+
+      const page = await res.json();
+      if (!Array.isArray(page)) throw new Error('Resposta inesperada do Supabase');
+
+      allRows = allRows.concat(page);
+
+      // Se veio menos que o pageSize, chegamos ao fim
+      if (page.length < pageSize) break;
+      from += pageSize;
     }
 
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('Resposta inesperada do Supabase');
-
-    allData = data;
+    allData = allRows;
     document.getElementById('last-update').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
-
-    // Popula datas disponíveis e seleciona a mais recente
     buildDateList();
-
     updateStats();
     applyFilters();
-    toast('✅', `${data.length} editais carregados`);
+    toast('✅', `${allData.length} editais carregados`);
   } catch (err) {
     console.warn('Supabase erro:', err.message);
     document.getElementById('last-update').textContent = '❌ Erro: ' + err.message;
