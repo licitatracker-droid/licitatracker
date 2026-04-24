@@ -116,6 +116,15 @@
     <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
     <a class="nav-item active" href="#">⚙️ Config</a>
   </nav>
+  <div id="user-pill" style="display:flex;align-items:center;gap:8px;background:#F9FAFB;
+    border:1px solid #E5E7EB;border-radius:100px;padding:4px 12px 4px 8px;cursor:pointer"
+    onclick="logout()">
+    <div style="width:24px;height:24px;border-radius:50%;background:#2563EB;
+      display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700"
+      id="user-avatar">?</div>
+    <span style="font-size:12px;font-weight:500;color:#374151" id="user-name">—</span>
+    <span style="font-size:10px;color:#6B7280">Sair</span>
+  </div>
 </header>
 
 <main class="main">
@@ -390,13 +399,22 @@ function toast(icon, msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+function checkAuth() {
+  const user = JSON.parse(localStorage.getItem('lt_user') || 'null');
+  if (!user) { window.location.href = 'licitatracker-login.html'; return false; }
+  const initials = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
+  return true;
+}
+
 // Enter nos inputs
 document.getElementById('new-produto').addEventListener('keydown', e => { if(e.key==='Enter') addItem('produto'); });
 document.getElementById('new-unidade').addEventListener('keydown', e => { if(e.key==='Enter') addItem('unidade'); });
 document.getElementById('new-site-url').addEventListener('keydown', e => { if(e.key==='Enter') addSite(); });
 document.getElementById('new-cliente-cnpj').addEventListener('keydown', e => { if(e.key==='Enter') addCliente(); });
 
-renderAll();
+if (checkAuth()) renderAll();
 </script>
 </body>
 </html>

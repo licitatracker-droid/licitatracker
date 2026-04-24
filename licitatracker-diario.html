@@ -550,19 +550,28 @@
 
   <!-- TOPBAR -->
   <header class="topbar">
-    <a href="#" class="logo">
+    <a href="licitatracker-diario.html" class="logo">
       <div class="logo-icon">📋</div>
       <div class="logo-text">Licita<span>Tracker</span></div>
     </a>
     <nav class="topbar-nav">
-      <a class="nav-item active" href="#">📰 Diário</a>
-      <a class="nav-item" href="#">⭐ Favoritos</a>
-      <a class="nav-item" href="#">📁 Meus Editais</a>
-      <a class="nav-item" href="#">⚙️ Config</a>
+      <a class="nav-item active" href="licitatracker-diario.html">📰 Diário</a>
+      <a class="nav-item" href="licitatracker-favoritos.html">⭐ Favoritos</a>
+      <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+      <a class="nav-item" href="licitatracker-config.html">⚙️ Config</a>
     </nav>
     <div class="topbar-right">
       <button class="btn btn-ghost" onclick="openBoletim()" style="font-size:13px">📄 Boletim</button>
       <div class="badge-count" id="total-badge">— editais</div>
+      <div id="user-pill" style="display:flex;align-items:center;gap:8px;background:#F9FAFB;
+        border:1px solid var(--border);border-radius:100px;padding:4px 12px 4px 8px;cursor:pointer"
+        onclick="doLogout()">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);
+          display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700"
+          id="user-avatar">?</div>
+        <span style="font-size:12px;font-weight:500;color:var(--text-soft)" id="user-name">—</span>
+        <span style="font-size:10px;color:var(--text-muted)">Sair</span>
+      </div>
     </div>
   </header>
 
@@ -1619,10 +1628,31 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 });
 
 // =============================================
+// AUTH
+// =============================================
+function checkAuth() {
+  const user = JSON.parse(localStorage.getItem('lt_user') || 'null');
+  if (!user) { window.location.href = 'licitatracker-login.html'; return false; }
+  const initials = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
+  return true;
+}
+
+function doLogout() {
+  if (!confirm('Deseja sair do sistema?')) return;
+  localStorage.removeItem('lt_user');
+  localStorage.removeItem('lt_cliente');
+  window.location.href = 'licitatracker-login.html';
+}
+
+// =============================================
 // INIT
 // =============================================
-updateProdutoFilter();
-loadData();
+if (checkAuth()) {
+  updateProdutoFilter();
+  loadData();
+}
 </script>
 </body>
 </html>
