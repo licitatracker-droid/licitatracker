@@ -266,10 +266,10 @@
         <option value="ganho">🏆 Ganho</option>
         <option value="perdido">✗ Perdido</option>
       </select>
-      <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">De</span>
-      <input type="date" id="f-de" class="filter-select" onchange="applyFilters()" style="padding:7px 10px">
+      <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">Pregão De</span>
+      <input type="date" id="f-de" class="filter-select" style="padding:7px 10px">
       <span style="font-size:12px;color:var(--text-muted);white-space:nowrap">Até</span>
-      <input type="date" id="f-ate" class="filter-select" onchange="applyFilters()" style="padding:7px 10px">
+      <input type="date" id="f-ate" class="filter-select" style="padding:7px 10px">
       <button onclick="applyFilters()" style="background:#D97706;color:white;border:none;border-radius:10px;
         padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap">
         ▼ Filtrar
@@ -284,10 +284,6 @@
       <button onclick="openBoletim()" style="background:#D97706;color:white;border:none;border-radius:10px;
         padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
         👁 Visualizar Boletim
-      </button>
-      <button onclick="enviarBoletim()" style="background:#059669;color:white;border:none;border-radius:10px;
-        padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
-        ✉ Enviar ⭐ para Licitações
       </button>
     </div>
   </div>
@@ -478,6 +474,7 @@ async function importFromLocal() {
       item_numero:        m.item      || null,
       uaseg:              m.uaseg     || null,
       data_carga:         r.data_carga || null,
+      data_favorito:      new Date().toISOString().substring(0,10), // data de hoje ao favoritar
     };
 
     const ins = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}`, {
@@ -534,9 +531,12 @@ function applyFilters() {
     if (st   && r.status !== st) return false;
     if (prod && (r.produto||'') !== prod) return false;
     if (uf   && (r.uf||'') !== uf) return false;
-    // Filtro de período (data do pregão)
+    // Filtro de período — data do pregão (dataencerramento)
     if (de || ate) {
-      const d = (r.dataencerramento||'').substring(0,10);
+      // Normaliza: pega só YYYY-MM-DD ignorando timezone
+      const raw = (r.dataencerramento||'');
+      const d   = raw.length >= 10 ? raw.substring(0,10) : '';
+      if (!d) return false; // sem data, não aparece no filtro de período
       if (de  && d < de)  return false;
       if (ate && d > ate) return false;
     }

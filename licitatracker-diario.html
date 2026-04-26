@@ -1465,9 +1465,11 @@ function saveDetail() {
 
 function saveDetailAndFavorite() {
   const d = collectDetail();
+  const hoje = new Date().toISOString().substring(0,10);
   if (!manualData[detailRowId]) manualData[detailRowId] = {};
-  Object.assign(manualData[detailRowId], d, { starred: true, status: 'favorito' });
+  Object.assign(manualData[detailRowId], d, { starred: true, status: 'favorito', data_favorito: hoje });
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
+  insertToFavoritos(detailRowId, 'favorito', d, hoje);
   closeDetail();
   renderTable();
   toast('⭐', 'Salvo e favoritado!');
@@ -1475,12 +1477,73 @@ function saveDetailAndFavorite() {
 
 function saveDetailAndAndamento() {
   const d = collectDetail();
+  const hoje = new Date().toISOString().substring(0,10);
   if (!manualData[detailRowId]) manualData[detailRowId] = {};
-  Object.assign(manualData[detailRowId], d, { starred: true, status: 'andamento' });
+  Object.assign(manualData[detailRowId], d, { starred: true, status: 'andamento', data_favorito: hoje });
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
+  insertToFavoritos(detailRowId, 'andamento', d, hoje);
   closeDetail();
   renderTable();
   toast('▶', 'Movido para Em Andamento!');
+}
+
+// Insere direto na tabela pncp_favoritos do Supabase
+async function insertToFavoritos(id, status, d, dataFavorito) {
+  try {
+    const r = allData.find(x => String(x.id) === String(id));
+    if (!r) return;
+
+    // Verifica se já existe
+    const check = await fetch(
+      `${SUPABASE_URL}/rest/v1/pncp_favoritos?select=id&numerocontrolepncp=eq.${encodeURIComponent(r.numerocontrolepncp||'')}`,
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Accept': 'application/json' } }
+    );
+    const existing = await check.json();
+    if (existing.length > 0) {
+      // Já existe — apenas atualiza status e campos manuais
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/pncp_favoritos?id=eq.${existing[0].id}`,
+        {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ status, produto: d.produto||null, site: d.site||null, qtd: d.qtd?parseFloat(d.qtd):null, valref: d.valref?parseFloat(d.valref):null, unidade: d.unidade||null, item_numero: d.item||null, uaseg: d.uaseg||null })
+        }
+      );
+      return;
+    }
+
+    // Insere novo
+    const payload = {
+      numerocontrolepncp: r.numerocontrolepncp,
+      numerocompra:       r.numerocompra    || null,
+      anocompra:          r.anocompra       || null,
+      status,
+      objetocompra:       r.objetocompra    || null,
+      orgao:              r.orgaoentidade_razaosocial || null,
+      uf:                 r.unidadeorgao_ufsigla      || null,
+      dataencerramento:   r.dataencerramentoproposta  || null,
+      modalidade:         r.modalidadenome  || null,
+      valortotalestimado: r.valortotalestimado ? parseFloat(r.valortotalestimado) : null,
+      linksistemaorigem:  r.linksistemaorigem || null,
+      produto:            d.produto  || null,
+      site:               d.site     || r.linksistemaorigem || null,
+      qtd:                d.qtd      ? parseFloat(d.qtd)    : null,
+      valref:             d.valref   ? parseFloat(d.valref) : null,
+      unidade:            d.unidade  || null,
+      item_numero:        d.item     || null,
+      uaseg:              d.uaseg    || null,
+      data_carga:         r.data_carga || null,
+      data_favorito:      dataFavorito,
+    };
+
+    await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.warn('Erro ao inserir favorito no Supabase:', e.message);
+  }
 }
 
 function closeDetail() {
