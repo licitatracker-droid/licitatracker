@@ -148,7 +148,33 @@
     transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
   .toast.show{transform:translateY(0);opacity:1}
 
-  /* BOLETIM */
+  /* Modal — mesmo padrão do Diário */
+  .modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.35);
+    backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:flex !important}
+  .modal{background:#FFFFFF;border:1px solid var(--border);border-radius:16px;padding:28px;
+    width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.12);animation:modalIn .2s ease}
+  @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .modal-lg{max-width:860px;width:95vw}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+  .modal-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--text)}
+  .modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:2px}
+  .modal-close:hover{color:var(--text)}
+  .modal-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--accent);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .detail-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+  .detail-readonly{background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+  .detail-readonly .dr-label{font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--text-muted);margin-bottom:3px}
+  .detail-readonly .dr-val{font-size:13px;color:var(--text-soft);line-height:1.4}
+  .detail-readonly .dr-val.mono{font-family:'DM Mono',monospace;font-size:12px}
+  .modal-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .btn-gold{background:#FFFBEB;border:1px solid #FDE68A;color:var(--gold)}
+  .btn-gold:hover{background:#FEF3C7}
+  .btn-success{background:#ECFDF5;border:1px solid #A7F3D0;color:var(--green)}
+  .btn-success:hover{background:#D1FAE5}
   .bol-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.5);
     backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
   .bol-overlay.open{display:flex}
@@ -344,12 +370,11 @@
             <th>Total</th>
             <th>Link PNCP</th>
             <th>Link Pregão</th>
-            <th>Obs</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody id="fav-tbody">
-          <tr><td colspan="19" style="text-align:center;padding:48px">
+          <tr><td colspan="18" style="text-align:center;padding:48px">
             <span class="spinner"></span> Carregando favoritos...
           </td></tr>
         </tbody>
@@ -359,51 +384,193 @@
   </div>
 </main>
 
-<!-- MODAL EDITAR ITENS -->
-<div id="itens-overlay" style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.45);
-  backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px">
-  <div style="background:white;border-radius:16px;width:100%;max-width:780px;max-height:85vh;
-    display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-    <!-- Header -->
-    <div style="padding:20px 24px;border-bottom:1px solid #E5E7EB;display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#111827">✏ Editar Itens do Pregão</div>
-        <div style="font-size:11px;font-family:'DM Mono',monospace;color:#6B7280;margin-top:4px" id="itens-pncp-label">—</div>
-      </div>
-      <button onclick="closeEditItens()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6B7280;padding:2px">✕</button>
+<!-- MODAL ACOMPANHAMENTO -->
+<div class="modal-overlay" id="acomp-overlay">
+  <div class="modal modal-lg" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-header">
+      <div class="modal-title">📋 Acompanhamento do Edital</div>
+      <button class="modal-close" onclick="closeAcomp()">✕</button>
     </div>
-    <!-- Body -->
-    <div style="flex:1;overflow-y:auto;padding:20px 24px">
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:12px" id="edit-itens-table">
-          <thead>
-            <tr style="background:#F9FAFB;border-bottom:1px solid #E5E7EB">
-              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Nº Item</th>
-              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Produto</th>
-              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Unidade</th>
-              <th style="padding:8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Qtd</th>
-              <th style="padding:8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Vlr Ref</th>
-              <th style="padding:8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Total</th>
-              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">UASEG</th>
-              <th style="padding:8px;width:32px"></th>
-            </tr>
-          </thead>
-          <tbody id="edit-itens-body"></tbody>
-        </table>
+
+    <!-- Dados readonly -->
+    <div class="modal-section-title">Dados do Edital</div>
+    <div class="detail-grid">
+      <div class="detail-readonly" style="grid-column:1/-1">
+        <div class="dr-label">Objeto</div>
+        <div class="dr-val" id="ac-objeto">—</div>
       </div>
-      <button onclick="addEditItemRow()" style="margin-top:12px;background:#EEF2FF;border:1px solid #C7D2FE;
-        border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;color:#2563EB;cursor:pointer;
-        display:flex;align-items:center;gap:6px">
+      <div class="detail-readonly">
+        <div class="dr-label">Nº PNCP</div>
+        <div class="dr-val mono" id="ac-pncp">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Nº Pregão</div>
+        <div class="dr-val mono" id="ac-pregao">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Órgão</div>
+        <div class="dr-val" id="ac-orgao">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Data / Hora</div>
+        <div class="dr-val mono" id="ac-data">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Produto / Unidade</div>
+        <div class="dr-val" id="ac-produto">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Qtd / Vlr Ref / Total</div>
+        <div class="dr-val mono" id="ac-valores">—</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <a id="ac-link-pncp" href="#" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a>
+      <span id="ac-link-preg"></span>
+      <select id="ac-status" class="filter-select" style="font-size:12px"
+        onchange="saveF(acFavId,'status',this.value);refreshAcompStatus()">
+        <option value="favorito">⭐ Favorito</option>
+        <option value="andamento">▶ Andamento</option>
+        <option value="ganho">🏆 Ganho</option>
+        <option value="perdido">✗ Perdido</option>
+      </select>
+    </div>
+
+    <!-- Lembrete -->
+    <div class="modal-section-title">🔔 Lembrete</div>
+    <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:14px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:12px">
+        <input type="checkbox" id="ac-lem-ativo" style="width:16px;height:16px;accent-color:var(--accent)">
+        🔔 Configurar Lembrete
+      </label>
+      <div id="ac-lem-config" style="display:none">
+        <div class="detail-grid cols3" style="margin-bottom:12px">
+          <div class="form-group">
+            <label class="form-label">Tipo de Lembrete</label>
+            <select class="form-input" id="ac-lem-tipo" onchange="toggleLembreteConfig()">
+              <option value="tempo">Lembrar após (tempo)</option>
+              <option value="data">Data específica</option>
+            </select>
+          </div>
+          <div class="form-group" id="ac-lem-tempo-wrap">
+            <label class="form-label">Quando</label>
+            <select class="form-input" id="ac-lem-tempo">
+              <option value="1">1 minuto (teste)</option>
+              <option value="15" selected>15 minutos</option>
+              <option value="30">30 minutos</option>
+              <option value="60">1 hora</option>
+              <option value="120">2 horas</option>
+              <option value="240">4 horas</option>
+              <option value="1440">1 dia</option>
+              <option value="2880">2 dias</option>
+              <option value="10080">1 semana</option>
+            </select>
+          </div>
+          <div class="form-group" id="ac-lem-data-wrap" style="display:none">
+            <label class="form-label">Data e Hora</label>
+            <input type="datetime-local" class="form-input" id="ac-lem-data">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anotação do Lembrete</label>
+          <textarea class="form-input" id="ac-lem-nota" rows="2"
+            placeholder="O que precisa olhar/verificar..." style="resize:vertical"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="modal-section-title">📝 Histórico</div>
+    <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px">
+      <textarea id="ac-nova-nota" class="form-input" rows="3"
+        placeholder="Digite o que está acontecendo com este edital..."
+        style="resize:vertical;margin-bottom:10px"></textarea>
+      <button onclick="salvarNota()" style="background:var(--accent);color:white;border:none;
+        border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer">
+        💾 Salvar Nota
+      </button>
+    </div>
+    <!-- Lista de notas -->
+    <div id="ac-historico-lista" style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow-y:auto"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAcomp()">Fechar</button>
+      <button class="btn btn-primary" onclick="salvarLembrete()">🔔 Salvar Lembrete</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR ITENS — mesmo padrão do Diário -->
+<div class="modal-overlay" id="itens-overlay" style="display:none;align-items:center;justify-content:center">
+  <div class="modal modal-lg" style="max-height:90vh;overflow-y:auto">
+
+    <div class="modal-header">
+      <div class="modal-title">✏️ Editar Itens do Pregão</div>
+      <button class="modal-close" onclick="closeEditItens()">✕</button>
+    </div>
+
+    <!-- Dados do edital (readonly) -->
+    <div class="modal-section-title">Dados do Edital (PNCP)</div>
+    <div class="detail-grid">
+      <div class="detail-readonly" style="grid-column:1/-1">
+        <div class="dr-label">Objeto</div>
+        <div class="dr-val" id="ei-objeto">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Nº PNCP</div>
+        <div class="dr-val mono" id="ei-pncp">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Órgão</div>
+        <div class="dr-val" id="ei-orgao">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Data / Hora</div>
+        <div class="dr-val mono" id="ei-data">—</div>
+      </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Nº Compra</div>
+        <div class="dr-val mono" id="ei-ncompra">—</div>
+      </div>
+    </div>
+
+    <!-- Itens do Pregão -->
+    <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Itens do Pregão</span>
+      <button onclick="addEditItemRow()" style="background:var(--accent);color:white;border:none;border-radius:8px;
+        padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px">
         ＋ Adicionar Item
       </button>
     </div>
-    <!-- Footer -->
-    <div style="padding:16px 24px;border-top:1px solid #E5E7EB;display:flex;justify-content:flex-end;gap:10px">
-      <button onclick="closeEditItens()" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;
-        padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;color:#374151">Cancelar</button>
-      <button onclick="saveEditItens()" style="background:#2563EB;color:white;border:none;border-radius:10px;
-        padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer">💾 Salvar Itens</button>
+
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#F9FAFB;border-bottom:1px solid #E5E7EB">
+            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;white-space:nowrap">Nº Item</th>
+            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Produto</th>
+            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Unidade</th>
+            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Qtd</th>
+            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Vlr Ref</th>
+            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Total</th>
+            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">UASEG</th>
+            <th style="padding:7px 8px;width:32px"></th>
+          </tr>
+        </thead>
+        <tbody id="edit-itens-body"></tbody>
+      </table>
     </div>
+
+    <div id="edit-itens-empty" style="text-align:center;padding:16px;font-size:12px;color:#9CA3AF;
+      background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:8px;margin-top:8px;display:none">
+      Clique em <strong>＋ Adicionar Item</strong> para incluir os itens deste pregão
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditItens()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditItens()">💾 Salvar Itens</button>
+    </div>
+
   </div>
 </div>
 
@@ -692,6 +859,224 @@ function clearFilters() {
 }
 
 // =============================================
+// ACOMPANHAMENTO MODAL
+// =============================================
+let acFavId = null;
+
+async function openAcomp(favId) {
+  acFavId = favId;
+  const r = allFavs.find(x => x.id === favId) || {};
+
+  // Preenche dados readonly
+  document.getElementById('ac-objeto').textContent  = r.objetocompra || '—';
+  document.getElementById('ac-pncp').textContent    = r.numerocontrolepncp || '—';
+  document.getElementById('ac-pregao').textContent  = (r.numerocompra && r.anocompra)
+    ? `PE ${r.numerocompra}/${r.anocompra}` : '—';
+  document.getElementById('ac-orgao').textContent   = r.orgao || '—';
+  const dt = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
+  document.getElementById('ac-data').textContent = (dt && !isNaN(dt))
+    ? dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    : '—';
+  document.getElementById('ac-produto').textContent =
+    [r.produto, r.unidade].filter(Boolean).join(' / ') || '—';
+  const q = parseFloat(r.qtd||0), v = parseFloat(r.valref||0);
+  document.getElementById('ac-valores').textContent =
+    `${q||'—'} × ${v ? fmtM(v) : '—'} = ${(q&&v) ? fmtM(q*v) : '—'}`;
+
+  // Links
+  const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+  document.getElementById('ac-link-pncp').href =
+    `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
+  const slinkEl = document.getElementById('ac-link-preg');
+  slinkEl.innerHTML = r.site
+    ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : '';
+
+  // Status
+  document.getElementById('ac-status').value = r.status || 'favorito';
+
+  // Lembrete existente
+  document.getElementById('ac-lem-ativo').checked = false;
+  document.getElementById('ac-lem-config').style.display = 'none';
+  document.getElementById('ac-nova-nota').value = '';
+
+  try {
+    const resL = await fetch(
+      `${SUPABASE_URL}/rest/v1/pncp_lembretes?select=*&favorito_id=eq.${favId}&ativo=eq.true&order=created_at.desc&limit=1`,
+      {headers:H}
+    );
+    const lembs = resL.ok ? await resL.json() : [];
+    if (lembs.length > 0) {
+      const l = lembs[0];
+      document.getElementById('ac-lem-ativo').checked = true;
+      document.getElementById('ac-lem-config').style.display = 'block';
+      document.getElementById('ac-lem-tipo').value = l.tipo || 'tempo';
+      document.getElementById('ac-lem-tempo').value = l.tempo_minutos || 15;
+      document.getElementById('ac-lem-nota').value = l.anotacao || '';
+      if (l.data_lembrete) document.getElementById('ac-lem-data').value = l.data_lembrete.substring(0,16);
+      toggleLembreteConfig();
+    }
+  } catch(e) {}
+
+  // Histórico
+  await loadHistorico(favId);
+
+  document.getElementById('acomp-overlay').classList.add('open');
+}
+
+function refreshAcompStatus() {
+  const st = document.getElementById('ac-status').value;
+  const row = allFavs.find(r => r.id === acFavId);
+  if (row) row.status = st;
+  setTimeout(() => applyFilters(), 200);
+}
+
+function closeAcomp() {
+  document.getElementById('acomp-overlay').classList.remove('open');
+  acFavId = null;
+}
+
+function toggleLembreteConfig() {
+  const ativo = document.getElementById('ac-lem-ativo').checked;
+  document.getElementById('ac-lem-config').style.display = ativo ? 'block' : 'none';
+  if (!ativo) return;
+  const tipo = document.getElementById('ac-lem-tipo').value;
+  document.getElementById('ac-lem-tempo-wrap').style.display = tipo === 'tempo' ? 'block' : 'none';
+  document.getElementById('ac-lem-data-wrap').style.display  = tipo === 'data'  ? 'block' : 'none';
+}
+document.getElementById('ac-lem-ativo').addEventListener('change', toggleLembreteConfig);
+
+async function salvarLembrete() {
+  if (!acFavId) return;
+  const ativo = document.getElementById('ac-lem-ativo').checked;
+
+  // Desativa lembretes anteriores
+  await fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes?favorito_id=eq.${acFavId}`,{
+    method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
+    body: JSON.stringify({ativo:false})
+  });
+
+  if (ativo) {
+    const tipo   = document.getElementById('ac-lem-tipo').value;
+    const minutos = parseInt(document.getElementById('ac-lem-tempo').value) || 15;
+    const dataVal = document.getElementById('ac-lem-data').value;
+    const nota    = document.getElementById('ac-lem-nota').value.trim();
+    const user    = JSON.parse(localStorage.getItem('lt_user')||'{}');
+
+    const payload = {
+      favorito_id: acFavId,
+      numerocontrolepncp: allFavs.find(r=>r.id===acFavId)?.numerocontrolepncp || null,
+      tipo, anotacao: nota || null, ativo: true, disparado: false,
+      usuario: user.nome || null,
+      tempo_minutos: tipo === 'tempo' ? minutos : null,
+      data_lembrete: tipo === 'data' && dataVal ? new Date(dataVal).toISOString() : null,
+    };
+
+    await fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes`,{
+      method:'POST', headers:{...H,'Prefer':'return=minimal'},
+      body: JSON.stringify(payload)
+    });
+
+    // Agenda disparo local
+    if (tipo === 'tempo') {
+      setTimeout(() => dispararLembrete(nota, acFavId), minutos * 60 * 1000);
+    }
+  }
+
+  toast('🔔', ativo ? 'Lembrete salvo!' : 'Lembrete removido');
+}
+
+function dispararLembrete(nota, favId) {
+  const r = allFavs.find(x => x.id === favId) || {};
+  if (Notification.permission === 'granted') {
+    new Notification('🔔 Lembrete de Licitação', {
+      body: nota || `Revisar: ${(r.objetocompra||'').substring(0,60)}`,
+      icon: 'Logo.png'
+    });
+  } else {
+    toast('🔔', nota || 'Lembrete: ' + (r.orgao||'').substring(0,30));
+  }
+  // Marca como disparado no Supabase
+  fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes?favorito_id=eq.${favId}&ativo=eq.true`,{
+    method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
+    body: JSON.stringify({disparado:true})
+  });
+}
+
+// Solicita permissão de notificação
+if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// =============================================
+// HISTÓRICO
+// =============================================
+async function loadHistorico(favId) {
+  const lista = document.getElementById('ac-historico-lista');
+  lista.innerHTML = `<div style="text-align:center;padding:16px;font-size:12px;color:#9CA3AF">
+    <span class="spinner"></span> Carregando...
+  </div>`;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/pncp_acompanhamento?select=*&favorito_id=eq.${favId}&order=data_nota.desc`,
+      {headers:H}
+    );
+    const notas = res.ok ? await res.json() : [];
+    if (!notas.length) {
+      lista.innerHTML = `<div style="text-align:center;padding:16px;font-size:12px;color:#9CA3AF">
+        Nenhuma nota ainda. Adicione a primeira nota acima.</div>`;
+      return;
+    }
+    lista.innerHTML = notas.map(n => {
+      const d = new Date(n.data_nota);
+      const dStr = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      return `<div style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:12px;
+        border-left:3px solid var(--accent)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:600;color:var(--accent)">${n.usuario||'Sistema'}</span>
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:#9CA3AF">${dStr}</span>
+        </div>
+        <div style="font-size:13px;color:#374151;line-height:1.5">${n.nota}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    lista.innerHTML = `<div style="color:#DC2626;font-size:12px;padding:8px">Erro ao carregar histórico</div>`;
+  }
+}
+
+async function salvarNota() {
+  if (!acFavId) return;
+  const nota = document.getElementById('ac-nova-nota').value.trim();
+  if (!nota) { toast('⚠️','Escreva algo antes de salvar'); return; }
+  const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  const r    = allFavs.find(x => x.id === acFavId) || {};
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pncp_acompanhamento`, {
+      method:'POST',
+      headers:{...H,'Prefer':'return=minimal'},
+      body: JSON.stringify({
+        favorito_id: acFavId,
+        numerocontrolepncp: r.numerocontrolepncp || null,
+        usuario:  user.nome  || 'Sistema',
+        nota,
+        data_nota: new Date().toISOString(),
+      })
+    });
+    if (!res.ok) throw new Error(res.status);
+    document.getElementById('ac-nova-nota').value = '';
+    await loadHistorico(acFavId);
+    toast('✅','Nota salva!');
+  } catch(e) {
+    toast('❌','Erro ao salvar nota: '+e.message);
+  }
+}
+
+// Fecha ao clicar fora
+document.getElementById('acomp-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAcomp();
+});
+
+// =============================================
 // EDITAR ITENS MODAL
 // =============================================
 let editFavoritoId   = null;
@@ -726,9 +1111,20 @@ function buildUndOptsFav(cur) {
 async function openEditItens(favId, pncp) {
   editFavoritoId = favId;
   editPncp       = pncp;
-  document.getElementById('itens-pncp-label').textContent = pncp || '—';
 
-  // Busca itens existentes do Supabase
+  // Busca dados do favorito para preencher readonly
+  const fav = allFavs.find(r => r.id === favId) || {};
+  document.getElementById('ei-pncp').textContent    = fav.numerocontrolepncp || pncp || '—';
+  document.getElementById('ei-objeto').textContent  = fav.objetocompra        || '—';
+  document.getElementById('ei-orgao').textContent   = fav.orgao               || '—';
+  document.getElementById('ei-ncompra').textContent = (fav.numerocompra && fav.anocompra)
+    ? `${fav.numerocompra}/${fav.anocompra}` : '—';
+  const dt = fav.dataencerramento ? new Date(fav.dataencerramento.replace(' ','T')) : null;
+  document.getElementById('ei-data').textContent = (dt && !isNaN(dt))
+    ? dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    : '—';
+
+  // Busca itens existentes
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?select=*&favorito_id=eq.${favId}&order=item_numero.asc`,
@@ -740,15 +1136,14 @@ async function openEditItens(favId, pncp) {
     editItensTemp = [];
   }
 
-  // Se não tem nenhum, começa com 1 linha em branco
   if (!editItensTemp.length) editItensTemp.push(newEditItemRow());
 
   renderEditItens();
-  document.getElementById('itens-overlay').style.display = 'flex';
+  document.getElementById('itens-overlay').classList.add('open');
 }
 
 function closeEditItens() {
-  document.getElementById('itens-overlay').style.display = 'none';
+  document.getElementById('itens-overlay').classList.remove('open');
   editFavoritoId = null;
   editItensTemp  = [];
 }
@@ -764,6 +1159,14 @@ function addEditItemRow() {
 
 function renderEditItens() {
   const tbody = document.getElementById('edit-itens-body');
+  const empty = document.getElementById('edit-itens-empty');
+  if (!editItensTemp.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
   tbody.innerHTML = editItensTemp.map((item, idx) => `
     <tr style="border-bottom:1px solid #F3F4F6">
       <td style="padding:6px 8px">
@@ -1049,17 +1452,17 @@ function renderTable() {
         onchange="saveF('${r.id}','valref',this.value);recalcTotal('${r.id}')" style="min-width:64px"></td>
       <td class="col-total" id="ttl-${r.id}">${total}</td>
       <td><a href="${lPncp}" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a></td>
-      <td style="min-width:150px">
+      <td style="min-width:120px">
         <input class="ed" value="${esc(r.site)}" placeholder="https://..."
           onchange="saveF('${r.id}','site',this.value);refreshSiteLink('${r.id}',this.value)"
-          style="min-width:120px;font-size:11px;font-family:'DM Mono',monospace">
+          style="min-width:100px;font-size:11px;font-family:'DM Mono',monospace">
         <div id="slink-${r.id}" style="margin-top:2px">
           ${r.site ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : ''}
         </div>
       </td>
-      <td><input class="ed" value="${esc(r.observacao)}" placeholder="obs..."
-        onchange="saveF('${r.id}','observacao',this.value)" style="min-width:90px"></td>
       <td style="white-space:nowrap">
+        <button class="abtn" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#059669"
+          onclick="openAcomp('${r.id}')" title="Acompanhamento / Histórico">📋</button>
         <button class="abtn" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB"
           onclick="openEditItens('${r.id}','${esc(r.numerocontrolepncp)}')" title="Editar itens">✏</button>
         ${st==='favorito'  ? `<button class="abtn abtn-green" onclick="changeStatus('${r.id}','andamento')">▶</button>` : ''}
@@ -1136,9 +1539,14 @@ function toast(icon,msg) {
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// INIT
+// Init
 const currentUser = checkAuth();
 if (currentUser) loadFavs();
+
+// Fecha modal ao clicar fora
+document.getElementById('itens-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEditItens();
+});
 </script>
 </body>
 </html>
