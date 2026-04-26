@@ -418,13 +418,40 @@ async function loadFavs() {
   document.getElementById('fav-tbody').innerHTML =
     `<tr><td colspan="19" style="text-align:center;padding:48px"><span class="spinner"></span> Carregando...</td></tr>`;
   try {
+    // Busca favoritos cabeçalho
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}?select=*&order=dataencerramento.asc`, {headers:H});
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    allFavs = await res.json();
+    const favs = await res.json();
+
+    // Busca itens
+    const resItens = await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?select=*&order=item_numero.asc`, {headers:H});
+    const itens = resItens.ok ? await resItens.json() : [];
+
+    // Expande: cada item vira uma linha; se não tiver itens usa o cabeçalho como linha única
+    allFavs = [];
+    favs.forEach(fav => {
+      const favItens = itens.filter(i => i.favorito_id === fav.id);
+      if (favItens.length > 0) {
+        favItens.forEach(item => {
+          allFavs.push({ ...fav,
+            _item_id:    item.id,
+            _tem_itens:  true,
+            item_numero: item.item_numero || fav.item_numero,
+            produto:     item.produto     || fav.produto,
+            unidade:     item.unidade     || fav.unidade,
+            qtd:         item.qtd         ?? fav.qtd,
+            valref:      item.valref      ?? fav.valref,
+            uaseg:       item.uaseg       || fav.uaseg,
+          });
+        });
+      } else {
+        allFavs.push({ ...fav, _item_id: null, _tem_itens: false });
+      }
+    });
+
     document.getElementById('last-sync').textContent = 'Sync: '+new Date().toLocaleTimeString('pt-BR');
     buildFilters();
     applyFilters();
-    // Tenta importar novos do localStorage
     importFromLocal();
   } catch(e) {
     toast('❌','Erro: '+e.message);
