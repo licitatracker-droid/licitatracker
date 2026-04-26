@@ -155,33 +155,58 @@
 
   @media print {
     body * { visibility: hidden !important; }
-    .bol-print, .bol-print * { visibility: visible !important; }
-    .bol-print { position: fixed !important; inset: 0 !important; z-index: 9999 !important;
-      background: white !important; overflow: auto !important; padding: 0 !important; }
+    #bol-print-area, #bol-print-area * { visibility: visible !important; }
+    #bol-print-area {
+      position: fixed !important; inset: 0 !important; z-index: 9999 !important;
+      background: white !important; overflow: visible !important;
+      padding: 0 !important; width: 100% !important;
+    }
     .bol-no-print { display: none !important; }
   }
 
-  .bol-wrap{background:white;border-radius:16px;width:100%;max-width:1100px;max-height:90vh;
+  .bol-wrap{background:white;border-radius:12px;width:100%;max-width:1200px;max-height:92vh;
     overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.25)}
-  .bol-header{background:#C2590A;color:white;padding:18px 28px;display:flex;align-items:center;justify-content:space-between}
-  .bol-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700}
-  .bol-subtitle{font-size:12px;opacity:.85;margin-top:3px}
-  .bol-logo{text-align:right;font-size:13px;font-weight:600}
-  .bol-logo-sub{font-size:11px;opacity:.8;margin-top:2px}
-  .bol-body{flex:1;overflow-y:auto;padding:0}
-  .bol-table{width:100%;border-collapse:collapse}
-  .bol-table thead tr{background:#E8711A;color:white}
-  .bol-table th{padding:10px 10px;font-size:11px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.06em;white-space:nowrap;border:1px solid #D97706}
-  .bol-table tbody tr{border-bottom:1px solid #FDE68A}
+
+  /* Header laranja igual ao PDF */
+  .bol-header{
+    background:linear-gradient(135deg,#C2560A,#E07018);
+    color:white;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    flex-shrink:0;
+  }
+  .bol-header-left{flex:1}
+  .bol-title{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .bol-subtitle{font-size:11px;opacity:.9}
+  .bol-header-right{text-align:right;flex-shrink:0}
+  .bol-logo-img{height:44px;width:auto;background:white;border-radius:6px;padding:3px;display:block;margin-bottom:4px;margin-left:auto}
+  .bol-contact-name{font-size:13px;font-weight:700}
+  .bol-contact-sub{font-size:11px;opacity:.85;margin-top:1px}
+
+  /* Tabela */
+  .bol-body{flex:1;overflow-y:auto;overflow-x:auto}
+  .bol-table{width:100%;border-collapse:collapse;min-width:900px}
+  .bol-table thead tr{background:#D4660E;color:white}
+  .bol-table th{
+    padding:8px 9px;font-size:10px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;white-space:nowrap;border:1px solid #B45309;text-align:left;
+  }
+  .bol-table tbody tr{border-bottom:1px solid #FDE68A;transition:background .1s}
   .bol-table tbody tr:nth-child(even){background:#FFFBEB}
   .bol-table tbody tr:hover{background:#FEF3C7}
-  .bol-table td{padding:9px 10px;font-size:12px;color:#1F2937;border:1px solid #FDE68A;vertical-align:middle}
-  .bol-table td.num{font-family:'DM Mono',monospace;font-size:11px}
-  .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:#065F46}
-  .bol-footer-bar{padding:14px 28px;border-top:1px solid #E5E7EB;background:#F9FAFB;
-    display:flex;justify-content:center;gap:12px}
-  .bol-footer-txt{font-size:10px;color:#6B7280;text-align:right;padding:8px 28px 4px}
+  .bol-table td{padding:7px 9px;font-size:11px;color:#1F2937;border:1px solid #FDE68A;vertical-align:middle}
+  .bol-table td.num{font-family:'DM Mono',monospace;font-size:10px}
+  .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:#065F46}
+  .bol-table td.strong{font-weight:700;color:#92400E}
+
+  /* Rodapé */
+  .bol-footer-txt{
+    font-size:10px;color:#9CA3AF;text-align:right;
+    padding:6px 20px;border-top:1px solid #FDE68A;background:#FFFBEB;flex-shrink:0;
+  }
+  .bol-footer-bar{
+    padding:12px 24px;border-top:1px solid #E5E7EB;background:#F9FAFB;
+    display:flex;justify-content:center;gap:12px;flex-shrink:0;
+  }
 
   @media(max-width:768px){.main{padding:16px}.topbar{padding:0 16px}}
 </style>
@@ -334,32 +359,89 @@
   </div>
 </main>
 
+<!-- MODAL EDITAR ITENS -->
+<div id="itens-overlay" style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:16px;width:100%;max-width:780px;max-height:85vh;
+    display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <!-- Header -->
+    <div style="padding:20px 24px;border-bottom:1px solid #E5E7EB;display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#111827">✏ Editar Itens do Pregão</div>
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:#6B7280;margin-top:4px" id="itens-pncp-label">—</div>
+      </div>
+      <button onclick="closeEditItens()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6B7280;padding:2px">✕</button>
+    </div>
+    <!-- Body -->
+    <div style="flex:1;overflow-y:auto;padding:20px 24px">
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px" id="edit-itens-table">
+          <thead>
+            <tr style="background:#F9FAFB;border-bottom:1px solid #E5E7EB">
+              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Nº Item</th>
+              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Produto</th>
+              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Unidade</th>
+              <th style="padding:8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Qtd</th>
+              <th style="padding:8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Vlr Ref</th>
+              <th style="padding:8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Total</th>
+              <th style="padding:8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">UASEG</th>
+              <th style="padding:8px;width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="edit-itens-body"></tbody>
+        </table>
+      </div>
+      <button onclick="addEditItemRow()" style="margin-top:12px;background:#EEF2FF;border:1px solid #C7D2FE;
+        border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;color:#2563EB;cursor:pointer;
+        display:flex;align-items:center;gap:6px">
+        ＋ Adicionar Item
+      </button>
+    </div>
+    <!-- Footer -->
+    <div style="padding:16px 24px;border-top:1px solid #E5E7EB;display:flex;justify-content:flex-end;gap:10px">
+      <button onclick="closeEditItens()" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;
+        padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;color:#374151">Cancelar</button>
+      <button onclick="saveEditItens()" style="background:#2563EB;color:white;border:none;border-radius:10px;
+        padding:9px 24px;font-size:13px;font-weight:600;cursor:pointer">💾 Salvar Itens</button>
+    </div>
+  </div>
+</div>
+
 <!-- BOLETIM MODAL -->
 <div class="bol-overlay" id="bol-overlay">
-  <div class="bol-wrap bol-print">
+  <div class="bol-wrap" id="bol-print-area">
+
+    <!-- Cabeçalho laranja -->
     <div class="bol-header">
-      <div>
-        <div class="bol-title" id="bol-title">📋 Boletim de Licitações</div>
+      <div class="bol-header-left">
+        <div class="bol-title">
+          <span>☕</span>
+          <span id="bol-title-text">Boletim de Licitações</span>
+        </div>
         <div class="bol-subtitle" id="bol-subtitle">—</div>
       </div>
-      <div class="bol-logo">
-        <div id="bol-user-name">—</div>
-        <div class="bol-logo-sub" id="bol-user-email">—</div>
+      <div class="bol-header-right">
+        <img id="bol-logo-img" class="bol-logo-img" src="" alt="Logo WYC">
+        <div class="bol-contact-name" id="bol-contact-name">Wilson</div>
+        <div class="bol-contact-sub">Tel: (19) 99014-3009</div>
+        <div class="bol-contact-sub">wycconsultoria@gmail.com.br</div>
       </div>
     </div>
+
+    <!-- Tabela -->
     <div class="bol-body">
       <table class="bol-table">
         <thead>
           <tr>
             <th>Nº PNCP</th>
             <th>Dt Pregão</th>
-            <th>HORA</th>
+            <th>Hora</th>
             <th>N Pregão</th>
             <th>Órgão Licitante</th>
             <th>Item</th>
             <th>UF</th>
             <th>Site</th>
-            <th>Vl Estimado</th>
+            <th>VI Estimado</th>
             <th>Qtd Est.</th>
             <th>Und</th>
             <th>Vlr Unit.</th>
@@ -370,7 +452,11 @@
         <tbody id="bol-tbody"></tbody>
       </table>
     </div>
+
+    <!-- Rodapé da tabela -->
     <div class="bol-footer-txt" id="bol-footer-txt"></div>
+
+    <!-- Botões (não imprimem) -->
     <div class="bol-footer-bar bol-no-print">
       <button onclick="printBol()" style="background:#D97706;color:white;border:none;border-radius:10px;
         padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px">
@@ -381,6 +467,7 @@
         ✕ Fechar
       </button>
     </div>
+
   </div>
 </div>
 
@@ -391,6 +478,9 @@ const SUPABASE_URL = 'https://fzpdrobltmssrrokblnc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cGRyb2JsdG1zc3Jyb2tibG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMyNDEsImV4cCI6MjA5MjAwOTI0MX0.ifd1oB4mnL-D-28nN9Ee2ZOqrx1G13cLW03rlqq28AE';
 const FAV_TABLE = 'pncp_favoritos';
 const H = { 'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Accept':'application/json' };
+
+// Logo WYC em base64
+const LOGO_B64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAAB';
 
 let allFavs = [], filtered = [];
 let sortCol = 'dataencerramento', sortDir = 'asc';
@@ -602,51 +692,271 @@ function clearFilters() {
 }
 
 // =============================================
-// BOLETIM
+// EDITAR ITENS MODAL
 // =============================================
+let editFavoritoId   = null;
+let editPncp         = null;
+let editItensTemp    = [];
+
+const PRODUTO_DEFAULTS_FAV = ['Café','Palestra'];
+const UNIDADE_DEFAULTS_FAV = ['PC - 250Grs','PC - 500Grs','PC - 1 Kg','KG - Quilograma','LT - Litro','MT - Metro','UN - Unidade','CX - Caixa'];
+
+function getProdListFav() {
+  const extra = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
+  return [...new Set([...PRODUTO_DEFAULTS_FAV,...extra])].sort((a,b)=>a.localeCompare(b));
+}
+function getUndListFav() {
+  const extra = JSON.parse(localStorage.getItem('lt_unidades')||'[]');
+  return [...new Set([...UNIDADE_DEFAULTS_FAV,...extra])].sort((a,b)=>a.localeCompare(b));
+}
+
+function buildProdOptsFav(cur) {
+  let o = `<option value="">— produto —</option>`;
+  getProdListFav().forEach(p => o += `<option value="${p}" ${cur===p?'selected':''}>${p}</option>`);
+  o += `<option value="__novo__">+ Novo...</option>`;
+  return o;
+}
+function buildUndOptsFav(cur) {
+  let o = `<option value="">— unidade —</option>`;
+  getUndListFav().forEach(u => o += `<option value="${u}" ${cur===u?'selected':''}>${u}</option>`);
+  o += `<option value="__novo__">+ Nova...</option>`;
+  return o;
+}
+
+async function openEditItens(favId, pncp) {
+  editFavoritoId = favId;
+  editPncp       = pncp;
+  document.getElementById('itens-pncp-label').textContent = pncp || '—';
+
+  // Busca itens existentes do Supabase
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?select=*&favorito_id=eq.${favId}&order=item_numero.asc`,
+      {headers:H}
+    );
+    const itens = res.ok ? await res.json() : [];
+    editItensTemp = itens.map(i => ({...i, _key: i.id}));
+  } catch(e) {
+    editItensTemp = [];
+  }
+
+  // Se não tem nenhum, começa com 1 linha em branco
+  if (!editItensTemp.length) editItensTemp.push(newEditItemRow());
+
+  renderEditItens();
+  document.getElementById('itens-overlay').style.display = 'flex';
+}
+
+function closeEditItens() {
+  document.getElementById('itens-overlay').style.display = 'none';
+  editFavoritoId = null;
+  editItensTemp  = [];
+}
+
+function newEditItemRow() {
+  return { _key: 'new_'+Date.now(), id: null, item_numero:'', produto:'', unidade:'', qtd:'', valref:'', uaseg:'' };
+}
+
+function addEditItemRow() {
+  editItensTemp.push(newEditItemRow());
+  renderEditItens();
+}
+
+function renderEditItens() {
+  const tbody = document.getElementById('edit-itens-body');
+  tbody.innerHTML = editItensTemp.map((item, idx) => `
+    <tr style="border-bottom:1px solid #F3F4F6">
+      <td style="padding:6px 8px">
+        <input type="text" value="${item.item_numero||''}" placeholder="ex: 01"
+          style="width:52px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none;text-align:center"
+          oninput="editItensTemp[${idx}].item_numero=this.value">
+      </td>
+      <td style="padding:6px 8px">
+        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none;min-width:110px"
+          onchange="handleEditProd(${idx},this.value)">
+          ${buildProdOptsFav(item.produto||'')}
+        </select>
+      </td>
+      <td style="padding:6px 8px">
+        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none;min-width:110px"
+          onchange="handleEditUnd(${idx},this.value)">
+          ${buildUndOptsFav(item.unidade||'')}
+        </select>
+      </td>
+      <td style="padding:6px 8px">
+        <input type="number" value="${item.qtd||''}" placeholder="0"
+          style="width:70px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none;text-align:right"
+          oninput="editItensTemp[${idx}].qtd=this.value;calcEditTotal(${idx})">
+      </td>
+      <td style="padding:6px 8px">
+        <input type="number" value="${item.valref||''}" placeholder="0,00"
+          style="width:82px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none;text-align:right"
+          oninput="editItensTemp[${idx}].valref=this.value;calcEditTotal(${idx})">
+      </td>
+      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;
+        color:#059669;font-weight:600;white-space:nowrap" id="etotal-${idx}">
+        ${calcTotalStr(item.qtd, item.valref)}
+      </td>
+      <td style="padding:6px 8px">
+        <input type="text" value="${item.uaseg||''}" placeholder="UASEG"
+          style="width:82px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none"
+          oninput="editItensTemp[${idx}].uaseg=this.value">
+      </td>
+      <td style="padding:6px 8px;text-align:center">
+        <button onclick="removeEditItem(${idx})"
+          style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;
+          padding:3px 8px;font-size:11px;color:#DC2626;cursor:pointer;font-weight:700">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function calcTotalStr(qtd, valref) {
+  const q = parseFloat(qtd||0), v = parseFloat(valref||0);
+  return (q && v) ? fmtM(q*v) : '—';
+}
+
+function calcEditTotal(idx) {
+  const cell = document.getElementById(`etotal-${idx}`);
+  if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
+}
+
+function handleEditProd(idx, val) {
+  if (val === '__novo__') {
+    const nome = prompt('Nome do novo produto:');
+    if (!nome) { renderEditItens(); return; }
+    const extra = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
+    if (!extra.includes(nome.trim())) { extra.push(nome.trim()); localStorage.setItem('lt_produtos_list',JSON.stringify(extra)); }
+    editItensTemp[idx].produto = nome.trim();
+    renderEditItens();
+  } else {
+    editItensTemp[idx].produto = val;
+  }
+}
+
+function handleEditUnd(idx, val) {
+  if (val === '__novo__') {
+    const nome = prompt('Nova unidade (ex: FR - Frasco):');
+    if (!nome) { renderEditItens(); return; }
+    const extra = JSON.parse(localStorage.getItem('lt_unidades')||'[]');
+    if (!extra.includes(nome.trim())) { extra.push(nome.trim()); localStorage.setItem('lt_unidades',JSON.stringify(extra)); }
+    editItensTemp[idx].unidade = nome.trim();
+    renderEditItens();
+  } else {
+    editItensTemp[idx].unidade = val;
+  }
+}
+
+function removeEditItem(idx) {
+  editItensTemp.splice(idx, 1);
+  renderEditItens();
+}
+
+async function saveEditItens() {
+  if (!editFavoritoId) return;
+  const itensValidos = editItensTemp.filter(i => i.produto || i.qtd || i.item_numero);
+
+  try {
+    // Deleta todos os itens antigos
+    await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?favorito_id=eq.${editFavoritoId}`,
+      { method:'DELETE', headers:H });
+
+    // Insere os novos
+    if (itensValidos.length > 0) {
+      const payload = itensValidos.map(i => ({
+        favorito_id:        editFavoritoId,
+        numerocontrolepncp: editPncp,
+        item_numero:        i.item_numero || null,
+        produto:            i.produto     || null,
+        unidade:            i.unidade     || null,
+        qtd:                i.qtd         ? parseFloat(i.qtd)    : null,
+        valref:             i.valref      ? parseFloat(i.valref) : null,
+        uaseg:              i.uaseg       || null,
+        data_favorito:      new Date().toISOString().substring(0,10),
+      }));
+
+      await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos_itens`, {
+        method:'POST', headers:{...H,'Prefer':'return=minimal'},
+        body: JSON.stringify(payload)
+      });
+    }
+
+    toast('✅', `${itensValidos.length} item(ns) salvo(s)!`);
+    closeEditItens();
+    loadFavs(); // recarrega a tabela
+  } catch(e) {
+    toast('❌','Erro ao salvar: '+e.message);
+  }
+}
+
+
 function openBoletim() {
   if (!filtered.length) { toast('⚠️','Nenhum registro para gerar o boletim'); return; }
 
-  const user   = JSON.parse(localStorage.getItem('lt_user')||'{}');
-  const de     = document.getElementById('f-de').value;
-  const ate    = document.getElementById('f-ate').value;
-  const prod   = document.getElementById('f-produto').value || 'Todos os produtos';
-  const total  = filtered.length;
+  const user  = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  const de    = document.getElementById('f-de').value;
+  const ate   = document.getElementById('f-ate').value;
+  const prod  = document.getElementById('f-produto').value || 'Todos os produtos';
+  const now   = new Date();
 
-  // Cabeçalho
-  document.getElementById('bol-title').textContent   = `📋 Boletim de Licitações — ${prod}`;
-  const periodo = de && ate ? `${fmtDate(de)} até ${fmtDate(ate)}` : de ? `A partir de ${fmtDate(de)}` : ate ? `Até ${fmtDate(ate)}` : 'Todos os períodos';
-  const now = new Date();
+  // Título e subtítulo
+  document.getElementById('bol-title-text').textContent = `Boletim de Licitações — ${prod}`;
+  const periodo = de && ate ? `${fmtDate(de)} até ${fmtDate(ate)}`
+    : de ? `A partir de ${fmtDate(de)}`
+    : ate ? `Até ${fmtDate(ate)}`
+    : 'Todos os períodos';
   document.getElementById('bol-subtitle').textContent =
-    `Gerado em: ${now.toLocaleDateString('pt-BR')}, ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}  |  Período: ${periodo}  |  Total: ${total} registro(s)`;
-  document.getElementById('bol-user-name').textContent  = user.nome || '—';
-  document.getElementById('bol-user-email').textContent = user.email || '—';
+    `Gerado em: ${now.toLocaleDateString('pt-BR')}, ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}  |  Período: ${periodo}  |  Total: ${filtered.length} registro(s)`;
+
+  // Logo — tenta carregar do GitHub Pages
+  const logoImg = document.getElementById('bol-logo-img');
+  logoImg.style.display = 'block';
+  logoImg.src = 'Logo.png';
+  logoImg.onerror = () => { logoImg.style.display = 'none'; };
+
+  // Contato
+  document.getElementById('bol-contact-name').textContent = user.nome || 'Wilson';
+
+  // Rodapé
   document.getElementById('bol-footer-txt').textContent =
     `Boletim de Licitações — ${prod} | ${now.toLocaleDateString('pt-BR')}`;
 
   // Linhas
   document.getElementById('bol-tbody').innerHTML = filtered.map(r => {
-    const dt    = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
-    const dtOk  = dt && !isNaN(dt);
-    const dStr  = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
-    const hStr  = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
+    const dtOk = dt && !isNaN(dt);
+    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
+    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
     const nPregao = (r.numerocompra && r.anocompra) ? `PE ${r.numerocompra}/${r.anocompra}` : '—';
     const nCompra = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
-    const site  = r.site ? (new URL(r.site.includes('://')?r.site:'https://'+r.site).hostname.replace('www.','')) : (r.linksistemaorigem ? (() => { try { return new URL(r.linksistemaorigem).hostname.replace('www.',''); } catch(e) { return r.linksistemaorigem.substring(0,20); } })() : '—');
-    const vEst  = r.valortotalestimado ? fmtM(r.valortotalestimado) : '—';
+
+    const siteRaw = r.site || r.linksistemaorigem || '';
+    let siteLabel = '—';
+    if (siteRaw) {
+      try { siteLabel = new URL(siteRaw.includes('://')?siteRaw:'https://'+siteRaw).hostname.replace('www.',''); }
+      catch(e) { siteLabel = siteRaw.substring(0,25); }
+    }
+
+    const vEst  = r.valortotalestimado ? fmtM(parseFloat(r.valortotalestimado)) : '—';
     const vUnit = r.valref ? fmtM(parseFloat(r.valref)) : '—';
+    const qtdStr = r.qtd ? parseFloat(r.qtd).toLocaleString('pt-BR') : '—';
 
     return `<tr>
-      <td class="num" style="font-size:10px">${r.numerocontrolepncp||'—'}</td>
+      <td class="num" style="font-size:9px;max-width:120px;word-break:break-all">${r.numerocontrolepncp||'—'}</td>
       <td class="num">${dStr}</td>
       <td class="num">${hStr}</td>
-      <td class="num">${nPregao}</td>
-      <td style="font-size:11px">${r.orgao||'—'}</td>
+      <td class="num strong">${nPregao}</td>
+      <td style="font-size:10px;max-width:160px">${r.orgao||'—'}</td>
       <td class="num" style="text-align:center">${r.item_numero||'—'}</td>
-      <td style="text-align:center"><b>${r.uf||'?'}</b></td>
-      <td style="font-size:11px">${site}</td>
+      <td style="text-align:center;font-weight:700">${r.uf||'?'}</td>
+      <td style="font-size:10px">${siteLabel}</td>
       <td class="money">${vEst}</td>
-      <td class="num" style="text-align:right">${r.qtd ? parseFloat(r.qtd).toLocaleString('pt-BR') : '—'}</td>
+      <td class="num" style="text-align:right">${qtdStr}</td>
       <td class="num">${r.unidade||'—'}</td>
       <td class="money">${vUnit}</td>
       <td class="num">${r.uaseg||'—'}</td>
@@ -663,10 +973,6 @@ function closeBol() {
 
 function printBol() {
   window.print();
-}
-
-function enviarBoletim() {
-  toast('🚧','Em breve: envio por e-mail para clientes');
 }
 
 function fmtDate(d) {
@@ -754,6 +1060,8 @@ function renderTable() {
       <td><input class="ed" value="${esc(r.observacao)}" placeholder="obs..."
         onchange="saveF('${r.id}','observacao',this.value)" style="min-width:90px"></td>
       <td style="white-space:nowrap">
+        <button class="abtn" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB"
+          onclick="openEditItens('${r.id}','${esc(r.numerocontrolepncp)}')" title="Editar itens">✏</button>
         ${st==='favorito'  ? `<button class="abtn abtn-green" onclick="changeStatus('${r.id}','andamento')">▶</button>` : ''}
         ${st==='andamento' ? `<button class="abtn abtn-blue"  onclick="changeStatus('${r.id}','ganho')">🏆</button>` : ''}
         <button class="abtn abtn-red" onclick="delFav('${r.id}')">✕</button>
