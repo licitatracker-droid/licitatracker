@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Licita Tracker — Meus Editais</title>
+<title>Licita Tracker — Conta Corrente</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -202,7 +202,7 @@
   <nav class="topbar-nav">
     <a class="nav-item"        id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
     <a class="nav-item"        id="nav-favoritos"    href="licitatracker-favoritos.html">⭐ Favoritos</a>
-    <a class="nav-item active" id="nav-meus-editais" href="#">📁 Meus Editais</a>
+    <a class="nav-item active" id="nav-meus-editais" href="#">💰 Conta Corrente</a>
     <a class="nav-item"        id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
     <a class="nav-item"        id="nav-config"       href="licitatracker-config.html">⚙️ Config</a>
   </nav>
@@ -221,8 +221,8 @@
 <main class="main">
   <div class="page-header">
     <div>
-      <div class="page-label">Pregões Ganhos</div>
-      <h1 class="page-title">Meus <span>Editais</span></h1>
+      <div class="page-label">Contratos & Pagamentos</div>
+      <h1 class="page-title">Conta <span>Corrente</span></h1>
     </div>
   </div>
 
@@ -293,39 +293,10 @@
         </div>
       </div>
 
-      <!-- NF & Entrega -->
-      <div class="ficha-section">📄 Nota Fiscal & Entrega</div>
-      <div class="nf-grid">
-        <div>
-          <label class="form-label">NF Emitida?</label>
-          <select class="form-input" id="ficha-nf-emitida">
-            <option value="">Selecione...</option>
-            <option value="Sim">Sim</option>
-            <option value="Não">Não</option>
-            <option value="Pendente">Pendente</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Número NF</label>
-          <input class="form-input" id="ficha-nf-numero" type="text" placeholder="Ex: 001234">
-        </div>
-        <div>
-          <label class="form-label">Data NF</label>
-          <input class="form-input" id="ficha-nf-data" type="date">
-        </div>
-        <div>
-          <label class="form-label">Tipo Entrega</label>
-          <select class="form-input" id="ficha-nf-entrega">
-            <option value="">Selecione...</option>
-            <option value="Entrega Única">Entrega Única</option>
-            <option value="Parcelada">Parcelada</option>
-            <option value="Mensal">Mensal</option>
-            <option value="Sob Demanda">Sob Demanda</option>
-          </select>
-        </div>
-      </div>
-
       <!-- Observações -->
+      <div class="ficha-section">💬 Observações</div>
+      <textarea class="form-input" id="ficha-obs" rows="3"
+        placeholder="Informações adicionais sobre o contrato..." style="resize:vertical"></textarea>
       <div class="ficha-section">💬 Observações</div>
       <textarea class="form-input" id="ficha-obs" rows="3"
         placeholder="Informações adicionais sobre o contrato..." style="resize:vertical"></textarea>
@@ -442,9 +413,9 @@ function renderContratos() {
         <div class="card-objeto">${c.objeto||'—'}</div>
         <div class="card-meta">
           <span class="card-meta-item">📅 ${dt}</span>
-          <span class="card-meta-item">📦 ${itens.length} iten(s)</span>
+          <span class="card-meta-item">📦 ${itens.length} item(s)</span>
           <span class="card-meta-item">💳 ${pags.length} pagamento(s)</span>
-          ${c.nf_emitida ? `<span class="card-meta-item">🧾 NF: ${c.nf_emitida}</span>` : ''}
+          ${itens.some(i=>i.nf_emitida) ? `<span class="card-meta-item">🧾 NF: ${itens.map(i=>i.nf_emitida).filter(Boolean).join(', ')}</span>` : ''}
         </div>
       </div>
       <div class="card-body">
@@ -518,12 +489,8 @@ async function openFicha(contratoId) {
   const dt = c.data_ganho ? new Date(c.data_ganho+'T12:00').toLocaleDateString('pt-BR') : '';
   document.getElementById('ficha-data').textContent   = dt ? `📅 Ganho em: ${dt}` : '';
 
-  // NF
-  document.getElementById('ficha-nf-emitida').value = c.nf_emitida  || '';
-  document.getElementById('ficha-nf-numero').value  = c.numero_nf   || '';
-  document.getElementById('ficha-nf-data').value    = c.data_nf     || '';
-  document.getElementById('ficha-nf-entrega').value = c.tipo_entrega|| '';
-  document.getElementById('ficha-obs').value        = c.observacao  || '';
+  // NF agora é por item — remove campos globais do cabeçalho
+  document.getElementById('ficha-obs').value = c.observacao || '';
 
   // Itens e pagamentos deste contrato
   fichaItensTemp = allItens.filter(i=>i.contrato_id===contratoId).map(i=>({...i}));
@@ -612,36 +579,106 @@ function renderFichaItens(pags) {
         </div>
       </div>
 
+      <!-- NF DO ITEM -->
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px;margin-top:8px;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px">📄 NF & Entrega</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+          <div>
+            <label class="form-label">NF Emitida?</label>
+            <select class="form-input" style="font-size:11px;padding:5px 8px"
+              onchange="fichaItensTemp[${idx}].nf_emitida=this.value">
+              <option value="" ${!item.nf_emitida?'selected':''}>Selecione...</option>
+              <option value="Sim" ${item.nf_emitida==='Sim'?'selected':''}>Sim</option>
+              <option value="Não" ${item.nf_emitida==='Não'?'selected':''}>Não</option>
+              <option value="Pendente" ${item.nf_emitida==='Pendente'?'selected':''}>Pendente</option>
+              <option value="Parcial" ${item.nf_emitida==='Parcial'?'selected':''}>Parcial</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Número NF</label>
+            <input class="form-input" type="text" value="${item.numero_nf||''}" placeholder="Ex: 001234"
+              style="font-size:11px;padding:5px 8px"
+              oninput="fichaItensTemp[${idx}].numero_nf=this.value">
+          </div>
+          <div>
+            <label class="form-label">Data NF</label>
+            <input class="form-input" type="date" value="${item.data_nf||''}"
+              style="font-size:11px;padding:5px 8px"
+              oninput="fichaItensTemp[${idx}].data_nf=this.value">
+          </div>
+          <div>
+            <label class="form-label">Tipo Entrega</label>
+            <select class="form-input" style="font-size:11px;padding:5px 8px"
+              onchange="fichaItensTemp[${idx}].tipo_entrega=this.value">
+              <option value="" ${!item.tipo_entrega?'selected':''}>Selecione...</option>
+              <option value="Entrega Única" ${item.tipo_entrega==='Entrega Única'?'selected':''}>Entrega Única</option>
+              <option value="Parcelada" ${item.tipo_entrega==='Parcelada'?'selected':''}>Parcelada</option>
+              <option value="Mensal" ${item.tipo_entrega==='Mensal'?'selected':''}>Mensal</option>
+              <option value="Sob Demanda" ${item.tipo_entrega==='Sob Demanda'?'selected':''}>Sob Demanda</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <!-- PAGAMENTOS DO ITEM -->
       <div class="pag-editor">
         <div class="pag-editor-title">
           💳 Pagamentos
-          <button onclick="addPagamento(${idx},'${item.id||''}')"
+          ${pct < 100 ? `<button onclick="addPagamento(${idx},'${item.id||''}')"
             style="background:var(--accent);color:white;border:none;border-radius:5px;
-            padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer">+ Registrar</button>
+            padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer">+ Registrar</button>` : `
+            <span style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:5px;
+              padding:3px 10px;font-size:11px;font-weight:600;color:var(--green)">✅ Quitado</span>`}
         </div>
-        <!-- Toggle forma -->
+
+        <!-- Toggle forma — só mostra se não tem pagamentos ainda -->
+        ${pagItem.length === 0 ? `
         <div class="forma-toggle" id="forma-toggle-${idx}">
           <button class="forma-btn ${item.forma_pagamento!=='pct'?'active':''}"
-            onclick="setForma(${idx},'qtd')">📦 Por Quantidade</button>
+            onclick="setForma(${idx},'qtd')">📦 Por Quantidade (parcial)</button>
           <button class="forma-btn ${item.forma_pagamento==='pct'?'active':''}"
-            onclick="setForma(${idx},'pct')">% Por Percentual</button>
-        </div>
+            onclick="setForma(${idx},'pct')">% Por Percentual (único)</button>
+        </div>` : `
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">
+          Forma: <strong>${item.forma_pagamento==='pct'?'% Percentual (pagamento único)':'📦 Quantidade (parcial)'}</strong>
+        </div>`}
+
         <!-- Lista de pagamentos -->
         <div id="pag-lista-${idx}">
           ${pagItem.length ? pagItem.map(p => `
             <div class="pag-item">
               <span class="pag-data">${p.data_pagamento||'—'}</span>
-              <span class="pag-tipo">${p.tipo==='pct'?p.percentual_pago+'%':p.quantidade_paga+' un'}</span>
+              <span class="pag-tipo">${p.tipo==='pct'
+                ? `${parseFloat(p.percentual_pago||0).toFixed(0)}% — Único`
+                : `${parseFloat(p.quantidade_paga||0).toLocaleString('pt-BR')} un`}</span>
               <span class="pag-valor">${fmtM(p.valor_calculado||0)}</span>
               <button onclick="deletarPagamento('${p.id}','${item.id||''}')"
                 style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px">✕</button>
             </div>`).join('')
-            : '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">Nenhum pagamento registrado</div>'
+            : '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">Pendente — nenhum pagamento registrado</div>'
           }
         </div>
+
         <!-- Formulário novo pagamento -->
         <div id="pag-form-${idx}" style="display:none;background:white;border-radius:6px;padding:10px;margin-top:6px">
+          ${item.forma_pagamento==='pct' ? `
+          <!-- MODO PCT: valor total automático, só pede data e obs -->
+          <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--green)">
+            <strong>Pagamento único:</strong> registra 100% do valor do item (${fmtM(totalItem)})
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label class="form-label">Data do Pagamento</label>
+              <input class="form-input" type="date" id="pag-data-${idx}"
+                value="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <div>
+              <label class="form-label">Observação</label>
+              <input class="form-input" type="text" id="pag-obs-${idx}" placeholder="Opcional">
+            </div>
+          </div>
+          ` : `
+          <!-- MODO QTD: parcial, informa quantidade -->
           <div class="pag-row">
             <div>
               <label class="form-label">Data</label>
@@ -650,12 +687,8 @@ function renderFichaItens(pags) {
             </div>
             <div id="pag-qtd-wrap-${idx}">
               <label class="form-label">Quantidade</label>
-              <input class="form-input" type="number" id="pag-qtd-${idx}" placeholder="0"
-                oninput="calcPagPreview(${idx})">
-            </div>
-            <div id="pag-pct-wrap-${idx}" style="display:none">
-              <label class="form-label">Percentual (%)</label>
-              <input class="form-input" type="number" id="pag-pct-${idx}" placeholder="0-100" min="0" max="100"
+              <input class="form-input" type="number" id="pag-qtd-${idx}"
+                placeholder="0" max="${parseFloat(item.quantidade||0)}"
                 oninput="calcPagPreview(${idx})">
             </div>
             <div>
@@ -664,10 +697,16 @@ function renderFichaItens(pags) {
                 style="color:var(--green);font-weight:700" value="R$ 0,00">
             </div>
             <div>
+              <label class="form-label">Saldo Restante</label>
+              <input class="form-input" type="text" readonly
+                value="${fmtM(saldo)}" style="color:#EA580C;font-weight:600">
+            </div>
+            <div>
               <label class="form-label">Obs</label>
               <input class="form-input" type="text" id="pag-obs-${idx}" placeholder="Opcional">
             </div>
           </div>
+          `}
           <div style="display:flex;gap:6px">
             <button onclick="confirmarPagamento(${idx},'${item.id||''}')"
               style="background:var(--green);color:white;border:none;border-radius:7px;
@@ -731,51 +770,49 @@ function addPagamento(idx, itemId) {
 }
 
 function calcPagPreview(idx) {
-  const item  = fichaItensTemp[idx];
-  const forma = item.forma_pagamento||'qtd';
-  const vu    = parseFloat(item.vl_unitario||0);
-  const total = parseFloat(item.quantidade||0)*vu;
-  let val = 0;
-  if (forma==='qtd') {
-    const qtd = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value||0);
-    val = qtd * vu;
-  } else {
-    const pct = parseFloat(document.getElementById(`pag-pct-${idx}`)?.value||0);
-    val = total * pct / 100;
-  }
-  const el = document.getElementById(`pag-preview-${idx}`);
+  const item = fichaItensTemp[idx];
+  const vu   = parseFloat(item.vl_unitario||0);
+  const qtd  = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value||0);
+  const val  = qtd * vu;
+  const el   = document.getElementById(`pag-preview-${idx}`);
   if (el) el.value = fmtM(val);
 }
 
 async function confirmarPagamento(idx, itemId) {
   const item  = fichaItensTemp[idx];
-  const forma = item.forma_pagamento||'qtd';
+  const forma = item.forma_pagamento || 'qtd';
   const vu    = parseFloat(item.vl_unitario||0);
-  const total = parseFloat(item.quantidade||0)*vu;
+  const total = parseFloat(item.quantidade||0) * vu;
   const data  = document.getElementById(`pag-data-${idx}`).value;
-  const obs   = document.getElementById(`pag-obs-${idx}`).value.trim();
+  const obs   = document.getElementById(`pag-obs-${idx}`)?.value.trim() || '';
   const user  = JSON.parse(localStorage.getItem('lt_user')||'{}');
 
-  let qtdPaga=null, pctPago=null, valorCalc=0;
-  if (forma==='qtd') {
-    qtdPaga   = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value||0);
-    valorCalc = qtdPaga * vu;
-  } else {
-    pctPago   = parseFloat(document.getElementById(`pag-pct-${idx}`)?.value||0);
-    valorCalc = total * pctPago / 100;
-  }
-  if (valorCalc<=0) { toast('⚠️','Informe a quantidade ou percentual'); return; }
+  let qtdPaga = null, pctPago = null, valorCalc = 0;
 
-  // Se item ainda não tem id (novo, não salvo), salva primeiro
+  if (forma === 'pct') {
+    // Pagamento ÚNICO — 100% do total do item
+    pctPago   = 100;
+    valorCalc = total;
+  } else {
+    // Pagamento PARCIAL por quantidade
+    qtdPaga   = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value || 0);
+    valorCalc = qtdPaga * vu;
+    if (qtdPaga <= 0) { toast('⚠️','Informe a quantidade paga'); return; }
+  }
+
+  if (valorCalc <= 0) { toast('⚠️','Item sem valor definido. Preencha Qtd e Vlr Unitário.'); return; }
+
+  // Se item ainda não tem id, salva primeiro
   let idItem = itemId;
-  if (!idItem || idItem==='null' || idItem==='') {
+  if (!idItem || idItem === 'null' || idItem === '') {
     idItem = await salvarItemContrato(idx);
-    if (!idItem) { toast('❌','Salve o contrato antes de registrar pagamento'); return; }
+    if (!idItem) { toast('❌','Salve o contrato primeiro'); return; }
   }
 
   try {
-    const res = await fetch(`${SB}/rest/v1/pncp_pagamentos`,{
-      method:'POST', headers:{...H,'Prefer':'return=representation'},
+    const res = await fetch(`${SB}/rest/v1/pncp_pagamentos`, {
+      method: 'POST',
+      headers: { ...H, 'Prefer': 'return=representation' },
       body: JSON.stringify({
         contrato_item_id: idItem,
         contrato_id:      fichaContratoId,
@@ -784,19 +821,19 @@ async function confirmarPagamento(idx, itemId) {
         quantidade_paga:  qtdPaga,
         percentual_pago:  pctPago,
         valor_calculado:  valorCalc,
-        observacao:       obs||null,
-        usuario:          user.nome||null,
+        observacao:       obs || null,
+        usuario:          user.nome || null,
       })
     });
     if (!res.ok) throw new Error(res.status);
     const [novoPag] = await res.json();
     allPagamentos.push(novoPag);
-    document.getElementById(`pag-form-${idx}`).style.display='none';
-    renderFichaItens(allPagamentos.filter(p=>p.contrato_id===fichaContratoId));
+    document.getElementById(`pag-form-${idx}`).style.display = 'none';
+    renderFichaItens(allPagamentos.filter(p => p.contrato_id === fichaContratoId));
     updateFichaTotais();
     renderContratos();
-    toast('✅','Pagamento registrado!');
-  } catch(e) { toast('❌','Erro: '+e.message); }
+    toast('✅', forma === 'pct' ? '✅ Pagamento único registrado!' : '✅ Pagamento parcial registrado!');
+  } catch(e) { toast('❌', 'Erro: ' + e.message); }
 }
 
 async function deletarPagamento(pagId, itemId) {
@@ -838,15 +875,11 @@ async function salvarFicha() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
 
   try {
-    // Atualiza cabeçalho
+    // Atualiza cabeçalho (sem NF — agora é por item)
     await fetch(`${SB}/rest/v1/pncp_contratos?id=eq.${fichaContratoId}`,{
       method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
       body: JSON.stringify({
-        nf_emitida:   document.getElementById('ficha-nf-emitida').value||null,
-        numero_nf:    document.getElementById('ficha-nf-numero').value.trim()||null,
-        data_nf:      document.getElementById('ficha-nf-data').value||null,
-        tipo_entrega: document.getElementById('ficha-nf-entrega').value||null,
-        observacao:   document.getElementById('ficha-obs').value.trim()||null,
+        observacao: document.getElementById('ficha-obs').value.trim()||null,
       })
     });
 
@@ -860,6 +893,10 @@ async function salvarFicha() {
         quantidade:      item.quantidade?parseFloat(item.quantidade):null,
         vl_unitario:     item.vl_unitario?parseFloat(item.vl_unitario):null,
         forma_pagamento: item.forma_pagamento||'qtd',
+        nf_emitida:      item.nf_emitida||null,
+        numero_nf:       item.numero_nf||null,
+        data_nf:         item.data_nf||null,
+        tipo_entrega:    item.tipo_entrega||null,
       };
       if (item.id) {
         await fetch(`${SB}/rest/v1/pncp_contrato_itens?id=eq.${item.id}`,{
