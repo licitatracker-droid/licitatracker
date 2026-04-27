@@ -343,11 +343,6 @@
 
   td.col-status { white-space: nowrap; text-align: center; min-width: 70px; max-width: 90px; vertical-align: middle; }
 
-  .modal-lg {
-    max-width: 1060px;
-    width: 92vw;
-    min-height: 640px;
-  }
   .modal {
     max-height: 88vh; overflow-y: auto;
     position: relative; margin: auto;
@@ -532,9 +527,17 @@
 
   .modal {
     background: #FFFFFF; border: 1px solid var(--border);
-    border-radius: 16px; padding: 28px; width: 100%; max-width: 560px;
+    border-radius: 16px; padding: 28px; width: 100%; max-width: 540px;
+    max-height: 90vh; overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.12);
     animation: modalIn 0.2s ease;
+  }
+  /* Detail modal — grande e quadrado */
+  .modal.modal-lg {
+    max-width: 1060px !important;
+    width: 92vw !important;
+    min-height: 680px;
+    padding: 28px;
   }
   @keyframes modalIn {
     from { opacity: 0; transform: translateY(12px) scale(0.98); }
@@ -812,37 +815,35 @@
     </div>
 
     <!-- ITENS DO PREGÃO -->
-    <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
       <span>Itens do Pregão</span>
       <button onclick="addItemRow()" style="background:var(--accent);color:white;border:none;border-radius:8px;
-        padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px">
+        padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer">
         ＋ Adicionar Item
       </button>
     </div>
 
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:12px" id="det-itens-table">
-        <thead>
-          <tr style="background:#F9FAFB;border-bottom:1px solid #E5E7EB">
-            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;white-space:nowrap">Nº Item</th>
-            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Produto</th>
-            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Unidade</th>
-            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Qtd</th>
-            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Vlr Ref</th>
-            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Total</th>
-            <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">UASEG</th>
-            <th style="padding:7px 8px;width:32px"></th>
-          </tr>
-        </thead>
-        <tbody id="det-itens-body"></tbody>
-      </table>
+    <!-- Cabeçalho da tabela -->
+    <div style="display:grid;grid-template-columns:60px 1fr 120px 80px 90px 90px 90px 32px;
+      gap:0;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px 8px 0 0;
+      padding:7px 8px;margin-top:8px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Nº Item</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Produto</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Unidade</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;text-align:right">Qtd</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;text-align:right">Vlr Ref</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;text-align:right">Total</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">UASEG</div>
+      <div></div>
     </div>
-    <div id="det-itens-empty" style="text-align:center;padding:16px;font-size:12px;color:#9CA3AF;
+    <div id="det-itens-body" style="border:1px solid #E5E7EB;border-top:none;border-radius:0 0 8px 8px"></div>
+
+    <div id="det-itens-empty" style="text-align:center;padding:20px;font-size:12px;color:#9CA3AF;
       background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:8px;margin-top:8px">
       Clique em <strong>＋ Adicionar Item</strong> para incluir os itens deste pregão
     </div>
 
-    <div class="modal-actions">
+    <div class="modal-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
       <button class="btn btn-ghost" onclick="closeDetail()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveDetail()">💾 Salvar</button>
       <button class="btn btn-gold" onclick="saveDetailAndFavorite()">⭐ Salvar e Favoritar</button>
@@ -1456,58 +1457,57 @@ function newItemRow() {
 }
 
 function renderItemRows() {
-  const tbody  = document.getElementById('det-itens-body');
-  const empty  = document.getElementById('det-itens-empty');
+  const body  = document.getElementById('det-itens-body');
+  const empty = document.getElementById('det-itens-empty');
   if (!detItemsTemp.length) {
-    tbody.innerHTML = '';
+    body.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
 
-  tbody.innerHTML = detItemsTemp.map((item, idx) => `
-    <tr style="border-bottom:1px solid #F3F4F6" id="item-row-${idx}">
-      <td style="padding:6px 8px">
-        <input type="text" value="${item.item_numero||''}" placeholder="ex: 01"
-          style="width:50px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:center"
+  const GS = 'display:grid;grid-template-columns:60px 1fr 120px 80px 90px 90px 90px 32px;gap:0;padding:7px 8px;border-bottom:1px solid #F3F4F6;align-items:center';
+  const INP = 'background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 6px;font-size:12px;outline:none;width:100%';
+
+  body.innerHTML = detItemsTemp.map((item, idx) => `
+    <div style="${GS}" id="item-row-${idx}">
+      <div>
+        <input type="text" value="${item.item_numero||''}" placeholder="01"
+          style="${INP};text-align:center;width:48px"
           oninput="detItemsTemp[${idx}].item_numero=this.value">
-      </td>
-      <td style="padding:6px 8px">
-        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;min-width:100px"
-          onchange="handleItemProduto(${idx},this.value)">
+      </div>
+      <div>
+        <select style="${INP}" onchange="handleItemProduto(${idx},this.value)">
           ${buildProdutoOptions(item.produto||'')}
         </select>
-      </td>
-      <td style="padding:6px 8px">
-        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;min-width:100px"
-          onchange="handleItemUnidade(${idx},this.value)">
+      </div>
+      <div>
+        <select style="${INP}" onchange="handleItemUnidade(${idx},this.value)">
           ${buildUnidadeOptions(item.unidade||'')}
         </select>
-      </td>
-      <td style="padding:6px 8px">
+      </div>
+      <div>
         <input type="number" value="${item.qtd||''}" placeholder="0"
-          style="width:70px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:right"
+          style="${INP};text-align:right"
           oninput="detItemsTemp[${idx}].qtd=this.value;updateItemTotal(${idx})">
-      </td>
-      <td style="padding:6px 8px">
+      </div>
+      <div>
         <input type="number" value="${item.valref||''}" placeholder="0,00"
-          style="width:80px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:right"
+          style="${INP};text-align:right"
           oninput="detItemsTemp[${idx}].valref=this.value;updateItemTotal(${idx})">
-      </td>
-      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#059669;font-weight:600;white-space:nowrap" id="item-total-${idx}">
-        ${(parseFloat(item.qtd||0) && parseFloat(item.valref||0)) ? fmt(parseFloat(item.qtd)*parseFloat(item.valref)) : '—'}
-      </td>
-      <td style="padding:6px 8px">
+      </div>
+      <div style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#059669;font-weight:600;padding:0 4px" id="item-total-${idx}">
+        ${(parseFloat(item.qtd||0)&&parseFloat(item.valref||0))?fmt(parseFloat(item.qtd)*parseFloat(item.valref)):'—'}
+      </div>
+      <div>
         <input type="text" value="${item.uaseg||''}" placeholder="UASEG"
-          style="width:80px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none"
-          oninput="detItemsTemp[${idx}].uaseg=this.value">
-      </td>
-      <td style="padding:6px 8px;text-align:center">
+          style="${INP}" oninput="detItemsTemp[${idx}].uaseg=this.value">
+      </div>
+      <div style="text-align:center">
         <button onclick="removeItemRow(${idx})"
-          style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;padding:3px 7px;
-          font-size:11px;color:#DC2626;cursor:pointer;font-weight:700">✕</button>
-      </td>
-    </tr>`).join('');
+          style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;padding:3px 7px;font-size:11px;color:#DC2626;cursor:pointer;font-weight:700">✕</button>
+      </div>
+    </div>`).join('');
 }
 
 function handleItemProduto(idx, val) {
