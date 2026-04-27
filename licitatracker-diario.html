@@ -1555,11 +1555,13 @@ function removeItemRow(idx) {
 function collectDetail() {
   const dataManualEl = document.getElementById('det-datamanual');
   const horaManualEl = document.getElementById('det-horamanual');
+  // Também pega do manualData salvo (caso o campo já tenha sido salvo antes)
+  const m = manualData[detailRowId] || {};
   return {
-    site:       document.getElementById('det-site')?.value || '',
-    uf:         document.getElementById('det-uf')?.value   || '',
-    datamanual: dataManualEl ? dataManualEl.value : undefined,
-    horamanual: horaManualEl ? horaManualEl.value : undefined,
+    site:       document.getElementById('det-site')?.value || m.site || '',
+    uf:         document.getElementById('det-uf')?.value   || m.uf   || '',
+    datamanual: dataManualEl ? dataManualEl.value : (m.datamanual || ''),
+    horamanual: horaManualEl ? horaManualEl.value : (m.horamanual || ''),
     itens:      detItemsTemp.filter(i => i.produto || i.qtd || i.item_numero),
     produto:    detItemsTemp[0]?.produto      || '',
     qtd:        detItemsTemp[0]?.qtd          || '',
@@ -1605,6 +1607,23 @@ function saveDetailAndAndamento() {
   toast('▶', 'Movido para Em Andamento!');
 }
 
+// Monta a data de encerramento: usa base se tiver, senão usa data/hora manual
+function buildDataEncerramento(r, d) {
+  // 1. Campo base do PNCP
+  if (r.dataencerramentoproposta) return r.dataencerramentoproposta;
+
+  // 2. Data manual digitada no modal OU salva no localStorage
+  const m = manualData[String(r.id)] || {};
+  const dataStr = d?.datamanual || m.datamanual || '';
+  const horaStr = d?.horamanual || m.horamanual || '00:00';
+
+  if (dataStr) {
+    // Constrói ISO string: "2026-05-04T09:00:00"
+    return `${dataStr}T${horaStr}:00`;
+  }
+  return null;
+}
+
 // Insere/atualiza na tabela pncp_favoritos + itens
 async function insertToFavoritos(id, status, d, dataFavorito) {
   try {
@@ -1628,7 +1647,11 @@ async function insertToFavoritos(id, status, d, dataFavorito) {
       // Atualiza cabeçalho
       await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos?id=eq.${favoritoId}`, {
         method: 'PATCH', headers: { ...H, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ status, site: d.site||null })
+        body: JSON.stringify({
+          status,
+          site: d.site || null,
+          dataencerramento: buildDataEncerramento(r, d),
+        })
       });
     } else {
       // Insere cabeçalho novo
@@ -1640,7 +1663,7 @@ async function insertToFavoritos(id, status, d, dataFavorito) {
         objetocompra:       r.objetocompra       || null,
         orgao:              r.orgaoentidade_razaosocial || null,
         uf:                 r.unidadeorgao_ufsigla      || null,
-        dataencerramento:   r.dataencerramentoproposta  || null,
+        dataencerramento:   buildDataEncerramento(r, d),
         modalidade:         r.modalidadenome     || null,
         valortotalestimado: r.valortotalestimado ? parseFloat(r.valortotalestimado) : null,
         linksistemaorigem:  r.linksistemaorigem  || null,
@@ -1648,12 +1671,12 @@ async function insertToFavoritos(id, status, d, dataFavorito) {
         data_carga:         r.data_carga         || null,
         data_favorito:      dataFavorito,
         // Compat campos legados (primeiro item)
-        produto:    d.itens?.[0]?.produto   || null,
-        qtd:        d.itens?.[0]?.qtd       ? parseFloat(d.itens[0].qtd)    : null,
-        valref:     d.itens?.[0]?.valref    ? parseFloat(d.itens[0].valref) : null,
-        unidade:    d.itens?.[0]?.unidade   || null,
+        produto:    d.itens?.[0]?.produto    || null,
+        qtd:        d.itens?.[0]?.qtd        ? parseFloat(d.itens[0].qtd)    : null,
+        valref:     d.itens?.[0]?.valref     ? parseFloat(d.itens[0].valref) : null,
+        unidade:    d.itens?.[0]?.unidade    || null,
         item_numero:d.itens?.[0]?.item_numero || null,
-        uaseg:      d.itens?.[0]?.uaseg     || null,
+        uaseg:      d.itens?.[0]?.uaseg      || null,
       };
       const ins = await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos`, {
         method: 'POST', headers: { ...H, 'Prefer': 'return=representation' },
