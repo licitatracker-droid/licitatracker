@@ -1441,12 +1441,7 @@ function openDetail(e, id) {
       <div style="font-size:10px;color:var(--gold);margin-top:4px">⚠ Data não encontrada — preencha manualmente</div>`;
   }
   document.getElementById('det-orgao').textContent = r.orgaoentidade_razaosocial || '—';
-  document.getElementById('det-uf').value     = r.unidadeorgao_ufsigla || m.uf || '';
-
-  // Site select — keep hidden but populate for save compat
-  if (document.getElementById('det-site')) {
-    document.getElementById('det-site').innerHTML = buildSiteOptions(m.site || r.linksistemaorigem || '');
-  }
+  // det-uf and det-site removed from modal — site/UF edited directly in table
 
   // Carrega itens do localStorage (ou vazio)
   detItemsTemp = (m.itens || []).map(i => ({...i}));
