@@ -245,10 +245,11 @@
     <div class="logo-text">Licita<span>Tracker</span></div>
   </a>
   <nav class="topbar-nav">
-    <a class="nav-item" href="licitatracker-diario.html">📰 Diário</a>
-    <a class="nav-item active" href="#">⭐ Favoritos</a>
-    <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
-    <a class="nav-item" href="licitatracker-config.html">⚙️ Config</a>
+    <a class="nav-item"        id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
+    <a class="nav-item active" id="nav-favoritos"    href="#">⭐ Favoritos</a>
+    <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+    <a class="nav-item"        id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
+    <a class="nav-item"        id="nav-config"       href="licitatracker-config.html">⚙️ Config</a>
   </nav>
   <div style="display:flex;align-items:center;gap:10px">
     <div class="badge-count" id="total-badge">— registros</div>
@@ -415,7 +416,7 @@
     <div style="padding:24px 28px;flex:1;overflow-y:auto">
 
       <!-- Grid 2 colunas: esquerda dados + direita lembrete/anexos -->
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
 
         <!-- COLUNA ESQUERDA -->
         <div>
@@ -476,8 +477,8 @@
             max-height:280px;overflow-y:auto;padding-right:4px"></div>
         </div>
 
-        <!-- COLUNA DIREITA -->
-        <div style="display:flex;flex-direction:column;gap:12px">
+        <!-- COLUNA DIREITA — alinha com os dados do edital -->
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:28px">
 
           <!-- Lembrete compacto -->
           <div style="background:white;border:1px solid #E5E7EB;border-radius:12px;padding:14px">
@@ -741,7 +742,31 @@ function checkAuth() {
   const ini = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = ini;
   document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
+  applyModulos(user, 'favoritos');
   return user;
+}
+
+function applyModulos(user, paginaAtual) {
+  const mods    = user.modulos || {};
+  const isAdmin = user.role === 'admin';
+  if (isAdmin) {
+    const el = document.getElementById('nav-empresas');
+    if (el) el.style.display = 'flex';
+    return;
+  }
+  const NAV_MAP = {
+    'nav-diario':'diario','nav-favoritos':'favoritos','nav-meus-editais':'meus_editais',
+    'nav-config':'config','nav-empresas':null
+  };
+  Object.entries(NAV_MAP).forEach(([id, mod]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = (mod && mods[mod]) || mod === null ? (mod?'flex':'none') : 'none';
+  });
+  // Redireciona se módulo atual desabilitado
+  if (paginaAtual && mods[paginaAtual] === false) {
+    window.location.href = mods.diario !== false ? 'licitatracker-diario.html' : 'licitatracker-login.html';
+  }
 }
 function doLogout() {
   if (!confirm('Deseja sair?')) return;
@@ -1157,35 +1182,78 @@ async function salvarLembrete() {
       body: JSON.stringify(payload)
     });
 
-    // Agenda disparo local
+    // Agenda disparo local — guarda o timer id para cancelar se necessário
     if (tipo === 'tempo') {
-      setTimeout(() => dispararLembrete(nota, acFavId), minutos * 60 * 1000);
+      const ms = parseInt(minutos) * 60 * 1000;
+      const savedFavId = acFavId; // captura para o closure
+      const savedNota  = nota;
+      console.log(`⏱ Lembrete agendado para ${minutos} minuto(s) — ${ms}ms`);
+
+      // Solicita permissão antes de agendar
+      if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+        await Notification.requestPermission();
+      }
+
+      setTimeout(() => dispararLembrete(savedNota, savedFavId), ms);
+    } else if (tipo === 'data' && dataVal) {
+      const disparo = new Date(dataVal).getTime() - Date.now();
+      if (disparo > 0) {
+        const savedFavId = acFavId;
+        const savedNota  = nota;
+        if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+          await Notification.requestPermission();
+        }
+        setTimeout(() => dispararLembrete(savedNota, savedFavId), disparo);
+      }
     }
   }
 
-  toast('🔔', ativo ? 'Lembrete salvo!' : 'Lembrete removido');
+  toast('🔔', ativo ? `Lembrete salvo! Dispara em ${document.getElementById('ac-lem-tempo').options[document.getElementById('ac-lem-tempo').selectedIndex]?.text || ''}` : 'Lembrete removido');
 }
 
 function dispararLembrete(nota, favId) {
   const r = allFavs.find(x => x.id === favId) || {};
-  if (Notification.permission === 'granted') {
-    new Notification('🔔 Lembrete de Licitação', {
-      body: nota || `Revisar: ${(r.objetocompra||'').substring(0,60)}`,
-      icon: 'Logo.png'
-    });
-  } else {
-    toast('🔔', nota || 'Lembrete: ' + (r.orgao||'').substring(0,30));
+  const msg = nota || `Revisar: ${(r.objetocompra||'').substring(0,60)}`;
+
+  // Tenta notificação do sistema
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    try {
+      new Notification('🔔 Lembrete de Licitação', { body: msg, icon: 'Logo.png' });
+    } catch(e) {}
   }
-  // Marca como disparado no Supabase
-  fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes?favorito_id=eq.${favId}&ativo=eq.true`,{
+
+  // Toast sempre aparece
+  toast('🔔', msg.substring(0, 60));
+
+  // Salva no histórico automaticamente
+  const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  fetch(`${SUPABASE_URL}/rest/v1/pncp_acompanhamento`, {
+    method:'POST',
+    headers:{...H,'Prefer':'return=minimal'},
+    body: JSON.stringify({
+      favorito_id: favId,
+      numerocontrolepncp: r.numerocontrolepncp || null,
+      usuario:  `🔔 Lembrete (${user.nome||'Sistema'})`,
+      nota: msg,
+      data_nota: new Date().toISOString(),
+    })
+  });
+
+  // Marca como disparado
+  fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes?favorito_id=eq.${favId}&ativo=eq.true`, {
     method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
     body: JSON.stringify({disparado:true})
   });
+
+  // Recarrega histórico se o modal ainda estiver aberto
+  if (acFavId === favId && document.getElementById('acomp-overlay').classList.contains('open')) {
+    loadHistorico(favId);
+  }
 }
 
-// Solicita permissão de notificação
+// Solicita permissão de notificação ao carregar a página
 if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-  Notification.requestPermission();
+  Notification.requestPermission().then(p => console.log('Notificações:', p));
 }
 
 // =============================================

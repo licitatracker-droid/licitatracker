@@ -565,11 +565,11 @@
       <div class="logo-text">Licita<span>Tracker</span></div>
     </a>
     <nav class="topbar-nav" id="main-nav">
-      <a class="nav-item active" href="licitatracker-diario.html">📰 Diário</a>
-      <a class="nav-item" href="licitatracker-favoritos.html">⭐ Favoritos</a>
-      <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
-      <a class="nav-item" id="nav-empresas" href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
-      <a class="nav-item" href="licitatracker-config.html">⚙️ Config</a>
+      <a class="nav-item active" id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
+      <a class="nav-item"        id="nav-favoritos"    href="licitatracker-favoritos.html">⭐ Favoritos</a>
+      <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+      <a class="nav-item"        id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
+      <a class="nav-item"        id="nav-config"       href="licitatracker-config.html">⚙️ Config</a>
     </nav>
     <div class="topbar-right">
       <button class="btn btn-ghost" onclick="openBoletim()" style="font-size:13px">📄 Boletim</button>
@@ -1812,21 +1812,52 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 });
 
 // =============================================
-// AUTH
+// AUTH + MÓDULOS
 // =============================================
 function checkAuth() {
   const user = JSON.parse(localStorage.getItem('lt_user') || 'null');
   if (!user) { window.location.href = 'licitatracker-login.html'; return false; }
+
   const initials = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
   document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
 
-  // Mostra link Empresas só para admin
-  if (user.role === 'admin') {
+  applyModulos(user);
+  return true;
+}
+
+function applyModulos(user) {
+  const mods = user.modulos || {};
+  const isAdmin = user.role === 'admin';
+
+  // Admin vê tudo sempre
+  if (isAdmin) {
     const el = document.getElementById('nav-empresas');
     if (el) el.style.display = 'flex';
+    return;
   }
-  return true;
+
+  // Mapeamento: id do nav → chave do módulo (null = nunca para não-admin)
+  const NAV_MAP = {
+    'nav-diario':       'diario',
+    'nav-favoritos':    'favoritos',
+    'nav-meus-editais': 'meus_editais',
+    'nav-config':       'config',
+    'nav-empresas':     null,
+  };
+
+  Object.entries(NAV_MAP).forEach(([navId, modKey]) => {
+    const el = document.getElementById(navId);
+    if (!el) return;
+    el.style.display = (modKey !== null && mods[modKey] !== false) ? 'flex' : 'none';
+  });
+
+  // Redireciona se Diário está desabilitado
+  if (mods.diario === false) {
+    if (mods.favoritos !== false)    { window.location.href = 'licitatracker-favoritos.html'; return; }
+    if (mods.meus_editais !== false) { window.location.href = 'licitatracker-meus-editais.html'; return; }
+    window.location.href = 'licitatracker-login.html';
+  }
 }
 
 function doLogout() {
