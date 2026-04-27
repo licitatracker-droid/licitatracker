@@ -725,6 +725,7 @@
 const SUPABASE_URL = 'https://fzpdrobltmssrrokblnc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cGRyb2JsdG1zc3Jyb2tibG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMyNDEsImV4cCI6MjA5MjAwOTI0MX0.ifd1oB4mnL-D-28nN9Ee2ZOqrx1G13cLW03rlqq28AE';
 const FAV_TABLE = 'pncp_favoritos';
+const SB = SUPABASE_URL;
 const H = { 'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Accept':'application/json' };
 
 // Logo WYC em base64
@@ -1740,12 +1741,72 @@ async function saveF(id, field, value) {
   }, 700);
 }
 
-function changeStatus(id, st) {
+async function changeStatus(id, st) {
   saveF(id,'status',st);
   const row = allFavs.find(r=>r.id===id);
   if (row) row.status = st;
-  setTimeout(()=>applyFilters(),100);
-  toast('✅',`Movido para ${st}`);
+
+  // Ao ganhar → cria contrato automaticamente em Meus Editais
+  if (st === 'ganho') {
+    await criarContrato(id);
+    toast('🏆','Parabéns! Contrato criado em Meus Editais.');
+  } else {
+    toast('✅',`Movido para ${st}`);
+  }
+
+  setTimeout(()=>applyFilters(),200);
+}
+
+async function criarContrato(favoritoId) {
+  const r = allFavs.find(x=>x.id===favoritoId)||{};
+  try {
+    // Verifica se já existe
+    const check = await fetch(
+      `${SB}/rest/v1/pncp_contratos?select=id&favorito_id=eq.${favoritoId}`,{headers:H});
+    const existing = check.ok ? await check.json() : [];
+    if (existing.length > 0) return;
+
+    const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+
+    // Busca itens do favorito
+    const resI = await fetch(
+      `${SB}/rest/v1/pncp_favoritos_itens?select=*&favorito_id=eq.${favoritoId}`,{headers:H});
+    const itens = resI.ok ? await resI.json() : [];
+
+    // Cria contrato
+    const resC = await fetch(`${SB}/rest/v1/pncp_contratos`,{
+      method:'POST', headers:{...H,'Prefer':'return=representation'},
+      body: JSON.stringify({
+        favorito_id:        favoritoId,
+        numerocontrolepncp: r.numerocontrolepncp||null,
+        orgao:              r.orgao||null,
+        objeto:             r.objetocompra||null,
+        data_ganho:         new Date().toISOString().split('T')[0],
+        usuario:            user.nome||null,
+        concluido:          false,
+      })
+    });
+    const [contrato] = await resC.json();
+
+    // Pré-popula com itens do favorito
+    if (itens.length > 0 && contrato?.id) {
+      const payload = itens.map(i=>({
+        contrato_id:    contrato.id,
+        item_numero:    i.item_numero||null,
+        descricao:      i.produto||null,
+        quantidade:     i.qtd?parseFloat(i.qtd):null,
+        vl_unitario:    i.valref?parseFloat(i.valref):null,
+        forma_pagamento:'qtd',
+        total_pago:     0,
+      }));
+      await fetch(`${SB}/rest/v1/pncp_contrato_itens`,{
+        method:'POST', headers:{...H,'Prefer':'return=minimal'},
+        body: JSON.stringify(payload)
+      });
+    }
+  } catch(e) {
+    console.warn('Erro ao criar contrato:', e.message);
+  }
 }
 
 function refreshRow(sel, id) {
