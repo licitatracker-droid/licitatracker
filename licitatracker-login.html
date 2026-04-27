@@ -127,79 +127,115 @@
 </div>
 
 <script>
-// Usuários fixos por enquanto — depois integrar com Supabase Auth
-const USERS = [
-  { email: 'admin@licitatracker.com.br', senha: 'licita2026', nome: 'Administrador', clientes: ['Geral','Cliente A','Cliente B'], role: 'admin' },
-  { email: 'demo@licitatracker.com.br',  senha: 'demo123',    nome: 'Demo',          clientes: ['Geral'], role: 'viewer' },
+// =============================================
+// LOGIN — autentica contra lt_usuarios no Supabase
+// =============================================
+const SB  = 'https://fzpdrobltmssrrokblnc.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cGRyb2JsdG1zc3Jyb2tibG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMyNDEsImV4cCI6MjA5MjAwOTI0MX0.ifd1oB4mnL-D-28nN9Ee2ZOqrx1G13cLW03rlqq28AE';
+const H   = {'apikey':KEY,'Authorization':`Bearer ${KEY}`,'Content-Type':'application/json','Accept':'application/json'};
+
+// Usuários fallback (admin local enquanto não há dados no banco)
+const FALLBACK_USERS = [
+  { email:'admin@licitatracker.com.br', senha:'licita2026', nome:'Administrador', role:'admin',
+    modulos:{ diario:true, favoritos:true, meus_editais:true, pagamentos:true, analytics:true, config:true } },
 ];
 
-function doLogin() {
+async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const senha = document.getElementById('login-senha').value;
   const btn   = document.getElementById('btn-login');
 
   document.getElementById('error-msg').classList.remove('show');
-
   if (!email || !senha) {
     document.getElementById('error-msg').textContent = 'Preencha e-mail e senha.';
-    document.getElementById('error-msg').classList.add('show');
-    return;
+    document.getElementById('error-msg').classList.add('show'); return;
   }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Entrando...';
 
-  setTimeout(() => {
-    const user = USERS.find(u => u.email === email && u.senha === senha);
-    if (!user) {
-      document.getElementById('error-msg').textContent = 'E-mail ou senha incorretos.';
-      document.getElementById('error-msg').classList.add('show');
-      btn.disabled = false;
-      btn.innerHTML = 'Entrar';
+  try {
+    // 1. Tenta no banco
+    const res = await fetch(
+      `${SB}/rest/v1/lt_usuarios?select=*,lt_empresas(*)&email=eq.${encodeURIComponent(email)}&ativo=eq.true`,
+      {headers:H}
+    );
+    const rows = res.ok ? await res.json() : [];
+
+    if (rows.length > 0) {
+      const u   = rows[0];
+      const emp = u.lt_empresas;
+
+      // Verifica senha (base64 por ora)
+      const senhaHash = btoa(senha);
+      if (u.senha_hash !== senhaHash) throw new Error('Senha incorreta');
+      if (!emp || !emp.ativa) throw new Error('Empresa inativa ou não encontrada');
+
+      // Monta sessão com módulos da empresa
+      const session = {
+        id:      u.id,
+        nome:    u.nome,
+        email:   u.email,
+        role:    u.perfil,
+        empresa: emp.nome,
+        empresa_id: emp.id,
+        modulos: {
+          diario:       emp.mod_diario,
+          favoritos:    emp.mod_favoritos,
+          meus_editais: emp.mod_meus_editais,
+          pagamentos:   emp.mod_pagamentos,
+          analytics:    emp.mod_analytics,
+          config:       emp.mod_config,
+        }
+      };
+      localStorage.setItem('lt_user', JSON.stringify(session));
+      localStorage.setItem('lt_cliente', emp.nome);
+
+      // Atualiza último acesso
+      fetch(`${SB}/rest/v1/lt_usuarios?id=eq.${u.id}`,{
+        method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
+        body: JSON.stringify({ultimo_acesso: new Date().toISOString()})
+      });
+
+      document.getElementById('success-msg').textContent = `✅ Olá, ${u.nome}! Redirecionando...`;
+      document.getElementById('success-msg').classList.add('show');
+      setTimeout(() => window.location.href = 'licitatracker-diario.html', 1000);
       return;
     }
 
-    // Salva sessão
-    localStorage.setItem('lt_user', JSON.stringify({ nome: user.nome, email: user.email, role: user.role, clientes: user.clientes }));
-
-    if (user.clientes.length === 1) {
-      // Só 1 cliente → vai direto
-      localStorage.setItem('lt_cliente', user.clientes[0]);
-      document.getElementById('success-msg').textContent = `✅ Olá, ${user.nome}! Redirecionando...`;
+    // 2. Fallback local (admin master)
+    const fallback = FALLBACK_USERS.find(u => u.email === email && u.senha === senha);
+    if (fallback) {
+      const session = {
+        nome: fallback.nome, email: fallback.email,
+        role: fallback.role, empresa: 'WYC Consultoria', empresa_id: null,
+        modulos: fallback.modulos
+      };
+      localStorage.setItem('lt_user', JSON.stringify(session));
+      localStorage.setItem('lt_cliente', 'WYC Consultoria');
+      document.getElementById('success-msg').textContent = `✅ Olá, ${fallback.nome}! Redirecionando...`;
       document.getElementById('success-msg').classList.add('show');
       setTimeout(() => window.location.href = 'licitatracker-diario.html', 1000);
-    } else {
-      // Múltiplos clientes → mostra seletor
-      showClientSelector(user);
+      return;
     }
-  }, 800);
-}
 
-function showClientSelector(user) {
-  document.getElementById('login-form').style.display = 'none';
-  const sel = document.getElementById('client-selector');
-  sel.classList.add('show');
-  const list = document.getElementById('client-list');
-  list.innerHTML = user.clientes.map(c => `
-    <div class="client-item" onclick="selectClient('${c}','${user.nome}')">
-      <div>
-        <div class="client-name">🏢 ${c}</div>
-        <div class="client-role">${user.role === 'admin' ? 'Administrador' : 'Visualizador'}</div>
-      </div>
-      <span class="client-arrow">›</span>
-    </div>`).join('');
-}
+    throw new Error('E-mail ou senha incorretos');
 
-function selectClient(cliente, nome) {
-  localStorage.setItem('lt_cliente', cliente);
-  document.getElementById('client-selector').innerHTML =
-    `<div class="success-msg show">✅ Bem-vindo, ${nome}! Acessando ${cliente}...</div>`;
-  setTimeout(() => window.location.href = 'licitatracker-diario.html', 1000);
+  } catch(e) {
+    document.getElementById('error-msg').textContent = e.message || 'Erro ao autenticar';
+    document.getElementById('error-msg').classList.add('show');
+    btn.disabled = false;
+    btn.innerHTML = 'Entrar';
+  }
 }
 
 function showForgot() {
   alert('Entre em contato: licitatracker@gmail.com');
 }
+
+document.getElementById('login-senha').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
 
 // Se já está logado, redireciona
 if (localStorage.getItem('lt_user')) {

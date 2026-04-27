@@ -564,10 +564,11 @@
       <div class="logo-icon">📋</div>
       <div class="logo-text">Licita<span>Tracker</span></div>
     </a>
-    <nav class="topbar-nav">
+    <nav class="topbar-nav" id="main-nav">
       <a class="nav-item active" href="licitatracker-diario.html">📰 Diário</a>
       <a class="nav-item" href="licitatracker-favoritos.html">⭐ Favoritos</a>
       <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+      <a class="nav-item" id="nav-empresas" href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
       <a class="nav-item" href="licitatracker-config.html">⚙️ Config</a>
     </nav>
     <div class="topbar-right">
@@ -1819,6 +1820,12 @@ function checkAuth() {
   const initials = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
   document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
+
+  // Mostra link Empresas só para admin
+  if (user.role === 'admin') {
+    const el = document.getElementById('nav-empresas');
+    if (el) el.style.display = 'flex';
+  }
   return true;
 }
 
