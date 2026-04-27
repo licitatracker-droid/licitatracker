@@ -351,7 +351,7 @@
     color: var(--text-muted); cursor: default; pointer-events: none;
   }
 
-  .modal-lg { max-width: 860px; width: 860px; min-height: 600px; }
+  .modal-lg { max-width: 920px; width: 90vw; min-height: 600px; }
   .modal {
     max-height: 88vh; overflow-y: auto;
     position: relative; margin: auto;
@@ -434,13 +434,59 @@
     .bcm-label { color: #666 !important; }
   }
 
-  
-    background: none; border: none; cursor: pointer;
-    font-size: 16px; padding: 2px; transition: transform 0.15s;
-    color: var(--text-muted);
+  /* Inline editable fields in table */
+  .inline-edit-input {
+    background: transparent; border: none; border-bottom: 1px dashed transparent;
+    outline: none; font-family: 'DM Sans', sans-serif; font-size: 12px;
+    color: var(--text-soft); width: 100%; padding: 2px 0;
+    transition: border-color .15s; cursor: text;
   }
-  .btn-star:hover { transform: scale(1.2); color: var(--gold); }
-  .btn-star.starred { color: var(--gold); }
+  .inline-edit-input:hover { border-bottom-color: #D1D5DB; }
+  .inline-edit-input:focus { border-bottom-color: var(--accent); color: var(--text); background: #FAFBFF; border-radius: 0; }
+  .inline-edit-input.link-input { font-family: 'DM Mono', monospace; font-size: 11px; min-width: 140px; }
+  .inline-edit-input.link-input:focus { color: var(--accent); }
+
+  /* Col objeto - always show full text, 2 lines max */
+  .col-objeto { min-width: 280px; max-width: 380px; }
+  .obj-text {
+    font-size: 12px; color: var(--text); line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; font-weight: 500;
+  }
+  .obj-text.expanded { -webkit-line-clamp: unset; overflow: visible; }
+  .expand-btn {
+    background: none; border: none; cursor: pointer; font-size: 10px;
+    color: var(--accent); font-weight: 600; padding: 1px 0; margin-top: 1px; display: block;
+  }
+
+  /* Col órgão - editable */
+  .col-orgao { min-width: 140px; max-width: 180px; }
+
+  /* STAR BUTTON */
+  .btn-star {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; padding: 4px 6px;
+    transition: all 0.2s cubic-bezier(.34,1.56,.64,1);
+    color: #D1D5DB; line-height: 1;
+    border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    text-shadow: none; filter: none;
+  }
+  .btn-star:hover {
+    transform: scale(1.25);
+    color: #F59E0B;
+    background: #FFFBEB;
+  }
+  .btn-star.starred {
+    color: #F59E0B;
+    text-shadow: 0 0 8px rgba(245,158,11,.5);
+    filter: drop-shadow(0 0 4px rgba(245,158,11,.4));
+    transform: scale(1.1);
+  }
+  .btn-star.starred:hover {
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 8px rgba(245,158,11,.7));
+  }
 
   .btn-detail {
     background: #EEF2FF; border: 1px solid #C7D2FE;
@@ -567,7 +613,7 @@
     <nav class="topbar-nav" id="main-nav">
       <a class="nav-item active" id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
       <a class="nav-item"        id="nav-favoritos"    href="licitatracker-favoritos.html">⭐ Favoritos</a>
-      <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+      <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
       <a class="nav-item"        id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
       <a class="nav-item"        id="nav-config"       href="licitatracker-config.html">⚙️ Config</a>
     </nav>
@@ -668,14 +714,13 @@
         <table id="main-table">
           <thead>
             <tr>
-              <th style="width:28px;"></th>
+              <th style="width:32px;"></th>
               <th onclick="sortBy('numerocontrolepncp')">Nº PNCP</th>
               <th onclick="sortBy('objetocompra')">Objeto</th>
               <th onclick="sortBy('dataencerramentoproposta')">Data</th>
               <th>Hora</th>
               <th>Nº Pregão</th>
               <th onclick="sortBy('orgaoentidade_razaosocial')">Órgão</th>
-              <th>Produto</th>
               <th onclick="sortBy('unidadeorgao_ufsigla')">UF</th>
               <th>Site</th>
               <th>Total</th>
@@ -1090,22 +1135,19 @@ function renderTable() {
     const pncpNum  = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
     const linkPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
 
-    // Link Pregão — prioridade: manual > base (linksistemaorigem)
+    // Link Pregão — manual tem prioridade; se não tiver, usa site base
     const siteVal    = m.site || r.linksistemaorigem || '';
     const siteNome   = getSiteNome(siteVal);
-    const linkPregao = siteVal
-      ? `<a href="${siteVal}" target="_blank" class="link-btn link-btn-pregao" onclick="event.stopPropagation()">🔗 ${siteNome}</a>`
-      : `<span class="link-btn link-btn-indisponivel">indisponível</span>`;
-
-    const starred = m.starred ? 'starred' : '';
+    const starred    = m.starred ? 'starred' : '';
 
     // Site select options
-    const siteOptions   = buildSiteOptions(siteVal);
-    const produtoOptions = buildProdutoOptions(m.produto||'');
+    const siteOptions = buildSiteOptions(siteVal);
 
     return `<tr onclick="selectRow(this)">
-      <td style="text-align:center">
-        <button class="btn-star ${starred}" onclick="toggleStar(event,'${r.id}')">${m.starred ? '★' : '☆'}</button>
+      <td style="text-align:center;padding:6px 4px">
+        <button class="btn-star ${starred}" onclick="toggleStar(event,'${r.id}')" title="${m.starred?'Remover favorito':'Adicionar aos favoritos'}">
+          ${m.starred ? '★' : '☆'}
+        </button>
       </td>
       <td class="col-pncp">
         <span class="pncp-num">${r.numerocontrolepncp||'—'}</span>
@@ -1118,19 +1160,19 @@ function renderTable() {
       <td class="col-data">
         ${dtStr !== '—' ? dtStr : `<input type="date" class="inline-date-input" value="${m.datamanual||''}"
           onchange="saveManual('${r.id}','datamanual',this.value)"
-          onclick="event.stopPropagation()" title="Data não encontrada na base — insira manualmente">`}
+          onclick="event.stopPropagation()" title="Data não encontrada — insira manualmente">`}
       </td>
       <td class="col-data">
         ${hrStr !== '—' ? hrStr : `<input type="time" class="inline-date-input" value="${m.horamanual||''}"
           onchange="saveManual('${r.id}','horamanual',this.value)"
-          onclick="event.stopPropagation()" title="Hora não encontrada na base — insira manualmente">`}
+          onclick="event.stopPropagation()" title="Hora não encontrada — insira manualmente">`}
       </td>
       <td class="col-pregao">${numPregao}</td>
-      <td class="col-orgao"><span title="${r.orgaoentidade_razaosocial||''}">${r.orgaoentidade_razaosocial||'—'}</span></td>
-      <td class="col-produto">
-        <select class="site-select" onchange="saveProdutoRow(event,'${r.id}',this.value)" onclick="event.stopPropagation()">
-          ${produtoOptions}
-        </select>
+      <td class="col-orgao">
+        <input type="text" class="inline-edit-input" value="${(r.orgaoentidade_razaosocial||'—').replace(/"/g,'&quot;')}"
+          onclick="event.stopPropagation()"
+          onchange="saveManual('${r.id}','orgao_override',this.value)"
+          title="Clique para editar o órgão">
       </td>
       <td class="col-uf"><span class="uf-badge">${r.unidadeorgao_ufsigla||'?'}</span></td>
       <td class="col-site">
@@ -1142,10 +1184,17 @@ function renderTable() {
         <div class="val-total">${totalVal}</div>
       </td>
       <td class="col-links">
-        <a href="${linkPncp}" target="_blank" class="link-btn link-btn-pncp" onclick="event.stopPropagation()">🔗 Link PNCP</a>
+        <a href="${linkPncp}" target="_blank" class="link-btn link-btn-pncp" onclick="event.stopPropagation()">🔗 PNCP</a>
       </td>
-      <td class="col-links">
-        ${linkPregao}
+      <td class="col-links" style="min-width:160px">
+        <input type="text" class="inline-edit-input link-input"
+          value="${(m.linkpregao || siteVal || '').replace(/"/g,'&quot;')}"
+          placeholder="https://..."
+          onclick="event.stopPropagation()"
+          onchange="saveLinkPregao(event,'${r.id}',this.value)"
+          title="Link direto para o pregão">
+        ${(m.linkpregao || siteVal) ? `<a href="${m.linkpregao||siteVal}" target="_blank"
+          class="link-btn link-btn-pregao" onclick="event.stopPropagation()" style="margin-top:3px;display:inline-flex">🔗 Abrir</a>` : ''}
       </td>
       <td style="text-align:center">
         ${m.status ? `<span class="status-badge status-${m.status}">${m.status === 'andamento' ? '▶ Andamento' : '⭐ Favorito'}</span>` : ''}
@@ -1304,6 +1353,30 @@ function saveSite(e, id, value) {
     return;
   }
   saveManual(id, 'site', value);
+}
+
+function saveLinkPregao(e, id, value) {
+  e.stopPropagation();
+  saveManual(id, 'linkpregao', value.trim());
+  // Atualiza o botão Abrir na mesma linha sem re-renderizar tudo
+  const td  = e.target.closest('td');
+  if (!td) return;
+  let aEl = td.querySelector('a.link-btn-pregao');
+  if (value.trim()) {
+    if (!aEl) {
+      aEl = document.createElement('a');
+      aEl.className = 'link-btn link-btn-pregao';
+      aEl.target = '_blank';
+      aEl.style.marginTop = '3px';
+      aEl.style.display = 'inline-flex';
+      aEl.textContent = '🔗 Abrir';
+      aEl.onclick = ev => ev.stopPropagation();
+      td.appendChild(aEl);
+    }
+    aEl.href = value.trim();
+  } else if (aEl) {
+    aEl.remove();
+  }
 }
 
 // =============================================
