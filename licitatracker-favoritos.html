@@ -1834,28 +1834,32 @@ function refreshSiteLink(id, url) {
 async function delFav(id) {
   if (!confirm('Remover este favorito?')) return;
 
-  // id pode ser o id do favorito cabeçalho OU o id de uma linha expandida
-  // Precisamos sempre deletar pelo id do favorito cabeçalho
-  const row = allFavs.find(r => r.id === id);
-  const favId = row?.id || id; // usa o id do favorito principal
-
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/${FAV_TABLE}?id=eq.${favId}`,
-      { method: 'DELETE', headers: { ...H, 'Prefer': 'return=minimal' } }
-    );
+    const url = `${SUPABASE_URL}/rest/v1/${FAV_TABLE}?id=eq.${id}`;
+    console.log('DELETE URL:', url);
+
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: { ...H, 'Prefer': 'return=minimal' }
+    });
+
+    console.log('DELETE status:', res.status);
+
     if (!res.ok) {
       const txt = await res.text();
-      throw new Error(`HTTP ${res.status}: ${txt}`);
+      console.error('DELETE error body:', txt);
+      toast('❌', `Erro ${res.status}: ${txt.substring(0,80)}`);
+      return;
     }
-    // Remove TODAS as linhas com este id do array local (incluindo linhas de itens expandidos)
-    allFavs = allFavs.filter(r => r.id !== favId);
+
+    // Remove todas as linhas com este id (inclusive expandidas por itens)
+    allFavs = allFavs.filter(r => r.id !== id);
     buildFilters();
     applyFilters();
-    toast('🗑', 'Favorito removido');
+    toast('🗑', 'Favorito removido!');
   } catch(e) {
-    toast('❌', 'Erro ao remover: ' + e.message);
-    console.error('delFav error:', e);
+    console.error('delFav exception:', e);
+    toast('❌', 'Erro: ' + e.message);
   }
 }
 
