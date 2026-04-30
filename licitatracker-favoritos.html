@@ -180,14 +180,46 @@
   .bol-overlay.open{display:flex}
 
   @media print {
+    @page { margin: 8mm; size: A4 landscape; }
     body * { visibility: hidden !important; }
     #bol-print-area, #bol-print-area * { visibility: visible !important; }
     #bol-print-area {
       position: fixed !important; inset: 0 !important; z-index: 9999 !important;
       background: white !important; overflow: visible !important;
       padding: 0 !important; width: 100% !important;
+      border-radius: 0 !important; box-shadow: none !important;
     }
     .bol-no-print { display: none !important; }
+    .bol-wrap { max-height: none !important; overflow: visible !important; box-shadow: none !important; border-radius: 0 !important; }
+    .bol-body { overflow: visible !important; }
+
+    /* Força cores de fundo no print — essencial para Chrome/Edge */
+    .bol-header {
+      background: #C2560A !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color: white !important;
+    }
+    .bol-header * { color: white !important; }
+    .bol-table thead tr {
+      background: #D4660E !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .bol-table th {
+      color: white !important;
+      background: #D4660E !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .bol-table tbody tr:nth-child(even) {
+      background: #FFFBEB !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .bol-table td { border: 1px solid #FDE68A !important; }
+    .bol-table td.money { color: #065F46 !important; }
+    .bol-footer-txt { display: block !important; visibility: visible !important; }
   }
 
   .bol-wrap{background:white;border-radius:12px;width:100%;max-width:1200px;max-height:92vh;
@@ -199,22 +231,26 @@
     color:white;padding:16px 24px;
     display:flex;align-items:center;justify-content:space-between;gap:16px;
     flex-shrink:0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .bol-header-left{flex:1}
-  .bol-title{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:3px}
-  .bol-subtitle{font-size:11px;opacity:.9}
+  .bol-title{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:3px;color:white}
+  .bol-subtitle{font-size:11px;opacity:.9;color:white}
   .bol-header-right{text-align:right;flex-shrink:0}
   .bol-logo-img{height:44px;width:auto;background:white;border-radius:6px;padding:3px;display:block;margin-bottom:4px;margin-left:auto}
-  .bol-contact-name{font-size:13px;font-weight:700}
-  .bol-contact-sub{font-size:11px;opacity:.85;margin-top:1px}
+  .bol-contact-name{font-size:13px;font-weight:700;color:white}
+  .bol-contact-sub{font-size:11px;opacity:.85;margin-top:1px;color:white}
 
   /* Tabela */
   .bol-body{flex:1;overflow-y:auto;overflow-x:auto}
-  .bol-table{width:100%;border-collapse:collapse;min-width:900px}
-  .bol-table thead tr{background:#D4660E;color:white}
+  .bol-table{width:100%;border-collapse:collapse;min-width:900px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bol-table thead tr{background:#D4660E !important;color:white !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .bol-table th{
     padding:8px 9px;font-size:10px;font-weight:700;text-transform:uppercase;
     letter-spacing:.06em;white-space:nowrap;border:1px solid #B45309;text-align:left;
+    color:white !important;background:#D4660E !important;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
   .bol-table tbody tr{border-bottom:1px solid #FDE68A;transition:background .1s}
   .bol-table tbody tr:nth-child(even){background:#FFFBEB}
@@ -1628,7 +1664,9 @@ function closeBol() {
 }
 
 function printBol() {
-  window.print();
+  // Avisa o usuário para ativar "Gráficos de fundo" nas configurações de impressão
+  toast('💡', 'Na tela de impressão: ative "Gráficos de fundo" para cores corretas');
+  setTimeout(() => window.print(), 600);
 }
 
 function fmtDate(d) {
