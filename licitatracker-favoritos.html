@@ -244,21 +244,45 @@
 
   /* Tabela */
   .bol-body{flex:1;overflow-y:auto;overflow-x:auto}
-  .bol-table{width:100%;border-collapse:collapse;min-width:900px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .bol-table{width:100%;border-collapse:collapse;table-layout:fixed;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .bol-table thead tr{background:#D4660E !important;color:white !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .bol-table th{
-    padding:8px 9px;font-size:10px;font-weight:700;text-transform:uppercase;
-    letter-spacing:.06em;white-space:nowrap;border:1px solid #B45309;text-align:left;
-    color:white !important;background:#D4660E !important;
+    padding:6px 6px;font-size:9px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.04em;white-space:nowrap;border:1px solid #B45309;text-align:left;
+    color:white !important;background:#D4660E !important;overflow:hidden;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
-  .bol-table tbody tr{border-bottom:1px solid #FDE68A;transition:background .1s}
+  .bol-table tbody tr{border-bottom:1px solid #FDE68A}
   .bol-table tbody tr:nth-child(even){background:#FFFBEB}
-  .bol-table tbody tr:hover{background:#FEF3C7}
-  .bol-table td{padding:7px 9px;font-size:11px;color:#1F2937;border:1px solid #FDE68A;vertical-align:middle}
-  .bol-table td.num{font-family:'DM Mono',monospace;font-size:10px}
-  .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:#065F46}
+  .bol-table td{
+    padding:5px 6px;font-size:10px;color:#1F2937;
+    border:1px solid #FDE68A;vertical-align:middle;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .bol-table td.num{font-family:'DM Mono',monospace;font-size:9px}
+  .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;color:#065F46}
   .bol-table td.strong{font-weight:700;color:#92400E}
+
+  /* Nº PNCP pode quebrar, os demais ficam numa linha */
+  .bol-table th:nth-child(1), .bol-table td:nth-child(1) {
+    width:110px; white-space:normal; word-break:break-all; font-size:9px;
+  }
+  /* Órgão também pode ter 2 linhas se necessário */
+  .bol-table th:nth-child(5), .bol-table td:nth-child(5) {
+    width:150px; white-space:normal; word-break:break-word;
+  }
+  .bol-table th:nth-child(2), .bol-table td:nth-child(2)  { width:76px; }
+  .bol-table th:nth-child(3), .bol-table td:nth-child(3) { width:42px;  } /* Hora */
+  .bol-table th:nth-child(4), .bol-table td:nth-child(4) { width:90px;  } /* N Pregão */
+  .bol-table th:nth-child(6), .bol-table td:nth-child(6) { width:32px;  } /* Item */
+  .bol-table th:nth-child(7), .bol-table td:nth-child(7) { width:28px;  } /* UF */
+  .bol-table th:nth-child(8), .bol-table td:nth-child(8) { width:90px;  } /* Site */
+  .bol-table th:nth-child(9), .bol-table td:nth-child(9) { width:84px;  } /* VI Estimado */
+  .bol-table th:nth-child(10),.bol-table td:nth-child(10){ width:54px;  } /* Qtd Est */
+  .bol-table th:nth-child(11),.bol-table td:nth-child(11){ width:58px;  } /* Und */
+  .bol-table th:nth-child(12),.bol-table td:nth-child(12){ width:70px;  } /* Vlr Unit */
+  .bol-table th:nth-child(13),.bol-table td:nth-child(13){ width:80px;  } /* UASEG */
+  .bol-table th:nth-child(14),.bol-table td:nth-child(14){ width:70px;  } /* Nº Compra */
 
   /* Rodapé */
   .bol-footer-txt{
