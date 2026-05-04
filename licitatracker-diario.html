@@ -439,7 +439,25 @@
   }
   .inline-edit-input.link-input:focus { color: var(--accent); }
 
-  /* STAR BUTTON */
+  /* VISITADO */
+  tbody tr.visitado {
+    background: #F0F9FF !important;
+    border-left: 3px solid #38BDF8 !important;
+  }
+  tbody tr.visitado:hover { background: #E0F2FE !important; }
+  .visitado-badge {
+    display: inline-flex; align-items: center; gap: 2px;
+    font-size: 9px; font-weight: 700; color: #0284C7;
+    background: #E0F2FE; border: 1px solid #BAE6FD;
+    border-radius: 4px; padding: 1px 5px; white-space: nowrap;
+  }
+  .pos-badge {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted); background: #F3F4F6;
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 5px; margin-bottom: 2px;
+  }
   .btn-star {
     background: none; border: none; cursor: pointer;
     font-size: 18px; padding: 4px 6px;
@@ -651,7 +669,6 @@
 
       <!-- Filtros -->
       <div class="filters-inline">
-        <div class="search-box">
           <span class="search-icon">🔍</span>
           <input type="text" id="search-input" placeholder="Buscar objeto, órgão, PNCP..." oninput="applyFilters()">
         </div>
@@ -695,6 +712,30 @@
 
     <!-- Table -->
     <div class="table-wrap">
+    <!-- BARRA DE PROGRESSO DE REVISÃO -->
+    <div id="revisao-bar" style="background:white;border:1px solid var(--border);
+      border-radius:10px;padding:10px 16px;margin-bottom:10px;
+      display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+      <div style="font-size:12px;font-weight:600;color:var(--text-soft);white-space:nowrap">
+        👁 Revisados:
+        <span id="revisao-count" style="color:var(--accent);font-family:'DM Mono',monospace">0</span>
+        /
+        <span id="revisao-total" style="font-family:'DM Mono',monospace">0</span>
+      </div>
+      <div style="flex:1;height:7px;background:#F3F4F6;border-radius:4px;overflow:hidden">
+        <div id="revisao-prog" style="height:100%;background:var(--accent);border-radius:4px;
+          transition:width .4s ease;width:0%"></div>
+      </div>
+      <span id="revisao-label" style="font-size:11px;color:var(--text-muted);white-space:nowrap;
+        font-family:'DM Mono',monospace">0%</span>
+      <button onclick="clearVisitados()" title="Limpar marcações"
+        style="background:none;border:1px solid var(--border);cursor:pointer;font-size:11px;
+        color:var(--text-muted);padding:3px 8px;border-radius:6px;white-space:nowrap"
+        onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background='none'">
+        ✕ Limpar
+      </button>
+    </div>
+
       <div class="table-scroll">
         <table id="main-table">
           <thead>
@@ -936,6 +977,8 @@ const PAGE_SIZE     = 50;
 // =============================================
 let allData     = [];
 let filtered    = [];
+// Visitados — ids dos editais já abertos nesta sessão (persiste em localStorage)
+let visitados   = new Set(JSON.parse(localStorage.getItem('lt_visitados') || '[]'));
 let sortCol     = 'dataencerramentoproposta';
 let sortDir     = 'asc';
 let currentPage = 1;
@@ -1112,6 +1155,8 @@ function renderTable() {
   document.getElementById('page-info').textContent =
     `Mostrando ${start+1}–${end} de ${total} editais`;
 
+  updateRevisaoBar();
+
   if (rows.length === 0) {
     tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state">
       <div class="empty-icon">🔍</div>
@@ -1121,7 +1166,7 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = rows.map(r => {
+  tbody.innerHTML = rows.map((r, rowIdx) => {
     const m      = manualData[r.id] || {};
 
     // Normaliza formato: "2026-05-21 09:00:00" → "2026-05-21T09:00:00"
@@ -1152,15 +1197,21 @@ function renderTable() {
     // Site select options
     const siteOptions = buildSiteOptions(siteVal);
 
-    return `<tr onclick="selectRow(this)">
+    const isVisited = visitados.has(String(r.id));
+    const posNum    = start + rowIdx + 1; // posição global na lista filtrada
+    const totalFilt = filtered.length;
+
+    return `<tr onclick="selectRow(this)" class="${isVisited ? 'visitado' : ''}">
       <td style="text-align:center;padding:6px 4px">
         <button class="btn-star ${starred}" onclick="toggleStar(event,'${r.id}')" title="${m.starred?'Remover favorito':'Adicionar aos favoritos'}">
           ${m.starred ? '★' : '☆'}
         </button>
       </td>
       <td class="col-pncp">
+        <span class="pos-badge">${posNum}/${totalFilt}</span>
         <span class="pncp-num">${r.numerocontrolepncp||'—'}</span>
         <span class="pncp-modal">${r.modalidadenome||''}</span>
+        ${isVisited ? '<span class="visitado-badge">👁 visto</span>' : ''}
       </td>
       <td class="col-objeto">
         <div class="obj-text" id="obj-${r.id}">${r.objetocompra||'—'}</div>
@@ -1449,6 +1500,37 @@ function saveProduto() {
 }
 
 // =============================================
+// VISITADOS
+// =============================================
+function marcarVisitado(id) {
+  visitados.add(String(id));
+  localStorage.setItem('lt_visitados', JSON.stringify([...visitados]));
+  updateRevisaoBar();
+}
+
+function updateRevisaoBar() {
+  const total = filtered.length;
+  const count = filtered.filter(r => visitados.has(String(r.id))).length;
+  const pct   = total > 0 ? Math.round(count / total * 100) : 0;
+  const countEl = document.getElementById('revisao-count');
+  const totalEl = document.getElementById('revisao-total');
+  const progEl  = document.getElementById('revisao-prog');
+  const labelEl = document.getElementById('revisao-label');
+  if (countEl) countEl.textContent = count;
+  if (totalEl) totalEl.textContent = total;
+  if (progEl)  { progEl.style.width = pct + '%'; progEl.style.background = pct === 100 ? '#059669' : '#2563EB'; }
+  if (labelEl) labelEl.textContent = pct + '%';
+}
+
+function clearVisitados() {
+  if (!confirm('Limpar todas as marcações de "já revisado"?')) return;
+  visitados.clear();
+  localStorage.setItem('lt_visitados', '[]');
+  renderTable();
+  toast('✅', 'Marcações limpas');
+}
+
+// =============================================
 // ANEXOS — chave compartilhada por Nº PNCP
 // Funciona no Diário, Favoritos e Acompanhamento
 // =============================================
@@ -1582,6 +1664,9 @@ function openDetail(e, id) {
   detailRowId = id;
   const r = allData.find(x => String(x.id) === String(id)) || {};
   const m = manualData[id] || {};
+
+  // Marca como visitado
+  marcarVisitado(id);
 
   // Readonly fields
   document.getElementById('det-objeto').textContent  = r.objetocompra || '—';
