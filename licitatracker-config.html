@@ -295,24 +295,14 @@ async function loadCargas() {
   </div>`;
 
   try {
-    // Busca todos os data_carga distintos — agrupa pela parte da DATA (ignora hora)
-    const res = await fetch(
-      `${SB}/rest/v1/pncp_publicacoes?select=data_carga&order=data_carga.desc&limit=100000`,
-      { headers: H }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
-
-    // Agrupa por dia (primeiros 10 chars do timestamp: "2026-05-04")
-    const map = {};
-    rows.forEach(r => {
-      const dia = (r.data_carga||'').substring(0,10);
-      if (dia) map[dia] = (map[dia]||0) + 1;
+    // Uma única chamada RPC — GROUP BY no banco, muito mais eficiente
+    const res = await fetch(`${SB}/rest/v1/rpc/get_cargas_summary`, {
+      method: 'POST',
+      headers: H,
+      body: JSON.stringify({})
     });
-
-    const cargas = Object.entries(map)
-      .sort((a,b) => b[0].localeCompare(a[0]))
-      .map(([dia, total]) => ({ dia, total }));
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    const cargas = await res.json();
 
     if (!cargas.length) {
       lista.innerHTML = `<div style="text-align:center;padding:20px;font-size:12px;color:var(--text-muted)">Nenhuma carga encontrada</div>`;
@@ -324,7 +314,7 @@ async function loadCargas() {
 
     lista.innerHTML = cargas.map(c => {
       const dt = new Date(c.dia+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-      const total = c.total.toLocaleString('pt-BR');
+      const total = parseInt(c.total).toLocaleString('pt-BR');
       return `<div style="display:flex;align-items:center;justify-content:space-between;
         background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:11px 14px;
         transition:border-color .15s"
