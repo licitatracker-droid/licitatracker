@@ -286,13 +286,23 @@
   }
   td.col-objeto .obj-text {
     font-weight: 500;
-    /* Sempre mostra o texto completo — sem truncagem */
-    white-space: normal;
-    overflow: visible;
-    display: block;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
   }
-  /* Esconde o botão ver mais — objeto sempre visível */
-  .expand-btn { display: none; }
+  td.col-objeto .obj-text.expanded {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  /* Botão ver mais visível */
+  .expand-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 10px; color: var(--accent); font-weight: 600;
+    padding: 1px 0; display: inline-block; margin-top: 2px;
+  }
+  .expand-btn:hover { opacity: 0.7; }
 
   td.col-data { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 11px; min-width: 78px; }
   td.col-pregao { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text); min-width: 80px; }
@@ -711,7 +721,6 @@
     </div>
 
     <!-- Table -->
-    <div class="table-wrap">
     <!-- BARRA DE PROGRESSO DE REVISÃO -->
     <div id="revisao-bar" style="background:white;border:1px solid var(--border);
       border-radius:10px;padding:10px 16px;margin-bottom:10px;
@@ -736,6 +745,7 @@
       </button>
     </div>
 
+    <div class="table-wrap">
       <div class="table-scroll">
         <table id="main-table">
           <thead>
