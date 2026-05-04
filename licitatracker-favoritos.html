@@ -180,35 +180,31 @@
   .bol-overlay.open{display:flex}
 
   @media print {
-    @page { margin: 8mm; size: A4 landscape; }
-    body * { visibility: hidden !important; }
-    #bol-print-area, #bol-print-area * { visibility: visible !important; }
-    #bol-print-area {
-      position: fixed !important; inset: 0 !important; z-index: 9999 !important;
-      background: white !important; overflow: visible !important;
-      padding: 0 !important; width: 100% !important;
-      border-radius: 0 !important; box-shadow: none !important;
-    }
-    .bol-no-print { display: none !important; }
-    .bol-wrap { max-height: none !important; overflow: visible !important; box-shadow: none !important; border-radius: 0 !important; }
-    .bol-body { overflow: visible !important; }
+    @page { margin: 6mm; size: A4 landscape; }
 
-    /* Força cores de fundo no print — essencial para Chrome/Edge */
+    /* Esconde TUDO exceto o boletim */
+    body { margin: 0 !important; }
+    body > * { display: none !important; }
+
+    /* Mostra só o overlay e o conteúdo do boletim */
+    #bol-overlay { display: block !important; position: static !important;
+      background: none !important; padding: 0 !important; }
+    #bol-print-area { display: flex !important; flex-direction: column !important;
+      width: 100% !important; max-width: 100% !important; max-height: none !important;
+      box-shadow: none !important; border-radius: 0 !important;
+      overflow: visible !important; }
+    .bol-no-print { display: none !important; }
+    .bol-body { overflow: visible !important; max-height: none !important; }
+
+    /* Cores forçadas */
     .bol-header {
       background: #C2560A !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
-      color: white !important;
     }
-    .bol-header * { color: white !important; }
-    .bol-table thead tr {
-      background: #D4660E !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    .bol-table th {
-      color: white !important;
-      background: #D4660E !important;
+    .bol-header, .bol-header * { color: white !important; }
+    .bol-table thead tr, .bol-table th {
+      background: #D4660E !important; color: white !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -219,7 +215,16 @@
     }
     .bol-table td { border: 1px solid #FDE68A !important; }
     .bol-table td.money { color: #065F46 !important; }
-    .bol-footer-txt { display: block !important; visibility: visible !important; }
+    .bol-footer-txt { display: block !important; }
+
+    /* Tabela cabe em A4 paisagem — font menor e colunas compactas */
+    .bol-table { font-size: 8px !important; }
+    .bol-table th, .bol-table td { padding: 4px 4px !important; font-size: 8px !important; }
+    .bol-logo-img { height: 32px !important; }
+    .bol-title { font-size: 16px !important; }
+    .bol-subtitle { font-size: 9px !important; }
+    .bol-contact-name { font-size: 11px !important; }
+    .bol-contact-sub { font-size: 9px !important; }
   }
 
   .bol-wrap{background:white;border-radius:12px;width:100%;max-width:1200px;max-height:92vh;
@@ -1732,9 +1737,9 @@ function closeBol() {
 }
 
 function printBol() {
-  // Avisa o usuário para ativar "Gráficos de fundo" nas configurações de impressão
-  toast('💡', 'Na tela de impressão: ative "Gráficos de fundo" para cores corretas');
-  setTimeout(() => window.print(), 600);
+  // Garante que gráficos de fundo estejam ativos — lembrete ao usuário
+  toast('💡', 'Ative "Gráficos de fundo" nas opções de impressão para cores corretas');
+  setTimeout(() => window.print(), 400);
 }
 
 function fmtDate(d) {
