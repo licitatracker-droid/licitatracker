@@ -843,6 +843,45 @@
       Clique em <strong>＋ Adicionar Item</strong> para incluir os itens deste pregão
     </div>
 
+    <!-- ANEXOS DO EDITAL -->
+    <div class="modal-section-title" style="margin-top:18px">📎 Anexos do Edital</div>
+    <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:12px">
+      <!-- Link do edital -->
+      <div style="margin-bottom:10px">
+        <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B7280;display:block;margin-bottom:4px">
+          🔗 Link do Edital (PDF/portal)
+        </label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="url" id="det-link-edital" placeholder="https://..."
+            style="flex:1;background:white;border:1px solid var(--border);border-radius:7px;
+            padding:7px 10px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text);outline:none"
+            oninput="saveAnexoLink()"
+            onfocus="this.style.borderColor='#93C5FD'" onblur="this.style.borderColor='var(--border)'">
+          <a id="det-link-edital-btn" href="#" target="_blank"
+            style="display:none;background:#EEF2FF;border:1px solid #C7D2FE;color:var(--accent);
+            border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">
+            🔗 Abrir
+          </a>
+        </div>
+      </div>
+      <!-- Drop zone -->
+      <div id="det-drop-zone" onclick="document.getElementById('det-file-input').click()"
+        style="border:2px dashed #C7D2FE;border-radius:8px;padding:14px;text-align:center;
+        cursor:pointer;transition:all .15s;background:white;margin-bottom:8px"
+        ondragover="event.preventDefault();this.style.background='#EEF2FF';this.style.borderColor='#6366F1'"
+        ondragleave="this.style.background='white';this.style.borderColor='#C7D2FE'"
+        ondrop="handleDetDrop(event)">
+        <div style="font-size:20px;margin-bottom:4px">📁</div>
+        <div style="font-size:12px;font-weight:600;color:#374151">Clique ou arraste arquivos</div>
+        <div style="font-size:10px;color:#9CA3AF;margin-top:2px">PDF, Word, imagens · até 5MB</div>
+      </div>
+      <input type="file" id="det-file-input" multiple
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
+        style="display:none" onchange="handleDetFileSelect(this.files)">
+      <!-- Lista de anexos -->
+      <div id="det-anexos-lista"></div>
+    </div>
+
     <div class="modal-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
       <button class="btn btn-ghost" onclick="closeDetail()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveDetail()">💾 Salvar</button>
@@ -1410,8 +1449,131 @@ function saveProduto() {
 }
 
 // =============================================
-// DETAIL MODAL — multi-item
+// ANEXOS — chave compartilhada por Nº PNCP
+// Funciona no Diário, Favoritos e Acompanhamento
 // =============================================
+function getAnexoKey(pncp) {
+  return `lt_anx_${(pncp||'').replace(/[^a-zA-Z0-9]/g,'_')}`;
+}
+
+function loadDetAnexos() {
+  const r    = allData.find(x => String(x.id) === String(detailRowId)) || {};
+  const pncp = r.numerocontrolepncp || '';
+  const key  = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+
+  // Link do edital
+  const linkEl = document.getElementById('det-link-edital');
+  const linkBtn = document.getElementById('det-link-edital-btn');
+  if (linkEl) {
+    linkEl.value = dados.link || '';
+    if (linkBtn) {
+      linkBtn.href = dados.link || '#';
+      linkBtn.style.display = dados.link ? 'flex' : 'none';
+    }
+  }
+
+  // Lista de arquivos
+  const lista = document.getElementById('det-anexos-lista');
+  if (!lista) return;
+  const arquivos = dados.arquivos || [];
+  if (!arquivos.length) {
+    lista.innerHTML = `<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">Nenhum anexo ainda</div>`;
+    return;
+  }
+  lista.innerHTML = arquivos.map((a, idx) => `
+    <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #E5E7EB;
+      border-radius:7px;padding:7px 10px;margin-bottom:5px">
+      <span style="font-size:16px">${getAnexoIcon(a.type)}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+        <div style="font-size:10px;color:#9CA3AF">${fmtAnexoSize(a.size)} · ${a.date}</div>
+      </div>
+      <button onclick="downloadDetAnexo('${pncp}',${idx})"
+        style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;
+        padding:3px 8px;font-size:10px;color:#2563EB;cursor:pointer">⬇</button>
+      <button onclick="delDetAnexo('${pncp}',${idx})"
+        style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;
+        padding:3px 8px;font-size:10px;color:#DC2626;cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function saveAnexoLink() {
+  const r    = allData.find(x => String(x.id) === String(detailRowId)) || {};
+  const pncp = r.numerocontrolepncp || '';
+  const key  = getAnexoKey(pncp);
+  const url  = document.getElementById('det-link-edital')?.value.trim() || '';
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  dados.link = url;
+  localStorage.setItem(key, JSON.stringify(dados));
+  const btn = document.getElementById('det-link-edital-btn');
+  if (btn) { btn.href = url; btn.style.display = url ? 'flex' : 'none'; }
+}
+
+function handleDetFileSelect(files) {
+  const r    = allData.find(x => String(x.id) === String(detailRowId)) || {};
+  const pncp = r.numerocontrolepncp || '';
+  if (!pncp || !files.length) return;
+  const key   = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  if (!dados.arquivos) dados.arquivos = [];
+  for (const f of files) {
+    if (f.size > 5 * 1024 * 1024) { toast('⚠️', `${f.name} excede 5MB`); continue; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      dados.arquivos.push({ name:f.name, type:f.type, size:f.size,
+        date: new Date().toLocaleDateString('pt-BR'), data: e.target.result });
+      localStorage.setItem(key, JSON.stringify(dados));
+      loadDetAnexos();
+      toast('📎', `${f.name} anexado!`);
+    };
+    reader.readAsDataURL(f);
+  }
+  document.getElementById('det-file-input').value = '';
+}
+
+function handleDetDrop(e) {
+  e.preventDefault();
+  document.getElementById('det-drop-zone').style.background = 'white';
+  document.getElementById('det-drop-zone').style.borderColor = '#C7D2FE';
+  handleDetFileSelect(e.dataTransfer.files);
+}
+
+function downloadDetAnexo(pncp, idx) {
+  const dados = JSON.parse(localStorage.getItem(getAnexoKey(pncp)) || '{}');
+  const a = (dados.arquivos||[])[idx];
+  if (!a) return;
+  const link = document.createElement('a');
+  link.href = a.data; link.download = a.name; link.click();
+}
+
+function delDetAnexo(pncp, idx) {
+  if (!confirm('Remover este anexo?')) return;
+  const key   = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  (dados.arquivos||[]).splice(idx, 1);
+  localStorage.setItem(key, JSON.stringify(dados));
+  loadDetAnexos();
+  toast('🗑', 'Anexo removido');
+}
+
+function getAnexoIcon(type) {
+  if (!type) return '📄';
+  if (type.includes('pdf'))   return '📕';
+  if (type.includes('image')) return '🖼';
+  if (type.includes('word') || type.includes('document')) return '📝';
+  if (type.includes('sheet') || type.includes('excel'))   return '📊';
+  return '📄';
+}
+
+function fmtAnexoSize(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+
 let detailRowId = null;
 let detItemsTemp = []; // itens em edição
 
@@ -1450,6 +1612,8 @@ function openDetail(e, id) {
   renderItemRows();
 
   document.getElementById('detail-overlay').classList.add('open');
+  // Carrega anexos compartilhados por PNCP
+  loadDetAnexos();
 }
 
 function newItemRow() {

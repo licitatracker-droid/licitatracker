@@ -608,6 +608,22 @@
               color:var(--accent);margin-bottom:10px">📎 Anexos</div>
 
             <!-- Drop zone compacta -->
+            <!-- Drop zone compacta -->
+            <div style="margin-bottom:8px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;margin-bottom:4px">🔗 Link do Edital</div>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input type="url" id="ac-link-edital-input" placeholder="https://..."
+                  style="flex:1;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+                  padding:6px 9px;font-size:11px;font-family:'DM Mono',monospace;outline:none"
+                  oninput="saveAcLink()"
+                  onfocus="this.style.borderColor='#93C5FD'" onblur="this.style.borderColor='#E5E7EB'">
+                <a id="ac-link-edital-btn" href="#" target="_blank"
+                  style="display:none;background:#EEF2FF;border:1px solid #C7D2FE;color:var(--accent);
+                  border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;align-items:center;gap:4px">
+                  🔗 Abrir
+                </a>
+              </div>
+            </div>
             <div id="ac-drop-zone" onclick="document.getElementById('ac-file-input').click()"
               style="border:2px dashed #C7D2FE;border-radius:8px;padding:12px;text-align:center;
               cursor:pointer;transition:all .15s;background:#FAFBFF;margin-bottom:8px"
@@ -1102,80 +1118,108 @@ async function openAcomp(favId) {
 // =============================================
 // ANEXOS (localStorage por enquanto — base para integração futura)
 // =============================================
+function getAnexoKey(pncp) {
+  return `lt_anx_${(pncp||'').replace(/[^a-zA-Z0-9]/g,'_')}`;
+}
+
 function loadAnexos(favId) {
-  const key   = `lt_anexos_${favId}`;
-  const dados = JSON.parse(localStorage.getItem(key) || '[]');
+  const r    = allFavs.find(x => x.id === favId) || {};
+  const pncp = r.numerocontrolepncp || favId;
+  const key  = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
   const lista = document.getElementById('ac-anexos-lista');
 
-  if (!dados.length) {
-    lista.innerHTML = `<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px">
-      Nenhum anexo ainda</div>`;
-    return;
+  // Mostra link do edital se existir
+  const linkInput = document.getElementById('ac-link-edital-input');
+  if (linkInput) {
+    linkInput.value = dados.link || '';
+    updateAcLinkBtn(dados.link || '');
   }
 
-  lista.innerHTML = dados.map((a, idx) => `
+  const arquivos = dados.arquivos || [];
+  if (!arquivos.length) {
+    lista.innerHTML = `<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">Nenhum anexo ainda</div>`;
+    return;
+  }
+  lista.innerHTML = arquivos.map((a, idx) => `
     <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #E5E7EB;
-      border-radius:8px;padding:8px 10px">
-      <span style="font-size:18px">${getFileIcon(a.type)}</span>
+      border-radius:8px;padding:8px 10px;margin-bottom:5px">
+      <span style="font-size:18px">${getAnexoIcon(a.type)}</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:500;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
         <div style="font-size:10px;color:#9CA3AF">${fmtSize(a.size)} · ${a.date}</div>
       </div>
-      <div style="display:flex;gap:4px">
-        <button onclick="downloadAnexo('${favId}',${idx})"
-          style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 7px;
-          font-size:10px;color:#2563EB;cursor:pointer">⬇</button>
-        <button onclick="delAnexo('${favId}',${idx})"
-          style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;padding:3px 7px;
-          font-size:10px;color:#DC2626;cursor:pointer">✕</button>
-      </div>
+      <button onclick="downloadAnexo('${pncp}',${idx})"
+        style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 7px;font-size:10px;color:#2563EB;cursor:pointer">⬇</button>
+      <button onclick="delAnexo('${pncp}',${idx})"
+        style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;padding:3px 7px;font-size:10px;color:#DC2626;cursor:pointer">✕</button>
     </div>`).join('');
 }
 
 function handleFileSelect(files) {
   if (!acFavId || !files.length) return;
-  const key   = `lt_anexos_${acFavId}`;
-  const dados = JSON.parse(localStorage.getItem(key) || '[]');
-  let added = 0;
+  const r    = allFavs.find(x => x.id === acFavId) || {};
+  const pncp = r.numerocontrolepncp || acFavId;
+  const key  = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  if (!dados.arquivos) dados.arquivos = [];
   for (const f of files) {
     if (f.size > 5 * 1024 * 1024) { toast('⚠️', `${f.name} excede 5MB`); continue; }
-    // Armazena base64
     const reader = new FileReader();
     reader.onload = e => {
-      dados.push({ name: f.name, type: f.type, size: f.size,
+      dados.arquivos.push({ name:f.name, type:f.type, size:f.size,
         date: new Date().toLocaleDateString('pt-BR'), data: e.target.result });
       localStorage.setItem(key, JSON.stringify(dados));
       loadAnexos(acFavId);
       toast('📎', `${f.name} anexado!`);
     };
     reader.readAsDataURL(f);
-    added++;
   }
   document.getElementById('ac-file-input').value = '';
 }
 
 function handleDrop(e) {
   e.preventDefault();
-  document.getElementById('ac-drop-zone').style.background = 'white';
+  document.getElementById('ac-drop-zone').style.background = '#FAFBFF';
+  document.getElementById('ac-drop-zone').style.borderColor = '#C7D2FE';
   handleFileSelect(e.dataTransfer.files);
 }
 
-function downloadAnexo(favId, idx) {
-  const dados = JSON.parse(localStorage.getItem(`lt_anexos_${favId}`) || '[]');
-  const a = dados[idx];
+function downloadAnexo(pncp, idx) {
+  const dados = JSON.parse(localStorage.getItem(getAnexoKey(pncp)) || '{}');
+  const a = (dados.arquivos||[])[idx];
   if (!a) return;
   const link = document.createElement('a');
   link.href = a.data; link.download = a.name; link.click();
 }
 
-function delAnexo(favId, idx) {
+function delAnexo(pncp, idx) {
   if (!confirm('Remover este anexo?')) return;
-  const key   = `lt_anexos_${favId}`;
-  const dados = JSON.parse(localStorage.getItem(key) || '[]');
-  dados.splice(idx, 1);
+  const key   = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  (dados.arquivos||[]).splice(idx, 1);
   localStorage.setItem(key, JSON.stringify(dados));
-  loadAnexos(favId);
+  loadAnexos(acFavId);
   toast('🗑', 'Anexo removido');
+}
+
+function getAnexoIcon(type) { return getFileIcon(type); }
+
+function saveAcLink() {
+  const r    = allFavs.find(x => x.id === acFavId) || {};
+  const pncp = r.numerocontrolepncp || acFavId;
+  const key  = getAnexoKey(pncp);
+  const url  = document.getElementById('ac-link-edital-input')?.value.trim() || '';
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  dados.link = url;
+  localStorage.setItem(key, JSON.stringify(dados));
+  updateAcLinkBtn(url);
+}
+
+function updateAcLinkBtn(url) {
+  const btn = document.getElementById('ac-link-edital-btn');
+  if (!btn) return;
+  btn.href = url; btn.style.display = url ? 'flex' : 'none';
 }
 
 function getFileIcon(type) {
