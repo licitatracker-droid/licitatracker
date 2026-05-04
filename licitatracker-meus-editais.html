@@ -295,8 +295,45 @@
 
       <!-- Observações -->
       <div class="ficha-section">💬 Observações</div>
-      <textarea class="form-input" id="ficha-obs" rows="3"
+      <textarea class="form-input" id="ficha-obs" rows="2"
         placeholder="Informações adicionais sobre o contrato..." style="resize:vertical"></textarea>
+
+      <!-- Anexos -->
+      <div class="ficha-section" style="margin-top:14px">📎 Anexos do Contrato</div>
+      <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:12px">
+        <!-- Link do edital -->
+        <div style="margin-bottom:10px">
+          <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+            color:#6B7280;display:block;margin-bottom:4px">🔗 Link do Edital</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="url" id="ficha-link-edital" placeholder="https://..."
+              style="flex:1;background:white;border:1px solid var(--border);border-radius:7px;
+              padding:7px 10px;font-size:12px;font-family:'DM Mono',monospace;outline:none"
+              oninput="saveFichaAnexoLink()"
+              onfocus="this.style.borderColor='#6EE7B7'" onblur="this.style.borderColor='var(--border)'">
+            <a id="ficha-link-edital-btn" href="#" target="_blank"
+              style="display:none;background:#ECFDF5;border:1px solid #A7F3D0;color:var(--green);
+              border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">
+              🔗 Abrir
+            </a>
+          </div>
+        </div>
+        <!-- Drop zone -->
+        <div id="ficha-drop-zone" onclick="document.getElementById('ficha-file-input').click()"
+          style="border:2px dashed #A7F3D0;border-radius:8px;padding:12px;text-align:center;
+          cursor:pointer;transition:all .15s;background:white;margin-bottom:8px"
+          ondragover="event.preventDefault();this.style.background='#ECFDF5';this.style.borderColor='#6EE7B7'"
+          ondragleave="this.style.background='white';this.style.borderColor='#A7F3D0'"
+          ondrop="handleFichaFileDrop(event)">
+          <div style="font-size:18px;margin-bottom:3px">📁</div>
+          <div style="font-size:12px;font-weight:600;color:#374151">Clique ou arraste arquivos</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px">PDF, Word, imagens · até 5MB</div>
+        </div>
+        <input type="file" id="ficha-file-input" multiple
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
+          style="display:none" onchange="handleFichaFileSelect(this.files)">
+        <div id="ficha-anexos-lista"></div>
+      </div>
       <div class="ficha-section">💬 Observações</div>
       <textarea class="form-input" id="ficha-obs" rows="3"
         placeholder="Informações adicionais sobre o contrato..." style="resize:vertical"></textarea>
@@ -342,6 +379,119 @@ function doLogout() {
   if(!confirm('Deseja sair?')) return;
   localStorage.removeItem('lt_user'); localStorage.removeItem('lt_cliente');
   window.location.href='licitatracker-login.html';
+}
+
+// =============================================
+// ANEXOS DA FICHA — chave compartilhada por PNCP
+// =============================================
+function getAnexoKey(pncp) {
+  return `lt_anx_${(pncp||'').replace(/[^a-zA-Z0-9]/g,'_')}`;
+}
+function getAnexoIcon(type) {
+  if (!type) return '📄';
+  if (type.includes('pdf'))   return '📕';
+  if (type.includes('image')) return '🖼';
+  if (type.includes('word') || type.includes('document')) return '📝';
+  if (type.includes('sheet') || type.includes('excel'))   return '📊';
+  return '📄';
+}
+function fmtAnexoSz(bytes) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+function loadFichaAnexos() {
+  const c     = allContratos.find(x => x.id === fichaContratoId) || {};
+  const pncp  = c.numerocontrolepncp || '';
+  const key   = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+
+  // Link
+  const linkEl  = document.getElementById('ficha-link-edital');
+  const linkBtn = document.getElementById('ficha-link-edital-btn');
+  if (linkEl)  linkEl.value     = dados.link || '';
+  if (linkBtn) { linkBtn.href = dados.link||'#'; linkBtn.style.display = dados.link ? 'inline-flex' : 'none'; }
+
+  // Arquivos
+  const lista    = document.getElementById('ficha-anexos-lista');
+  const arquivos = dados.arquivos || [];
+  if (!arquivos.length) {
+    lista.innerHTML = `<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">Nenhum anexo ainda</div>`;
+    return;
+  }
+  lista.innerHTML = arquivos.map((a, idx) => `
+    <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #E5E7EB;
+      border-radius:7px;padding:7px 10px;margin-bottom:5px">
+      <span style="font-size:16px">${getAnexoIcon(a.type)}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+        <div style="font-size:10px;color:#9CA3AF">${fmtAnexoSz(a.size)} · ${a.date}</div>
+      </div>
+      <button onclick="downloadFichaAnexo('${pncp}',${idx})"
+        style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:5px;padding:3px 8px;font-size:10px;color:#059669;cursor:pointer">⬇</button>
+      <button onclick="delFichaAnexo('${pncp}',${idx})"
+        style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;padding:3px 8px;font-size:10px;color:#DC2626;cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function saveFichaAnexoLink() {
+  const c    = allContratos.find(x => x.id === fichaContratoId) || {};
+  const pncp = c.numerocontrolepncp || '';
+  const key  = getAnexoKey(pncp);
+  const url  = document.getElementById('ficha-link-edital')?.value.trim() || '';
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  dados.link = url;
+  localStorage.setItem(key, JSON.stringify(dados));
+  const btn = document.getElementById('ficha-link-edital-btn');
+  if (btn) { btn.href = url; btn.style.display = url ? 'inline-flex' : 'none'; }
+}
+
+function handleFichaFileSelect(files) {
+  const c    = allContratos.find(x => x.id === fichaContratoId) || {};
+  const pncp = c.numerocontrolepncp || '';
+  if (!pncp || !files.length) return;
+  const key   = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  if (!dados.arquivos) dados.arquivos = [];
+  for (const f of files) {
+    if (f.size > 5*1024*1024) { toast('⚠️', `${f.name} excede 5MB`); continue; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      dados.arquivos.push({ name:f.name, type:f.type, size:f.size,
+        date: new Date().toLocaleDateString('pt-BR'), data: e.target.result });
+      localStorage.setItem(key, JSON.stringify(dados));
+      loadFichaAnexos();
+      toast('📎', `${f.name} anexado!`);
+    };
+    reader.readAsDataURL(f);
+  }
+  document.getElementById('ficha-file-input').value = '';
+}
+
+function handleFichaFileDrop(e) {
+  e.preventDefault();
+  document.getElementById('ficha-drop-zone').style.background = 'white';
+  document.getElementById('ficha-drop-zone').style.borderColor = '#A7F3D0';
+  handleFichaFileSelect(e.dataTransfer.files);
+}
+
+function downloadFichaAnexo(pncp, idx) {
+  const dados = JSON.parse(localStorage.getItem(getAnexoKey(pncp)) || '{}');
+  const a = (dados.arquivos||[])[idx];
+  if (!a) return;
+  const link = document.createElement('a'); link.href=a.data; link.download=a.name; link.click();
+}
+
+function delFichaAnexo(pncp, idx) {
+  if (!confirm('Remover este anexo?')) return;
+  const key   = getAnexoKey(pncp);
+  const dados = JSON.parse(localStorage.getItem(key) || '{}');
+  (dados.arquivos||[]).splice(idx,1);
+  localStorage.setItem(key, JSON.stringify(dados));
+  loadFichaAnexos();
+  toast('🗑','Anexo removido');
 }
 
 // =============================================
@@ -491,6 +641,9 @@ async function openFicha(contratoId) {
 
   // NF agora é por item — remove campos globais do cabeçalho
   document.getElementById('ficha-obs').value = c.observacao || '';
+
+  // Carrega anexos compartilhados pelo PNCP
+  loadFichaAnexos();
 
   // Itens e pagamentos deste contrato
   fichaItensTemp = allItens.filter(i=>i.contrato_id===contratoId).map(i=>({...i}));
@@ -660,41 +813,42 @@ function renderFichaItens(pags) {
         </div>
 
         <!-- Formulário novo pagamento -->
-        <div id="pag-form-${idx}" style="display:none;background:white;border-radius:6px;padding:10px;margin-top:6px">
-          <div style="display:grid;grid-template-columns:${item.forma_pagamento==='pct'?'1fr 1fr 1fr 1fr':'1fr 1fr 1fr 1fr 1fr'};gap:8px;margin-bottom:8px;align-items:end">
+        <div id="pag-form-${idx}" style="display:none;background:white;border-radius:6px;padding:10px;margin-top:6px;border:1px solid #E5E7EB">
+          <div style="display:grid;grid-template-columns:120px 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;align-items:end">
             <div>
               <label class="form-label">Data</label>
               <input class="form-input" type="date" id="pag-data-${idx}"
-                value="${new Date().toISOString().split('T')[0]}">
+                value="${new Date().toISOString().split('T')[0]}" style="font-size:12px;padding:6px 8px">
             </div>
-            ${item.forma_pagamento==='pct' ? `
-            <div>
-              <label class="form-label">% Negociado</label>
-              <input class="form-input" type="number" id="pag-pct-${idx}"
-                placeholder="Ex: 50" min="0" max="100" step="0.01"
-                oninput="calcPagPreview(${idx})">
-            </div>
-            ` : `
-            <div>
+            <!-- Qtd (parcial) -->
+            <div id="pag-qtd-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'none':'block'}">
               <label class="form-label">Qtd Paga</label>
               <input class="form-input" type="number" id="pag-qtd-${idx}"
-                placeholder="0" min="0"
+                placeholder="0" min="0" style="font-size:12px;padding:6px 8px"
                 oninput="calcPagPreview(${idx})">
             </div>
-            <div>
+            <!-- Saldo (só qtd) -->
+            <div id="pag-saldo-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'none':'block'}">
               <label class="form-label">Saldo Restante</label>
               <input class="form-input" type="text" readonly
-                value="${fmtM(saldo)}" style="color:#EA580C;font-weight:600">
+                value="${fmtM(saldo)}" style="color:#EA580C;font-weight:600;font-size:12px;padding:6px 8px">
             </div>
-            `}
+            <!-- % (percentual) -->
+            <div id="pag-pct-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'block':'none'}">
+              <label class="form-label">% Negociado</label>
+              <input class="form-input" type="number" id="pag-pct-${idx}"
+                placeholder="Ex: 50" min="0" max="100" step="0.01" style="font-size:12px;padding:6px 8px"
+                oninput="calcPagPreview(${idx})">
+            </div>
             <div>
               <label class="form-label">Valor Calculado</label>
               <input class="form-input" type="text" id="pag-preview-${idx}" readonly
-                style="color:var(--green);font-weight:700" value="R$ 0,00">
+                style="color:var(--green);font-weight:700;font-size:12px;padding:6px 8px" value="R$ 0,00">
             </div>
             <div>
               <label class="form-label">Observação</label>
-              <input class="form-input" type="text" id="pag-obs-${idx}" placeholder="Opcional">
+              <input class="form-input" type="text" id="pag-obs-${idx}"
+                placeholder="Opcional" style="font-size:12px;padding:6px 8px">
             </div>
           </div>
           <div style="display:flex;gap:6px">
@@ -745,12 +899,19 @@ function removeItemContrato(idx) {
 
 function setForma(idx, forma) {
   fichaItensTemp[idx].forma_pagamento = forma;
-  // Toggle UI
-  document.querySelectorAll(`#forma-toggle-${idx} .forma-btn`).forEach((b,i)=>b.classList.toggle('active',i===(forma==='qtd'?0:1)));
-  const qtdW = document.getElementById(`pag-qtd-wrap-${idx}`);
-  const pctW = document.getElementById(`pag-pct-wrap-${idx}`);
-  if (qtdW) qtdW.style.display = forma==='qtd'?'block':'none';
-  if (pctW) pctW.style.display = forma==='pct'?'block':'none';
+  // Toggle buttons
+  const btns = document.querySelectorAll(`#forma-toggle-${idx} .forma-btn`);
+  btns.forEach((b,i) => b.classList.toggle('active', i===(forma==='qtd'?0:1)));
+  // Toggle fields
+  const qtdW   = document.getElementById(`pag-qtd-wrap-${idx}`);
+  const saldoW = document.getElementById(`pag-saldo-wrap-${idx}`);
+  const pctW   = document.getElementById(`pag-pct-wrap-${idx}`);
+  if (qtdW)   qtdW.style.display   = forma==='qtd' ? 'block' : 'none';
+  if (saldoW) saldoW.style.display = forma==='qtd' ? 'block' : 'none';
+  if (pctW)   pctW.style.display   = forma==='pct' ? 'block' : 'none';
+  // Reset preview
+  const prev = document.getElementById(`pag-preview-${idx}`);
+  if (prev) prev.value = 'R$ 0,00';
 }
 
 function addPagamento(idx, itemId) {
