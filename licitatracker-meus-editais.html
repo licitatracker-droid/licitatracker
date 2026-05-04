@@ -777,26 +777,37 @@ function renderFichaItens(pags) {
       <div class="pag-editor">
         <div class="pag-editor-title">
           💳 Pagamentos
-          ${pct < 100 ? `<button onclick="addPagamento(${idx},'${item.id||''}')"
-            style="background:var(--accent);color:white;border:none;border-radius:5px;
-            padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer">+ Registrar</button>` : `
-            <span style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:5px;
-              padding:3px 10px;font-size:11px;font-weight:600;color:var(--green)">✅ Quitado</span>`}
+          ${pct < 100
+            ? `<button onclick="addPagamento(${idx},'${item.id||''}')"
+                style="background:var(--accent);color:white;border:none;border-radius:5px;
+                padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer">+ Registrar</button>`
+            : `<span style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:5px;
+                padding:3px 10px;font-size:11px;font-weight:600;color:var(--green)">✅ Quitado</span>`}
         </div>
 
-        <!-- Toggle forma — só mostra se não tem pagamentos ainda -->
+        <!-- Toggle forma — só antes do 1º pagamento -->
         ${pagItem.length === 0 ? `
-        <div class="forma-toggle" id="forma-toggle-${idx}">
-          <button class="forma-btn ${item.forma_pagamento!=='pct'?'active':''}"
+        <div class="forma-toggle" id="forma-toggle-${idx}" style="margin-bottom:8px">
+          <button id="btn-qtd-${idx}" class="forma-btn ${item.forma_pagamento!=='pct'?'active':''}"
             onclick="setForma(${idx},'qtd')">📦 Por Quantidade (parcial)</button>
-          <button class="forma-btn ${item.forma_pagamento==='pct'?'active':''}"
+          <button id="btn-pct-${idx}" class="forma-btn ${item.forma_pagamento==='pct'?'active':''}"
             onclick="setForma(${idx},'pct')">% Por Percentual</button>
         </div>` : `
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">
           Forma: <strong>${item.forma_pagamento==='pct'?'% Por Percentual':'📦 Quantidade (parcial)'}</strong>
         </div>`}
 
-        <!-- Lista de pagamentos -->
+        <!-- Resumo do item para referência -->
+        <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:6px;padding:8px 10px;
+          margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px">
+          <span>📦 Total: <strong>${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} un</strong></span>
+          <span>💰 Vlr Unit: <strong>${fmtM(parseFloat(item.vl_unitario||0))}</strong></span>
+          <span>🏷 Total Item: <strong style="color:var(--green)">${fmtM(totalItem)}</strong></span>
+          <span>✅ Pago: <strong style="color:var(--accent)">${fmtM(totalPagoI)}</strong></span>
+          <span>⏳ Saldo: <strong style="color:#EA580C">${fmtM(saldo)}</strong></span>
+        </div>
+
+        <!-- Lista de pagamentos registrados -->
         <div id="pag-lista-${idx}">
           ${pagItem.length ? pagItem.map(p => `
             <div class="pag-item">
@@ -808,56 +819,91 @@ function renderFichaItens(pags) {
               <button onclick="deletarPagamento('${p.id}','${item.id||''}')"
                 style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px">✕</button>
             </div>`).join('')
-            : '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">Pendente — nenhum pagamento registrado</div>'
+            : '<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px">Pendente — nenhum pagamento registrado</div>'
           }
         </div>
 
-        <!-- Formulário novo pagamento -->
-        <div id="pag-form-${idx}" style="display:none;background:white;border-radius:6px;padding:10px;margin-top:6px;border:1px solid #E5E7EB">
-          <div style="display:grid;grid-template-columns:120px 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;align-items:end">
+        <!-- Formulário de novo pagamento -->
+        <div id="pag-form-${idx}" style="display:none;background:white;border-radius:8px;
+          padding:12px;margin-top:8px;border:1px solid #E5E7EB">
+
+          <!-- Linha 1: Data + Obs (sempre visível) -->
+          <div style="display:grid;grid-template-columns:160px 1fr;gap:8px;margin-bottom:8px">
             <div>
-              <label class="form-label">Data</label>
+              <label class="form-label">Data do Pagamento</label>
               <input class="form-input" type="date" id="pag-data-${idx}"
-                value="${new Date().toISOString().split('T')[0]}" style="font-size:12px;padding:6px 8px">
-            </div>
-            <!-- Qtd (parcial) -->
-            <div id="pag-qtd-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'none':'block'}">
-              <label class="form-label">Qtd Paga</label>
-              <input class="form-input" type="number" id="pag-qtd-${idx}"
-                placeholder="0" min="0" style="font-size:12px;padding:6px 8px"
-                oninput="calcPagPreview(${idx})">
-            </div>
-            <!-- Saldo (só qtd) -->
-            <div id="pag-saldo-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'none':'block'}">
-              <label class="form-label">Saldo Restante</label>
-              <input class="form-input" type="text" readonly
-                value="${fmtM(saldo)}" style="color:#EA580C;font-weight:600;font-size:12px;padding:6px 8px">
-            </div>
-            <!-- % (percentual) -->
-            <div id="pag-pct-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'block':'none'}">
-              <label class="form-label">% Negociado</label>
-              <input class="form-input" type="number" id="pag-pct-${idx}"
-                placeholder="Ex: 50" min="0" max="100" step="0.01" style="font-size:12px;padding:6px 8px"
-                oninput="calcPagPreview(${idx})">
-            </div>
-            <div>
-              <label class="form-label">Valor Calculado</label>
-              <input class="form-input" type="text" id="pag-preview-${idx}" readonly
-                style="color:var(--green);font-weight:700;font-size:12px;padding:6px 8px" value="R$ 0,00">
+                value="${new Date().toISOString().split('T')[0]}">
             </div>
             <div>
               <label class="form-label">Observação</label>
-              <input class="form-input" type="text" id="pag-obs-${idx}"
-                placeholder="Opcional" style="font-size:12px;padding:6px 8px">
+              <input class="form-input" type="text" id="pag-obs-${idx}" placeholder="Opcional">
             </div>
           </div>
-          <div style="display:flex;gap:6px">
+
+          <!-- Modo QTD -->
+          <div id="pag-qtd-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'none':'block'}">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+              <div>
+                <label class="form-label">Quantidade a Pagar</label>
+                <input class="form-input" type="number" id="pag-qtd-${idx}"
+                  placeholder="0" min="0" max="${parseFloat(item.quantidade||0)}"
+                  oninput="calcPagPreview(${idx})">
+                <div style="font-size:10px;color:#9CA3AF;margin-top:2px">
+                  Max: ${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} un
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Saldo Disponível</label>
+                <input class="form-input" type="text" readonly
+                  value="${fmtM(saldo)}"
+                  style="color:#EA580C;font-weight:600;background:#FFF7ED">
+              </div>
+              <div>
+                <label class="form-label">Valor a Receber</label>
+                <input class="form-input" type="text" id="pag-preview-${idx}" readonly
+                  style="color:var(--green);font-weight:700;background:#F0FDF4" value="R$ 0,00">
+              </div>
+            </div>
+          </div>
+
+          <!-- Modo PCT -->
+          <div id="pag-pct-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'block':'none'}">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+              <div>
+                <label class="form-label">% do Valor Total</label>
+                <div style="position:relative">
+                  <input class="form-input" type="number" id="pag-pct-${idx}"
+                    placeholder="Ex: 50" min="0.01" max="100" step="0.01"
+                    oninput="calcPagPreview(${idx})"
+                    style="padding-right:28px">
+                  <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                    font-size:13px;font-weight:700;color:var(--text-muted)">%</span>
+                </div>
+                <div style="font-size:10px;color:#9CA3AF;margin-top:2px">
+                  Total do item: ${fmtM(totalItem)}
+                </div>
+              </div>
+              <div>
+                <label class="form-label">Saldo Disponível</label>
+                <input class="form-input" type="text" readonly
+                  value="${fmtM(saldo)}"
+                  style="color:#EA580C;font-weight:600;background:#FFF7ED">
+              </div>
+              <div>
+                <label class="form-label">Valor a Receber</label>
+                <input class="form-input" type="text" id="pag-preview-${idx}" readonly
+                  style="color:var(--green);font-weight:700;background:#F0FDF4" value="R$ 0,00">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center">
             <button onclick="confirmarPagamento(${idx},'${item.id||''}')"
-              style="background:var(--green);color:white;border:none;border-radius:7px;
-              padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer">✅ Confirmar</button>
+              style="background:var(--green);color:white;border:none;border-radius:8px;
+              padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer">✅ Confirmar Pagamento</button>
             <button onclick="document.getElementById('pag-form-${idx}').style.display='none'"
-              style="background:#F3F4F6;border:1px solid var(--border);border-radius:7px;
-              padding:7px 12px;font-size:12px;cursor:pointer">Cancelar</button>
+              style="background:#F3F4F6;border:1px solid var(--border);border-radius:8px;
+              padding:8px 14px;font-size:13px;cursor:pointer">Cancelar</button>
           </div>
         </div>
       </div>
@@ -899,19 +945,26 @@ function removeItemContrato(idx) {
 
 function setForma(idx, forma) {
   fichaItensTemp[idx].forma_pagamento = forma;
+
   // Toggle buttons
-  const btns = document.querySelectorAll(`#forma-toggle-${idx} .forma-btn`);
-  btns.forEach((b,i) => b.classList.toggle('active', i===(forma==='qtd'?0:1)));
-  // Toggle fields
-  const qtdW   = document.getElementById(`pag-qtd-wrap-${idx}`);
-  const saldoW = document.getElementById(`pag-saldo-wrap-${idx}`);
-  const pctW   = document.getElementById(`pag-pct-wrap-${idx}`);
-  if (qtdW)   qtdW.style.display   = forma==='qtd' ? 'block' : 'none';
-  if (saldoW) saldoW.style.display = forma==='qtd' ? 'block' : 'none';
-  if (pctW)   pctW.style.display   = forma==='pct' ? 'block' : 'none';
-  // Reset preview
+  const btnQtd = document.getElementById(`btn-qtd-${idx}`);
+  const btnPct = document.getElementById(`btn-pct-${idx}`);
+  if (btnQtd) btnQtd.classList.toggle('active', forma === 'qtd');
+  if (btnPct) btnPct.classList.toggle('active', forma === 'pct');
+
+  // Toggle form fields
+  const qtdW = document.getElementById(`pag-qtd-wrap-${idx}`);
+  const pctW = document.getElementById(`pag-pct-wrap-${idx}`);
+  if (qtdW) qtdW.style.display = forma === 'qtd' ? 'block' : 'none';
+  if (pctW) pctW.style.display = forma === 'pct' ? 'block' : 'none';
+
+  // Reset preview and inputs
   const prev = document.getElementById(`pag-preview-${idx}`);
   if (prev) prev.value = 'R$ 0,00';
+  const qtdInp = document.getElementById(`pag-qtd-${idx}`);
+  const pctInp = document.getElementById(`pag-pct-${idx}`);
+  if (qtdInp) qtdInp.value = '';
+  if (pctInp) pctInp.value = '';
 }
 
 function addPagamento(idx, itemId) {
