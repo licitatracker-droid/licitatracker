@@ -286,23 +286,12 @@
   }
   td.col-objeto .obj-text {
     font-weight: 500;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.4;
-  }
-  td.col-objeto .obj-text.expanded {
-    -webkit-line-clamp: unset;
+    white-space: normal;
     overflow: visible;
+    display: block;
+    line-height: 1.45;
   }
-  /* Botão ver mais visível */
-  .expand-btn {
-    background: none; border: none; cursor: pointer;
-    font-size: 10px; color: var(--accent); font-weight: 600;
-    padding: 1px 0; display: inline-block; margin-top: 2px;
-  }
-  .expand-btn:hover { opacity: 0.7; }
+  .expand-btn { display: none; }
 
   td.col-data { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 11px; min-width: 78px; }
   td.col-pregao { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text); min-width: 80px; }
