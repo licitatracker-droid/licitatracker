@@ -38,7 +38,9 @@
   .page-title span{color:var(--accent)}
 
   .config-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-  @media(max-width:900px){.config-grid{grid-template-columns:1fr}}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);
+    border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
   .config-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;
     box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -113,7 +115,7 @@
   <nav class="topbar-nav">
     <a class="nav-item"        id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
     <a class="nav-item"        id="nav-favoritos"    href="licitatracker-favoritos.html">⭐ Favoritos</a>
-    <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+    <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
     <a class="nav-item"        id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
     <a class="nav-item active" id="nav-config"       href="#">⚙️ Config</a>
   </nav>
@@ -186,6 +188,56 @@
       </div>
     </div>
 
+    <!-- GESTÃO DE CARGAS (só admin) -->
+    <div class="config-section" style="grid-column:1/-1" id="section-cargas">
+      <div class="section-header">
+        <div class="section-title">📦 Gestão de Cargas
+          <span class="section-count" id="cargas-count">—</span>
+        </div>
+        <button onclick="loadCargas()" style="background:#F9FAFB;border:1px solid var(--border);
+          border-radius:8px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;
+          color:var(--text-soft);display:flex;align-items:center;gap:6px">
+          ↺ Atualizar
+        </button>
+      </div>
+
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 14px;
+        font-size:12px;color:#92400E;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px">
+        <span>⚠️</span>
+        <span>Apagar uma carga remove <strong>todos</strong> os registros daquele período da base <code>pncp_publicacoes</code>.
+        Favoritos e contratos <strong>não são afetados</strong>. Use para reprocessar um período com dados corrigidos.</span>
+      </div>
+
+      <!-- Filtro de período para apagar range -->
+      <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px">🗓 Apagar por Período</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div>
+            <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+              color:var(--text-muted);display:block;margin-bottom:4px">De</label>
+            <input type="date" id="carga-de" class="add-input" style="width:150px;padding:8px 10px">
+          </div>
+          <div>
+            <label style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+              color:var(--text-muted);display:block;margin-bottom:4px">Até</label>
+            <input type="date" id="carga-ate" class="add-input" style="width:150px;padding:8px 10px">
+          </div>
+          <button onclick="apagarPeriodo()" style="background:#DC2626;color:white;border:none;
+            border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;
+            display:flex;align-items:center;gap:6px">
+            🗑 Apagar Período
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de cargas -->
+      <div id="cargas-lista" style="display:flex;flex-direction:column;gap:6px">
+        <div style="text-align:center;padding:20px;font-size:12px;color:var(--text-muted)">
+          <span class="spinner"></span> Carregando cargas...
+        </div>
+      </div>
+    </div>
+
     <!-- SISTEMA -->
     <div class="config-section" style="grid-column:1/-1">
       <div class="section-header">
@@ -225,6 +277,147 @@
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">OK</span></div>
 
 <script>
+// =============================================
+// GESTÃO DE CARGAS (admin only)
+// =============================================
+const SB  = 'https://fzpdrobltmssrrokblnc.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cGRyb2JsdG1zc3Jyb2tibG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMyNDEsImV4cCI6MjA5MjAwOTI0MX0.ifd1oB4mnL-D-28nN9Ee2ZOqrx1G13cLW03rlqq28AE';
+const H   = {'apikey':KEY,'Authorization':`Bearer ${KEY}`,'Content-Type':'application/json','Accept':'application/json'};
+
+async function loadCargas() {
+  const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  const section = document.getElementById('section-cargas');
+  if (user.role !== 'admin') { if (section) section.style.display='none'; return; }
+
+  const lista = document.getElementById('cargas-lista');
+  lista.innerHTML = `<div style="text-align:center;padding:20px;font-size:12px;color:var(--text-muted)">
+    <span class="spinner"></span> Carregando cargas...
+  </div>`;
+
+  try {
+    // Busca todos os data_carga distintos — agrupa pela parte da DATA (ignora hora)
+    const res = await fetch(
+      `${SB}/rest/v1/pncp_publicacoes?select=data_carga&order=data_carga.desc&limit=100000`,
+      { headers: H }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = await res.json();
+
+    // Agrupa por dia (primeiros 10 chars do timestamp: "2026-05-04")
+    const map = {};
+    rows.forEach(r => {
+      const dia = (r.data_carga||'').substring(0,10);
+      if (dia) map[dia] = (map[dia]||0) + 1;
+    });
+
+    const cargas = Object.entries(map)
+      .sort((a,b) => b[0].localeCompare(a[0]))
+      .map(([dia, total]) => ({ dia, total }));
+
+    if (!cargas.length) {
+      lista.innerHTML = `<div style="text-align:center;padding:20px;font-size:12px;color:var(--text-muted)">Nenhuma carga encontrada</div>`;
+      document.getElementById('cargas-count').textContent = '0';
+      return;
+    }
+
+    document.getElementById('cargas-count').textContent = cargas.length + ' data(s)';
+
+    lista.innerHTML = cargas.map(c => {
+      const dt = new Date(c.dia+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+      const total = c.total.toLocaleString('pt-BR');
+      return `<div style="display:flex;align-items:center;justify-content:space-between;
+        background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:11px 14px;
+        transition:border-color .15s"
+        onmouseover="this.style.borderColor='#FECACA'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:18px">📦</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${dt}</div>
+            <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-muted)">${c.dia}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="text-align:right">
+            <div style="font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent)">${total}</div>
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">registros</div>
+          </div>
+          <button onclick="apagarCarga('${c.dia}', ${c.total})"
+            style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;
+            padding:7px 14px;font-size:12px;font-weight:600;color:#DC2626;cursor:pointer;
+            display:flex;align-items:center;gap:5px;white-space:nowrap"
+            onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FEF2F2'">
+            🗑 Apagar
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    lista.innerHTML = `<div style="color:#DC2626;font-size:12px;padding:12px">❌ Erro: ${e.message}</div>`;
+  }
+}
+
+async function apagarCarga(dia, total) {
+  // dia = "2026-05-04"
+  if (!confirm(`⚠️ Apagar carga de ${fmtDate(dia)}?\n\n${parseInt(total).toLocaleString('pt-BR')} registros serão removidos de pncp_publicacoes.\n\nFavoritos e contratos NÃO serão afetados.\n\nConfirmar?`)) return;
+
+  // Range do dia completo: >= "2026-05-04 00:00:00" e < "2026-05-05 00:00:00"
+  const diaInicio = `${dia} 00:00:00`;
+  const diaSeg    = nextDay(dia) + ' 00:00:00';
+
+  try {
+    const res = await fetch(
+      `${SB}/rest/v1/pncp_publicacoes?data_carga=gte.${encodeURIComponent(diaInicio)}&data_carga=lt.${encodeURIComponent(diaSeg)}`,
+      { method: 'DELETE', headers: { ...H, 'Prefer': 'return=minimal' } }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    toast('🗑', `Carga ${fmtDate(dia)} apagada! ${parseInt(total).toLocaleString('pt-BR')} registros removidos.`);
+    await loadCargas();
+  } catch(e) {
+    toast('❌', 'Erro ao apagar: ' + e.message);
+  }
+}
+
+async function apagarPeriodo() {
+  const de  = document.getElementById('carga-de').value;  // "2026-04-30"
+  const ate = document.getElementById('carga-ate').value; // "2026-05-03"
+  if (!de || !ate)  { toast('⚠️','Selecione as datas De e Até'); return; }
+  if (de > ate)     { toast('⚠️','Data "De" deve ser anterior à data "Até"'); return; }
+
+  if (!confirm(`⚠️ Apagar todos os registros de ${fmtDate(de)} até ${fmtDate(ate)}?\n\nFavoritos e contratos NÃO serão afetados.\n\nConfirmar?`)) return;
+
+  // De: início do primeiro dia / Até: fim do último dia (< dia seguinte)
+  const inicio  = `${de} 00:00:00`;
+  const fim     = nextDay(ate) + ' 00:00:00';
+
+  try {
+    const res = await fetch(
+      `${SB}/rest/v1/pncp_publicacoes?data_carga=gte.${encodeURIComponent(inicio)}&data_carga=lt.${encodeURIComponent(fim)}`,
+      { method: 'DELETE', headers: { ...H, 'Prefer': 'return=minimal' } }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    toast('🗑', `Período ${fmtDate(de)} → ${fmtDate(ate)} apagado com sucesso!`);
+    document.getElementById('carga-de').value = '';
+    document.getElementById('carga-ate').value = '';
+    await loadCargas();
+  } catch(e) {
+    toast('❌', 'Erro ao apagar: ' + e.message);
+  }
+}
+
+// Retorna o dia seguinte em formato "YYYY-MM-DD"
+function nextDay(dia) {
+  const d = new Date(dia + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().substring(0,10);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
 // =============================================
 // DADOS
 // =============================================
@@ -438,7 +631,10 @@ document.getElementById('new-unidade').addEventListener('keydown', e => { if(e.k
 document.getElementById('new-site-url').addEventListener('keydown', e => { if(e.key==='Enter') addSite(); });
 document.getElementById('new-cliente-cnpj').addEventListener('keydown', e => { if(e.key==='Enter') addCliente(); });
 
-if (checkAuth()) renderAll();
+if (checkAuth()) {
+  renderAll();
+  loadCargas();
+}
 </script>
 </body>
 </html>
