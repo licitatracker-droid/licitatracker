@@ -1600,6 +1600,11 @@ function calcEditTotalNeg(idx) {
   const cell = document.getElementById(`etotal-neg-${idx}`);
   if (cell) cell.textContent = (q&&v) ? fmtM(q*v) : '—';
 }
+
+function calcEditTotal(idx) {
+  const cell = document.getElementById(`etotal-${idx}`);
+  if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
+}
   const cell = document.getElementById(`etotal-${idx}`);
   if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
 }
