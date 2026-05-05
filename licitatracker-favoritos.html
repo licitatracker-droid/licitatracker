@@ -1605,9 +1605,6 @@ function calcEditTotal(idx) {
   const cell = document.getElementById(`etotal-${idx}`);
   if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
 }
-  const cell = document.getElementById(`etotal-${idx}`);
-  if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
-}
 
 function handleEditProd(idx, val) {
   if (val === '__novo__') {
