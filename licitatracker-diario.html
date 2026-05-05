@@ -1534,11 +1534,21 @@ function buildProdutoOptions(current) {
 function updateProdutoFilter() {
   const sel = document.getElementById('filter-produto');
   const current = sel.value;
-  const list = getProdutoList();
+  let list = getProdutoList();
+
+  // Filtra pelos produtos permitidos do usuário
+  const permitidos = getProdutosPermitidos();
+  if (permitidos) list = list.filter(p => permitidos.includes(p));
+
   sel.innerHTML = `<option value="">Produto: Todos</option>`;
   list.forEach(p => {
     sel.innerHTML += `<option value="${p}" ${current===p?'selected':''}>${p}</option>`;
   });
+
+  // Se usuário tem restrição, pré-seleciona o primeiro produto
+  if (permitidos && list.length === 1 && !sel.value) {
+    sel.value = list[0];
+  }
 }
 
 function saveProdutoRow(e, id, value) {
@@ -1902,6 +1912,13 @@ document.getElementById('man-link-edital').addEventListener('input', function() 
   btn.href = this.value; btn.style.display = this.value ? 'inline-flex' : 'none';
 });
 
+
+// Retorna produtos permitidos para o usuário (null = todos)
+function getProdutosPermitidos() {
+  const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  if (user.role === 'admin' || !user.produtos || !user.produtos.length) return null;
+  return user.produtos;
+}
 
 function marcarVisitado(id) {
   visitados.add(String(id));

@@ -171,7 +171,20 @@ async function doLogin() {
       if (u.senha_hash !== senhaHash) throw new Error('Senha incorreta');
       if (!emp || !emp.ativa) throw new Error('Empresa inativa ou não encontrada');
 
-      // Monta sessão com módulos da empresa
+      // Resolve módulos: usuário herda empresa, mas pode ter override
+      function resolvemod(usrVal, empVal) {
+        if (usrVal !== null && usrVal !== undefined) return usrVal;
+        return empVal;
+      }
+
+      // Busca produtos vinculados à empresa
+      const resProd = await fetch(
+        `${SB}/rest/v1/lt_empresa_produtos?select=produto&empresa_id=eq.${emp.id}`,
+        {headers:H}
+      );
+      const prodRows = resProd.ok ? await resProd.json() : [];
+      const produtos  = prodRows.map(r => r.produto);
+
       const session = {
         id:      u.id,
         nome:    u.nome,
@@ -179,13 +192,14 @@ async function doLogin() {
         role:    u.perfil,
         empresa: emp.nome,
         empresa_id: emp.id,
+        produtos: produtos, // [] = todos liberados
         modulos: {
-          diario:       emp.mod_diario,
-          favoritos:    emp.mod_favoritos,
-          meus_editais: emp.mod_meus_editais,
-          pagamentos:   emp.mod_pagamentos,
-          analytics:    emp.mod_analytics,
-          config:       emp.mod_config,
+          diario:       resolvemod(u.mod_diario,       emp.mod_diario),
+          favoritos:    resolvemod(u.mod_favoritos,    emp.mod_favoritos),
+          meus_editais: resolvemod(u.mod_meus_editais, emp.mod_meus_editais),
+          pagamentos:   resolvemod(u.mod_pagamentos,   emp.mod_pagamentos),
+          analytics:    resolvemod(u.mod_analytics,    emp.mod_analytics),
+          config:       resolvemod(u.mod_config,       emp.mod_config),
         }
       };
       localStorage.setItem('lt_user', JSON.stringify(session));

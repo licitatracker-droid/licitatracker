@@ -148,7 +148,7 @@
   <nav class="topbar-nav">
     <a class="nav-item" href="licitatracker-diario.html">📰 Diário</a>
     <a class="nav-item" href="licitatracker-favoritos.html">⭐ Favoritos</a>
-    <a class="nav-item" href="licitatracker-meus-editais.html">📁 Meus Editais</a>
+    <a class="nav-item" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
     <a class="nav-item active" href="#">🏢 Empresas</a>
     <a class="nav-item" href="licitatracker-config.html">⚙️ Config</a>
   </nav>
@@ -232,7 +232,7 @@
         <input type="checkbox" id="mod-favoritos" checked> ⭐ Favoritos
       </label>
       <label class="mod-item" id="mod-meus-editais-wrap">
-        <input type="checkbox" id="mod-meus-editais" checked> 📁 Meus Editais
+        <input type="checkbox" id="mod-meus-editais" checked> 💰 Conta Corrente
       </label>
       <label class="mod-item" id="mod-pagamentos-wrap">
         <input type="checkbox" id="mod-pagamentos"> 💰 Pagamentos
@@ -364,11 +364,24 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px">
       <label class="mod-item"><input type="checkbox" id="edit-mod-diario"> 📰 Diário</label>
       <label class="mod-item"><input type="checkbox" id="edit-mod-favoritos"> ⭐ Favoritos</label>
-      <label class="mod-item"><input type="checkbox" id="edit-mod-meus-editais"> 📁 Meus Editais</label>
+      <label class="mod-item"><input type="checkbox" id="edit-mod-meus-editais"> 💰 Conta Corrente</label>
       <label class="mod-item"><input type="checkbox" id="edit-mod-pagamentos"> 💰 Pagamentos</label>
       <label class="mod-item"><input type="checkbox" id="edit-mod-analytics"> 📊 Analytics</label>
       <label class="mod-item"><input type="checkbox" id="edit-mod-config"> ⚙️ Config</label>
     </div>
+
+    <div class="modal-section">📦 Produtos Vinculados</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">
+      Selecione quais produtos esta empresa pode visualizar e filtrar.
+    </div>
+    <div id="edit-produtos-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <select id="edit-prod-select" class="form-input" style="flex:1">
+        <option value="">— selecionar produto —</option>
+      </select>
+      <button onclick="addEmpresaProduto()" class="btn btn-primary" style="white-space:nowrap">+ Adicionar</button>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeEditEmpresa()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveEditEmpresa()">💾 Salvar</button>
@@ -563,6 +576,11 @@ function openEditEmpresa(id) {
   document.getElementById('edit-mod-analytics').checked    = !!e.mod_analytics;
   document.getElementById('edit-mod-config').checked       = !!e.mod_config;
   document.getElementById('edit-empresa-overlay').classList.add('open');
+  // Carrega produtos
+  editEmpresaProdutos = [];
+  renderEmpresaProdutos();
+  loadEmpresaProdutos(id);
+  loadProdutosSelect();
 }
 function closeEditEmpresa() {
   document.getElementById('edit-empresa-overlay').classList.remove('open');
@@ -627,25 +645,61 @@ async function loadUsuarios(empresaId) {
   try {
     const res = await fetch(`${SB}/rest/v1/lt_usuarios?select=*&empresa_id=eq.${empresaId}&order=nome.asc`, {headers:H});
     const usrs = res.ok ? await res.json() : [];
+    const emp  = allEmpresas.find(e => e.id === empresaId) || {};
+
     if (!usrs.length) {
       lista.innerHTML = `<div style="text-align:center;padding:16px;font-size:12px;color:#9CA3AF">Nenhum usuário cadastrado</div>`;
       return;
     }
+
+    const MODS = [
+      {key:'mod_diario',label:'📰 Diário'},
+      {key:'mod_favoritos',label:'⭐ Favs'},
+      {key:'mod_meus_editais',label:'💰 CC'},
+      {key:'mod_config',label:'⚙️ Config'},
+    ];
+
     lista.innerHTML = usrs.map(u => {
       const ini = u.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-      return `<div class="usuario-item">
-        <div class="usuario-avatar">${ini}</div>
-        <div class="usuario-info">
-          <div class="usuario-nome">${u.nome} <span style="font-size:10px;background:${u.perfil==='admin'?'#EEF2FF':'#F3F4F6'};
-            color:${u.perfil==='admin'?'var(--accent)':'#6B7280'};border-radius:4px;padding:1px 6px">
-            ${u.perfil==='admin'?'Admin':'Viewer'}</span></div>
-          <div class="usuario-email">${u.email}</div>
+      const permsHtml = MODS.map(m => {
+        const empVal  = emp[m.key];       // valor da empresa (base)
+        const usrVal  = u[m.key];         // override do usuário (null = herda)
+        const efetivo = usrVal !== null && usrVal !== undefined ? usrVal : empVal;
+        const label   = usrVal !== null && usrVal !== undefined
+          ? (usrVal ? '✅ ON' : '❌ OFF')
+          : (empVal ? '↑ herda ON' : '↑ herda OFF');
+        const cor = efetivo ? '#059669' : '#9CA3AF';
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer"
+          onclick="toggleUserMod('${u.id}','${m.key}',${JSON.stringify(usrVal)},${JSON.stringify(empVal)})"
+          title="Clique para alternar. Empresa: ${empVal?'ON':'OFF'} | Usuário: ${usrVal===null||usrVal===undefined?'herda':usrVal?'ON':'OFF'}">
+          <span style="font-size:10px;font-weight:600;color:${cor}">${m.label}</span>
+          <span style="font-size:9px;color:${cor};white-space:nowrap">${label}</span>
+        </div>`;
+      }).join('');
+
+      return `<div class="usuario-item" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;width:100%">
+          <div class="usuario-avatar">${ini}</div>
+          <div class="usuario-info">
+            <div class="usuario-nome">${u.nome}
+              <span style="font-size:10px;background:${u.perfil==='admin'?'#EEF2FF':'#F3F4F6'};
+                color:${u.perfil==='admin'?'var(--accent)':'#6B7280'};border-radius:4px;padding:1px 6px">
+                ${u.perfil==='admin'?'Admin':'Viewer'}</span>
+            </div>
+            <div class="usuario-email">${u.email}</div>
+          </div>
+          <div style="display:flex;gap:4px;margin-left:auto">
+            <button class="abtn ${u.ativo?'abtn-red':'abtn-green'}" style="padding:3px 8px;font-size:10px"
+              onclick="toggleUsuario('${u.id}',${u.ativo})">${u.ativo?'⛔':'✅'}</button>
+            <button class="abtn abtn-blue" style="padding:3px 8px;font-size:10px"
+              onclick="resetSenha('${u.id}','${u.nome.replace(/'/g,"\\'")}')">🔑</button>
+          </div>
         </div>
-        <div style="display:flex;gap:4px">
-          <button class="abtn ${u.ativo?'abtn-red':'abtn-green'}" style="padding:3px 8px;font-size:10px"
-            onclick="toggleUsuario('${u.id}',${u.ativo})">${u.ativo?'⛔':'✅'}</button>
-          <button class="abtn abtn-blue" style="padding:3px 8px;font-size:10px"
-            onclick="resetSenha('${u.id}','${u.nome.replace(/'/g,"\\'")}')">🔑</button>
+        <!-- Permissões por usuário -->
+        <div style="width:100%;background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:8px 12px">
+          <div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;
+            letter-spacing:.07em;margin-bottom:6px">Permissões (clique para alternar)</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">${permsHtml}</div>
         </div>
       </div>`;
     }).join('');
@@ -696,8 +750,96 @@ async function resetSenha(id, nome) {
 }
 
 // =============================================
-// UTILS
+// TOGGLE PERMISSÃO POR USUÁRIO
 // =============================================
+async function toggleUserMod(userId, modKey, usrVal, empVal) {
+  // Ciclo: herda → forçar ON → forçar OFF → herda
+  let novoVal;
+  if (usrVal === null || usrVal === undefined) {
+    novoVal = true;  // herda → força ON
+  } else if (usrVal === true) {
+    novoVal = false; // força ON → força OFF
+  } else {
+    novoVal = null;  // força OFF → herda novamente
+  }
+
+  await fetch(`${SB}/rest/v1/lt_usuarios?id=eq.${userId}`, {
+    method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
+    body: JSON.stringify({ [modKey]: novoVal })
+  });
+  await loadUsuarios(usuariosEmpresaId);
+  toast('✅', `Permissão ${modKey.replace('mod_','')} atualizada`);
+}
+
+// =============================================
+// PRODUTOS POR EMPRESA
+// =============================================
+let editEmpresaProdutos = []; // produtos já vinculados
+
+async function loadEmpresaProdutos(empresaId) {
+  const res = await fetch(`${SB}/rest/v1/lt_empresa_produtos?select=produto&empresa_id=eq.${empresaId}`, {headers:H});
+  editEmpresaProdutos = res.ok ? (await res.json()).map(r=>r.produto) : [];
+  renderEmpresaProdutos();
+}
+
+function renderEmpresaProdutos() {
+  const wrap = document.getElementById('edit-produtos-wrap');
+  if (!wrap) return;
+  if (!editEmpresaProdutos.length) {
+    wrap.innerHTML = `<span style="font-size:11px;color:#9CA3AF">Nenhum produto vinculado — todos liberados</span>`;
+    return;
+  }
+  wrap.innerHTML = editEmpresaProdutos.map(p => `
+    <span style="display:inline-flex;align-items:center;gap:5px;background:#EEF2FF;
+      border:1px solid #C7D2FE;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;color:var(--accent)">
+      📦 ${p}
+      <button onclick="removeEmpresaProduto('${p}')"
+        style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:12px;line-height:1">✕</button>
+    </span>`).join('');
+}
+
+async function addEmpresaProduto() {
+  const sel = document.getElementById('edit-prod-select');
+  const p   = sel.value.trim();
+  if (!p || editEmpresaProdutos.includes(p)) { toast('⚠️','Produto não selecionado ou já vinculado'); return; }
+
+  await fetch(`${SB}/rest/v1/lt_empresa_produtos`, {
+    method:'POST', headers:{...H,'Prefer':'return=minimal'},
+    body: JSON.stringify({ empresa_id: editEmpresaId, produto: p })
+  });
+  editEmpresaProdutos.push(p);
+  renderEmpresaProdutos();
+  sel.value = '';
+  toast('✅', `"${p}" vinculado!`);
+}
+
+async function removeEmpresaProduto(produto) {
+  await fetch(`${SB}/rest/v1/lt_empresa_produtos?empresa_id=eq.${editEmpresaId}&produto=eq.${encodeURIComponent(produto)}`,
+    { method:'DELETE', headers:H });
+  editEmpresaProdutos = editEmpresaProdutos.filter(p=>p!==produto);
+  renderEmpresaProdutos();
+  toast('🗑', `"${produto}" desvinculado`);
+}
+
+async function loadProdutosSelect() {
+  // Carrega produtos do Config
+  const res = await fetch(`${SB}/rest/v1/lt_config?select=valor&chave=eq.produtos`, {headers:H});
+  const rows = res.ok ? await res.json() : [];
+  const sel  = document.getElementById('edit-prod-select');
+  if (!sel) return;
+  let produtos = [];
+  if (rows.length) {
+    try { produtos = JSON.parse(rows[0].valor); } catch(e) {}
+  }
+  if (!produtos.length) {
+    // Fallback: busca produtos únicos dos favoritos
+    const r2 = await fetch(`${SB}/rest/v1/pncp_favoritos_itens?select=produto&order=produto.asc`, {headers:H});
+    const its = r2.ok ? await r2.json() : [];
+    produtos = [...new Set(its.map(i=>i.produto).filter(Boolean))];
+  }
+  sel.innerHTML = `<option value="">— selecionar produto —</option>` +
+    produtos.map(p=>`<option value="${p}">${p}</option>`).join('');
+}
 function toggleSenha(inputId, btn) {
   const inp = document.getElementById(inputId);
   if (inp.type==='password') { inp.type='text'; btn.textContent='🙈'; }

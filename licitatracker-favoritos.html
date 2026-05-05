@@ -972,9 +972,18 @@ async function importFromLocal() {
 }
 
 // FILTERS
+function getProdutosPermitidos() {
+  const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  if (user.role === 'admin' || !user.produtos || !user.produtos.length) return null;
+  return user.produtos;
+}
+
 function buildFilters() {
-  // Produtos
-  const prods = [...new Set(allFavs.filter(r=>r.produto).map(r=>r.produto))].sort();
+  const permitidos = getProdutosPermitidos();
+
+  // Produtos — filtra pelos permitidos se houver restrição
+  let prods = [...new Set(allFavs.filter(r=>r.produto).map(r=>r.produto))].sort();
+  if (permitidos) prods = prods.filter(p => permitidos.includes(p));
   const pSel = document.getElementById('f-produto');
   pSel.innerHTML = '<option value="">Produto: Todos</option>';
   prods.forEach(p => pSel.innerHTML += `<option value="${p}">${p}</option>`);
