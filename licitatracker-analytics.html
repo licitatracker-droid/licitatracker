@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Licita Tracker — Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--accent:#2563EB;--accent-soft:#EEF2FF;--gold:#D97706;--green:#059669;--red:#DC2626;--purple:#7C3AED;
+  --text:#111827;--text-muted:#6B7280;--border:#E5E7EB;--surface:#FFFFFF;--radius:12px;}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px}
+body{font-family:'DM Sans',sans-serif;background:#F1F3F9;color:var(--text);min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;
+  border-bottom:1px solid var(--border);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563EB,#1E40AF);
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--text)}
+.logo-text span{color:var(--accent)}
+.topbar-nav{display:flex;align-items:center;gap:4px}
+.nav-item{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);
+  cursor:pointer;transition:all .15s;border:none;background:none;text-decoration:none;display:flex;align-items:center;gap:6px}
+.nav-item:hover{color:var(--text);background:#F3F4F6}
+.nav-item.active{color:var(--accent);background:var(--accent-soft);font-weight:600}
+.main{padding:24px 28px;max-width:1400px;margin:0 auto}
+.page-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+.page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;margin-bottom:24px}
+.page-title span{color:var(--accent)}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;
+  position:relative;overflow:hidden;transition:all .2s}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.kpi-icon{font-size:26px;margin-bottom:6px}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:4px}
+.kpi-value{font-family:'DM Mono',monospace;font-size:28px;font-weight:700}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:3px}
+.kpi-accent{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 14px 14px}
+.kpi.blue .kpi-value{color:var(--accent)} .kpi.blue .kpi-accent{background:var(--accent)}
+.kpi.gold .kpi-value{color:var(--gold)}   .kpi.gold .kpi-accent{background:var(--gold)}
+.kpi.green .kpi-value{color:var(--green)} .kpi.green .kpi-accent{background:var(--green)}
+.kpi.red .kpi-value{color:var(--red)}     .kpi.red .kpi-accent{background:var(--red)}
+.kpi.purple .kpi-value{color:var(--purple)} .kpi.purple .kpi-accent{background:var(--purple)}
+
+/* Charts */
+.charts-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.charts-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.charts-grid-2,.charts-grid-3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+
+/* Funil */
+.funnel{display:flex;flex-direction:column;gap:8px}
+.funnel-row{display:flex;align-items:center;gap:10px}
+.funnel-lbl{font-size:12px;font-weight:600;min-width:100px;color:#374151}
+.funnel-track{flex:1;height:34px;background:#F3F4F6;border-radius:7px;overflow:hidden;position:relative}
+.funnel-fill{height:100%;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:10px;transition:width .8s cubic-bezier(.34,1.56,.64,1);min-width:34px}
+.funnel-fill span{font-size:11px;font-weight:700;color:white}
+.funnel-num{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;min-width:28px;text-align:right}
+.funnel-pct{font-size:10px;color:var(--text-muted);min-width:34px;text-align:right}
+
+/* Bar list */
+.bar-list{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow-y:auto}
+.bl-row{display:flex;align-items:center;gap:8px}
+.bl-lbl{font-size:11px;color:#374151;min-width:80px;max-width:100px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bl-track{flex:1;height:16px;background:#F3F4F6;border-radius:4px;overflow:hidden}
+.bl-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.bl-val{font-size:11px;font-family:'DM Mono',monospace;font-weight:600;min-width:44px;text-align:right;color:var(--text-muted)}
+
+/* Vencimentos */
+.venc-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;
+  border:1px solid var(--border);margin-bottom:5px;cursor:pointer;transition:all .15s}
+.venc-item:hover{border-color:#BFDBFE;background:#F8FAFF}
+.venc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+.badge-atrasado{background:#FEF2F2;color:var(--red);border:1px solid #FECACA}
+.badge-hoje{background:#FFFBEB;color:var(--gold);border:1px solid #FDE68A}
+.badge-3dias{background:#FFF7ED;color:#EA580C;border:1px solid #FED7AA}
+.badge-semana{background:#EEF2FF;color:var(--accent);border:1px solid #C7D2FE}
+.badge-normal{background:#F3F4F6;color:var(--text-muted);border:1px solid var(--border)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:300;background:#1F2937;border:1px solid #374151;
+  border-radius:10px;padding:12px 18px;font-size:13px;font-weight:500;color:white;display:flex;
+  align-items:center;gap:8px;box-shadow:0 8px 28px rgba(0,0,0,.2);
+  transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:translateY(0);opacity:1}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-chart{text-align:center;padding:30px;color:var(--text-muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="licitatracker-diario.html" class="logo">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">Licita<span>Tracker</span></div>
+  </a>
+  <nav class="topbar-nav">
+    <a class="nav-item" id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
+    <a class="nav-item" id="nav-favoritos"    href="licitatracker-favoritos.html">⭐ Favoritos</a>
+    <a class="nav-item" id="nav-meus-editais" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
+    <a class="nav-item active">📊 Analytics</a>
+    <a class="nav-item" id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
+    <a class="nav-item" id="nav-config"       href="licitatracker-config.html">⚙️ Config</a>
+  </nav>
+  <div style="display:flex;align-items:center;gap:8px;background:#F9FAFB;border:1px solid var(--border);
+    border-radius:100px;padding:4px 12px 4px 8px;cursor:pointer" onclick="doLogout()">
+    <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;
+      align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700" id="user-avatar">?</div>
+    <span style="font-size:12px;font-weight:500;color:#374151" id="user-name">—</span>
+    <span style="font-size:10px;color:var(--text-muted)">Sair</span>
+  </div>
+</header>
+
+<main class="main">
+  <div class="page-label">Painel de Inteligência</div>
+  <h1 class="page-title">📊 Analytics de <span>Licitações</span></h1>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi blue">
+      <div class="kpi-icon">⭐</div>
+      <div class="kpi-label">Total Monitorados</div>
+      <div class="kpi-value" id="k-total">—</div>
+      <div class="kpi-sub">favoritos cadastrados</div>
+      <div class="kpi-accent"></div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-icon">▶</div>
+      <div class="kpi-label">Em Andamento</div>
+      <div class="kpi-value" id="k-and">—</div>
+      <div class="kpi-sub" id="k-and-sub">participando ativamente</div>
+      <div class="kpi-accent"></div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-icon">🏆</div>
+      <div class="kpi-label">Ganhos</div>
+      <div class="kpi-value" id="k-ganho">—</div>
+      <div class="kpi-sub" id="k-ganho-sub">taxa de conversão</div>
+      <div class="kpi-accent"></div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-icon">✗</div>
+      <div class="kpi-label">Perdidos</div>
+      <div class="kpi-value" id="k-perd">—</div>
+      <div class="kpi-sub" id="k-perd-sub">não ganhamos</div>
+      <div class="kpi-accent"></div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">Valor Potencial</div>
+      <div class="kpi-value" id="k-valor" style="font-size:18px">—</div>
+      <div class="kpi-sub">em andamento</div>
+      <div class="kpi-accent"></div>
+    </div>
+  </div>
+
+  <!-- LINHA 1: Funil + Favoritos vs Andamento -->
+  <div class="charts-grid-2">
+
+    <!-- Funil de conversão -->
+    <div class="card">
+      <div class="card-title">🔽 Funil — Favoritos → Ganho</div>
+      <div class="funnel" id="funil-wrap">
+        <div class="empty-chart"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+    <!-- Favoritos vs Andamento — Donut Chart.js -->
+    <div class="card">
+      <div class="card-title">📈 Favoritos × Andamento × Ganho</div>
+      <div style="display:flex;align-items:center;gap:24px;justify-content:center">
+        <div style="position:relative;width:160px;height:160px">
+          <canvas id="donut-chart" width="160" height="160"></canvas>
+        </div>
+        <div id="donut-legend" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div id="donut-insight" style="text-align:center;font-size:12px;color:var(--text-muted);
+        margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"></div>
+    </div>
+
+  </div>
+
+  <!-- LINHA 2: Por Produto + Por UF -->
+  <div class="charts-grid-2">
+
+    <div class="card">
+      <div class="card-title">📦 Por Produto — Andamento</div>
+      <div class="bar-list" id="chart-prod"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗺 Por UF — Andamento</div>
+      <div class="bar-list" id="chart-uf"></div>
+    </div>
+
+  </div>
+
+  <!-- LINHA 3: Timeline favoritos + Próximos vencimentos -->
+  <div class="charts-grid-2">
+
+    <div class="card">
+      <div class="card-title">📅 Favoritos ao Longo do Tempo</div>
+      <canvas id="timeline-chart" height="100"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⏰ Próximos Vencimentos (Andamento)</div>
+      <div id="vencimentos-wrap" style="max-height:260px;overflow-y:auto">
+        <div class="empty-chart"><span class="spinner"></span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LINHA 4: Financeiro -->
+  <div class="charts-grid-3">
+
+    <div class="card">
+      <div class="card-title">💵 Valor Total Monitorado</div>
+      <div style="text-align:center;padding:12px 0">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+          color:var(--text-muted);margin-bottom:6px">Vlr Ref Estimado</div>
+        <div style="font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:var(--accent)"
+          id="fin-total">—</div>
+      </div>
+      <canvas id="fin-chart" height="80"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏆 Top Órgãos Ganhos</div>
+      <div class="bar-list" id="chart-orgao-ganho"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Vlr Ref × Vlr Negociado</div>
+      <canvas id="negoc-chart" height="160"></canvas>
+      <div id="negoc-insight" style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg">OK</span></div>
+
+<script>
+const SB  = 'https://fzpdrobltmssrrokblnc.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cGRyb2JsdG1zc3Jyb2tibG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MzMyNDEsImV4cCI6MjA5MjAwOTI0MX0.ifd1oB4mnL-D-28nN9Ee2ZOqrx1G13cLW03rlqq28AE';
+const H   = {'apikey':KEY,'Authorization':`Bearer ${KEY}`,'Content-Type':'application/json','Accept':'application/json'};
+
+let allFavs = [], allItens = [];
+
+// =============================================
+// AUTH
+// =============================================
+function checkAuth() {
+  const user = JSON.parse(localStorage.getItem('lt_user')||'null');
+  if (!user) { window.location.href='login.html'; return null; }
+  const ini = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = ini;
+  document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
+  if (user.role === 'admin') {
+    const el = document.getElementById('nav-empresas');
+    if (el) el.style.display = 'flex';
+  }
+  return user;
+}
+function doLogout() {
+  if (!confirm('Sair?')) return;
+  localStorage.removeItem('lt_user'); localStorage.removeItem('lt_cliente');
+  window.location.href = 'login.html';
+}
+
+// =============================================
+// LOAD
+// =============================================
+async function loadAll() {
+  try {
+    const [rFavs, rItens] = await Promise.all([
+      fetch(`${SB}/rest/v1/pncp_favoritos?select=*`, {headers:H}),
+      fetch(`${SB}/rest/v1/pncp_favoritos_itens?select=*`, {headers:H}),
+    ]);
+    allFavs  = rFavs.ok  ? await rFavs.json()  : [];
+    allItens = rItens.ok ? await rItens.json()  : [];
+    renderAll();
+  } catch(e) { toast('❌','Erro ao carregar dados: '+e.message); }
+}
+
+// =============================================
+// RENDER
+// =============================================
+function renderAll() {
+  const total   = allFavs.length;
+  const favorito= allFavs.filter(f=>f.status==='favorito'||!f.status).length;
+  const and     = allFavs.filter(f=>f.status==='andamento').length;
+  const ganho   = allFavs.filter(f=>f.status==='ganho').length;
+  const perdido = allFavs.filter(f=>f.status==='perdido').length;
+
+  // Valor potencial em andamento (vlr ref × qtd dos itens em andamento)
+  const idsAnd = new Set(allFavs.filter(f=>f.status==='andamento').map(f=>f.id));
+  const valorAnd = allItens.filter(i=>idsAnd.has(i.favorito_id))
+    .reduce((s,i)=>s+(parseFloat(i.qtd||0)*parseFloat(i.valref||0)),0);
+
+  // KPIs
+  document.getElementById('k-total').textContent = total;
+  document.getElementById('k-and').textContent   = and;
+  document.getElementById('k-ganho').textContent = ganho;
+  document.getElementById('k-perd').textContent  = perdido;
+  document.getElementById('k-valor').textContent = fmtM(valorAnd);
+
+  const pctAnd   = total>0 ? Math.round(and/total*100) : 0;
+  const pctGanho = and>0   ? Math.round(ganho/(and+ganho+perdido)*100) : 0;
+  document.getElementById('k-and-sub').textContent   = `${pctAnd}% do total`;
+  document.getElementById('k-ganho-sub').textContent = `${pctGanho}% de conv.`;
+  document.getElementById('k-perd-sub').textContent  = `${perdido} não ganhamos`;
+
+  renderFunil(favorito, and, ganho, perdido, total);
+  renderDonut(favorito, and, ganho, perdido);
+  renderBarras('chart-prod', allFavs.filter(f=>f.status==='andamento'), 'produto', '#F59E0B');
+  renderBarras('chart-uf',   allFavs.filter(f=>f.status==='andamento'), 'uf', '#3B82F6');
+  renderTimeline();
+  renderVencimentos();
+  renderFinanceiro();
+  renderOrgaosGanhos();
+  renderNegociado();
+}
+
+// FUNIL
+function renderFunil(fav, and, ganho, perdido, total) {
+  const steps = [
+    {label:'⭐ Favoritos', val:total,   color:'#3B82F6', pct:100},
+    {label:'▶ Andamento', val:and,    color:'#F59E0B', pct:total>0?Math.round(and/total*100):0},
+    {label:'🏆 Ganhos',   val:ganho,  color:'#10B981', pct:total>0?Math.round(ganho/total*100):0},
+    {label:'✗ Perdidos',  val:perdido,color:'#EF4444', pct:total>0?Math.round(perdido/total*100):0},
+  ];
+  const max = Math.max(...steps.map(s=>s.val), 1);
+  document.getElementById('funil-wrap').innerHTML = steps.map(s=>`
+    <div class="funnel-row">
+      <div class="funnel-lbl">${s.label}</div>
+      <div class="funnel-track">
+        <div class="funnel-fill" style="width:${Math.max(8,Math.round(s.val/max*100))}%;background:${s.color}">
+          <span>${s.val}</span>
+        </div>
+      </div>
+      <div class="funnel-pct" style="color:${s.color}">${s.pct}%</div>
+    </div>`).join('');
+}
+
+// DONUT
+let donutChart = null;
+function renderDonut(fav, and, ganho, perdido) {
+  const labels = ['⭐ Favorito','▶ Andamento','🏆 Ganho','✗ Perdido'];
+  const data   = [fav, and, ganho, perdido];
+  const colors = ['#3B82F6','#F59E0B','#10B981','#EF4444'];
+  const total  = fav+and+ganho+perdido;
+
+  if (donutChart) donutChart.destroy();
+  const ctx = document.getElementById('donut-chart').getContext('2d');
+  donutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets:[{ data, backgroundColor:colors, borderWidth:2, borderColor:'white' }]},
+    options: { cutout:'65%', plugins:{ legend:{display:false} }, animation:{animateRotate:true} }
+  });
+
+  document.getElementById('donut-legend').innerHTML = labels.map((l,i)=>`
+    <div style="display:flex;align-items:center;gap:7px;font-size:12px">
+      <span style="width:10px;height:10px;border-radius:50%;background:${colors[i]};flex-shrink:0"></span>
+      <span style="color:#374151;font-weight:500">${l}</span>
+      <span style="font-family:'DM Mono',monospace;font-weight:700;color:${colors[i]}">${data[i]}</span>
+      <span style="color:#9CA3AF">${total>0?Math.round(data[i]/total*100):0}%</span>
+    </div>`).join('');
+
+  const conv = (and+ganho+perdido)>0 ? Math.round(and/(and+ganho+perdido+fav)*100) : 0;
+  document.getElementById('donut-insight').textContent =
+    `${conv}% dos favoritos avançaram para Andamento`;
+}
+
+// BARRAS
+function renderBarras(elId, favs, campo, color) {
+  const el = document.getElementById(elId);
+  const map = {};
+  favs.forEach(f => {
+    const v = f[campo]||'—';
+    map[v] = (map[v]||0)+1;
+  });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if (!sorted.length) { el.innerHTML='<div class="empty-chart">Sem dados</div>'; return; }
+  const max = sorted[0][1];
+  el.innerHTML = sorted.map(([k,v])=>`
+    <div class="bl-row">
+      <div class="bl-lbl" title="${k}">${k}</div>
+      <div class="bl-track">
+        <div class="bl-fill" style="width:${Math.round(v/max*100)}%;background:${color}20;border-left:3px solid ${color}"></div>
+      </div>
+      <div class="bl-val" style="color:${color}">${v}</div>
+    </div>`).join('');
+}
+
+// TIMELINE — favoritos por mês
+let timelineChart = null;
+function renderTimeline() {
+  const map = {};
+  allFavs.forEach(f => {
+    const d = f.data_favorito || f.created_at || '';
+    if (!d) return;
+    const m = d.substring(0,7); // "2026-04"
+    map[m] = (map[m]||0)+1;
+  });
+  const sorted = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
+  if (!sorted.length) return;
+
+  const labels = sorted.map(([m])=>{
+    const [y,mo] = m.split('-');
+    return `${mo}/${y.slice(2)}`;
+  });
+  const data = sorted.map(([,v])=>v);
+
+  if (timelineChart) timelineChart.destroy();
+  const ctx = document.getElementById('timeline-chart').getContext('2d');
+  timelineChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets:[{
+        label:'Favoritos',
+        data,
+        backgroundColor:'rgba(37,99,235,.15)',
+        borderColor:'#2563EB',
+        borderWidth:2,
+        borderRadius:6,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'#F3F4F6'}},
+        x:{grid:{display:false}}
+      }
+    }
+  });
+}
+
+// VENCIMENTOS
+function renderVencimentos() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const andamento = allFavs.filter(f=>f.status==='andamento' && f.dataencerramento);
+  const sorted = andamento.map(f=>{
+    const dt = new Date(f.dataencerramento.replace(' ','T'));
+    const diff = Math.floor((dt-hoje)/(1000*60*60*24));
+    return {...f, dt, diff};
+  }).sort((a,b)=>a.diff-b.diff);
+
+  const wrap = document.getElementById('vencimentos-wrap');
+  if (!sorted.length) { wrap.innerHTML='<div class="empty-chart">Nenhum em andamento com data</div>'; return; }
+
+  wrap.innerHTML = sorted.slice(0,12).map(f=>{
+    let cls='badge-normal', lbl=`${f.diff}d`;
+    if (f.diff<0)      { cls='badge-atrasado'; lbl=`${Math.abs(f.diff)}d atrás`; }
+    else if(f.diff===0){ cls='badge-hoje';     lbl='HOJE'; }
+    else if(f.diff<=3) { cls='badge-3dias';    lbl=`${f.diff}d`; }
+    else if(f.diff<=7) { cls='badge-semana';   lbl=`${f.diff}d`; }
+
+    const pncp  = (f.numerocontrolepncp||'').substring(0,20);
+    const orgao = (f.orgao||'—').substring(0,28);
+    const dtStr = f.dt.toLocaleDateString('pt-BR');
+    return `<div class="venc-item" onclick="window.open('licitatracker-favoritos.html','_blank')">
+      <span class="venc-badge ${cls}">${lbl}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11px;font-weight:600;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${orgao}</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:#9CA3AF">${pncp} · ${dtStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// FINANCEIRO
+let finChart = null;
+function renderFinanceiro() {
+  // Valor por status
+  const getValor = (status) => {
+    const ids = new Set(allFavs.filter(f=>f.status===status||(status==='favorito'&&(!f.status||f.status==='favorito'))).map(f=>f.id));
+    return allItens.filter(i=>ids.has(i.favorito_id))
+      .reduce((s,i)=>s+(parseFloat(i.qtd||0)*parseFloat(i.valref||0)),0);
+  };
+  const vFav  = getValor('favorito');
+  const vAnd  = getValor('andamento');
+  const vGan  = getValor('ganho');
+  const total = vFav+vAnd+vGan;
+  document.getElementById('fin-total').textContent = fmtM(total);
+
+  if (finChart) finChart.destroy();
+  const ctx = document.getElementById('fin-chart').getContext('2d');
+  finChart = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:['⭐ Favorito','▶ Andamento','🏆 Ganho'],
+      datasets:[{
+        data:[vFav,vAnd,vGan],
+        backgroundColor:['rgba(59,130,246,.15)','rgba(245,158,11,.15)','rgba(16,185,129,.15)'],
+        borderColor:['#3B82F6','#F59E0B','#10B981'],
+        borderWidth:2, borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{beginAtZero:true,ticks:{callback:v=>fmtK(v)},grid:{color:'#F3F4F6'}},
+        x:{grid:{display:false}}
+      }
+    }
+  });
+}
+
+// TOP ÓRGÃOS GANHOS
+function renderOrgaosGanhos() {
+  const el = document.getElementById('chart-orgao-ganho');
+  const ganhos = allFavs.filter(f=>f.status==='ganho');
+  const map = {};
+  ganhos.forEach(f=>{ const o=f.orgao||'—'; map[o]=(map[o]||0)+1; });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if (!sorted.length){ el.innerHTML='<div class="empty-chart">Nenhum ganho ainda</div>'; return; }
+  const max = sorted[0][1];
+  el.innerHTML = sorted.map(([k,v])=>`
+    <div class="bl-row">
+      <div class="bl-lbl" title="${k}">${k}</div>
+      <div class="bl-track">
+        <div class="bl-fill" style="width:${Math.round(v/max*100)}%;background:#10B98120;border-left:3px solid #10B981"></div>
+      </div>
+      <div class="bl-val" style="color:#10B981">${v}</div>
+    </div>`).join('');
+}
+
+// VLR REF × NEGOCIADO
+let negocChart = null;
+function renderNegociado() {
+  const ganhos = allFavs.filter(f=>f.status==='andamento'||f.status==='ganho');
+  const comNeg = allItens.filter(i=>
+    ganhos.some(f=>f.id===i.favorito_id) && i.vlr_negociado && i.valref
+  ).slice(0,8);
+
+  const el = document.getElementById('negoc-insight');
+  if (!comNeg.length) {
+    const ctx = document.getElementById('negoc-chart').getContext('2d');
+    ctx.font = '12px DM Sans'; ctx.fillStyle = '#9CA3AF';
+    ctx.textAlign='center';
+    ctx.fillText('Preencha o Vlr Negociado nos itens', 140, 70);
+    ctx.fillText('para ver a comparação aqui', 140, 88);
+    return;
+  }
+
+  const labels  = comNeg.map((_,i)=>`Item ${i+1}`);
+  const refs    = comNeg.map(i=>parseFloat(i.valref||0));
+  const negs    = comNeg.map(i=>parseFloat(i.vlr_negociado||0));
+  const econom  = refs.reduce((s,v)=>s+v,0) - negs.reduce((s,v)=>s+v,0);
+  const pctEco  = refs.reduce((s,v)=>s+v,0)>0
+    ? Math.round(econom/refs.reduce((s,v)=>s+v,0)*100) : 0;
+
+  el.textContent = `Economia negociada: ${fmtM(econom)} (${pctEco}% abaixo do ref.)`;
+  if (negocChart) negocChart.destroy();
+  const ctx2 = document.getElementById('negoc-chart').getContext('2d');
+  negocChart = new Chart(ctx2, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Vlr Ref',    data:refs, backgroundColor:'rgba(59,130,246,.2)', borderColor:'#3B82F6',borderWidth:1,borderRadius:4},
+        {label:'Vlr Negoc.', data:negs, backgroundColor:'rgba(16,185,129,.2)', borderColor:'#10B981',borderWidth:1,borderRadius:4},
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{position:'top',labels:{font:{size:11}}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtK(v)},grid:{color:'#F3F4F6'}},x:{grid:{display:false}}}
+    }
+  });
+}
+
+// UTILS
+function fmtM(v) {
+  if (!v||isNaN(v)) return 'R$ 0';
+  return 'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtK(v) {
+  if (v>=1e6) return 'R$'+(v/1e6).toFixed(1)+'M';
+  if (v>=1e3) return 'R$'+(v/1e3).toFixed(0)+'k';
+  return 'R$'+v;
+}
+function toast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// INIT
+const u = checkAuth();
+if (u) loadAll();
+</script>
+</body>
+</html>
