@@ -717,7 +717,8 @@
             <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Unidade</th>
             <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Qtd</th>
             <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Vlr Ref</th>
-            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Total</th>
+            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#059669">✓ Vlr Negociado</th>
+            <th style="padding:7px 8px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">Total Neg.</th>
             <th style="padding:7px 8px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6B7280">UASEG</th>
             <th style="padding:7px 8px;width:32px"></th>
           </tr>
@@ -1563,9 +1564,16 @@ function renderEditItens() {
           padding:5px 7px;font-size:12px;outline:none;text-align:right"
           oninput="editItensTemp[${idx}].valref=this.value;calcEditTotal(${idx})">
       </td>
+      <td style="padding:6px 8px">
+        <input type="number" value="${item.vlr_negociado||''}" placeholder="0,00"
+          style="width:88px;background:#F0FDF4;border:2px solid #A7F3D0;border-radius:6px;
+          padding:5px 7px;font-size:12px;outline:none;text-align:right;font-weight:600;color:#059669"
+          title="Valor unitário negociado/ganho"
+          oninput="editItensTemp[${idx}].vlr_negociado=this.value;calcEditTotalNeg(${idx})">
+      </td>
       <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;
-        color:#059669;font-weight:600;white-space:nowrap" id="etotal-${idx}">
-        ${calcTotalStr(item.qtd, item.valref)}
+        color:#059669;font-weight:700;white-space:nowrap" id="etotal-neg-${idx}">
+        ${calcTotalStr(item.qtd, item.vlr_negociado||item.valref)}
       </td>
       <td style="padding:6px 8px">
         <input type="text" value="${item.uaseg||''}" placeholder="UASEG"
@@ -1586,7 +1594,12 @@ function calcTotalStr(qtd, valref) {
   return (q && v) ? fmtM(q*v) : '—';
 }
 
-function calcEditTotal(idx) {
+function calcEditTotalNeg(idx) {
+  const v = parseFloat(editItensTemp[idx].vlr_negociado||0) || parseFloat(editItensTemp[idx].valref||0);
+  const q = parseFloat(editItensTemp[idx].qtd||0);
+  const cell = document.getElementById(`etotal-neg-${idx}`);
+  if (cell) cell.textContent = (q&&v) ? fmtM(q*v) : '—';
+}
   const cell = document.getElementById(`etotal-${idx}`);
   if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
 }
@@ -1641,6 +1654,7 @@ async function saveEditItens() {
         unidade:            i.unidade     || null,
         qtd:                i.qtd         ? parseFloat(i.qtd)    : null,
         valref:             i.valref      ? parseFloat(i.valref) : null,
+        vlr_negociado:      i.vlr_negociado ? parseFloat(i.vlr_negociado) : null,
         uaseg:              i.uaseg       || null,
         data_favorito:      new Date().toISOString().substring(0,10),
       }));
@@ -1909,7 +1923,7 @@ async function criarContrato(favoritoId) {
         item_numero:    i.item_numero||null,
         descricao:      i.produto||null,
         quantidade:     i.qtd?parseFloat(i.qtd):null,
-        vl_unitario:    i.valref?parseFloat(i.valref):null,
+        vl_unitario:    i.vlr_negociado ? parseFloat(i.vlr_negociado) : (i.valref?parseFloat(i.valref):null),
         forma_pagamento:'qtd',
         total_pago:     0,
       }));

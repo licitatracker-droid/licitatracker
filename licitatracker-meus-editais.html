@@ -589,6 +589,16 @@ function renderContratos() {
       </div>
       <div class="card-actions">
         <button class="abtn abtn-green" onclick="openFicha('${c.id}')">📋 Ficha Completa</button>
+        <select onchange="mudarStatusContrato('${c.id}', this.value)"
+          style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;
+          padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;outline:none;
+          color:var(--text-soft);transition:border-color .15s"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <option value="" disabled selected>🔄 Mover para...</option>
+          <option value="andamento">▶ Em Andamento</option>
+          <option value="favorito">⭐ Favorito</option>
+          <option value="perdido">✗ Perdido</option>
+        </select>
         ${c.concluido
           ? `<button class="abtn abtn-blue" onclick="toggleConcluido('${c.id}',true)">🔄 Reabrir</button>`
           : `<button class="abtn abtn-gold" onclick="toggleConcluido('${c.id}',false)">✅ Concluir</button>`}
@@ -1132,6 +1142,25 @@ async function salvarFicha() {
     await loadContratos();
     closeFicha();
     toast('✅','Contrato salvo com sucesso!');
+  } catch(e) { toast('❌','Erro: '+e.message); }
+}
+
+async function mudarStatusContrato(contratoId, novoStatus) {
+  if (!novoStatus) return;
+  if (!confirm(`Mover este contrato de volta para "${novoStatus}"?\n\nO registro na Conta Corrente será mantido.`)) {
+    renderContratos(); return; // reset select visual
+  }
+  // Atualiza o status no favorito correspondente
+  const c = allContratos.find(x => x.id === contratoId);
+  if (!c?.favorito_id) { toast('⚠️','Favorito não encontrado'); return; }
+
+  try {
+    await fetch(`${SB}/rest/v1/pncp_favoritos?id=eq.${c.favorito_id}`,{
+      method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
+      body: JSON.stringify({ status: novoStatus })
+    });
+    toast('✅', `Movido para "${novoStatus}" nos Favoritos!`);
+    renderContratos();
   } catch(e) { toast('❌','Erro: '+e.message); }
 }
 
