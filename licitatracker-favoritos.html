@@ -85,6 +85,10 @@
   td{padding:8px 10px;font-size:12px;color:var(--text-soft);vertical-align:middle}
 
   .col-pncp{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);min-width:120px;max-width:140px}
+  .col-objeto{min-width:220px;max-width:320px;font-size:12px;line-height:1.45}
+  .obj-txt{font-weight:500;white-space:normal;overflow:visible;display:block}
+  /* Remove expand button — objeto sempre completo */
+  .obj-exp{display:none}
   .col-objeto{min-width:200px;max-width:260px}
   .obj-txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
     line-height:1.4;color:var(--text);font-size:12px}
@@ -1795,7 +1799,7 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = filtered.map(r => {
+  tbody.innerHTML = filtered.map((r, rowIdx) => {
     const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
     const dtOk = dt && !isNaN(dt);
     const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
@@ -1806,6 +1810,8 @@ function renderTable() {
     const st  = r.status||'favorito';
     const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
     const lPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
+    const posNum = rowIdx + 1;
+    const total_f = filtered.length;
 
     return `<tr class="st-${st}" data-id="${r.id}">
       <td>
@@ -1816,11 +1822,13 @@ function renderTable() {
           <option value="perdido"   ${st==='perdido'  ?'selected':''}>✗ Perdido</option>
         </select>
       </td>
-      <td class="col-pncp" title="${r.numerocontrolepncp||''}">${(r.numerocontrolepncp||'—').substring(0,22)}</td>
+      <td class="col-pncp" title="${r.numerocontrolepncp||''}">
+        <span style="display:block;font-size:9px;font-weight:700;color:#9CA3AF;font-family:'DM Mono',monospace;
+          margin-bottom:2px">${posNum}/${total_f}</span>
+        <span style="display:block;word-break:break-all">${r.numerocontrolepncp||'—'}</span>
+      </td>
       <td class="col-objeto">
-        <div class="obj-txt">${r.objetocompra||'—'}</div>
-        <button class="obj-exp" onclick="this.closest('tr').classList.toggle('expanded');
-          this.textContent=this.closest('tr').classList.contains('expanded')?'▲ menos':'▼ mais'">▼ mais</button>
+        <div class="obj-txt" style="-webkit-line-clamp:unset;overflow:visible;white-space:normal">${r.objetocompra||'—'}</div>
       </td>
       <td class="col-data">${dStr}</td>
       <td class="col-hora">${hStr}</td>
