@@ -2544,7 +2544,7 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
 // =============================================
 function checkAuth() {
   const user = JSON.parse(localStorage.getItem('lt_user') || 'null');
-  if (!user) { window.location.href = 'licitatracker-login.html'; return false; }
+  if (!user) { window.location.href = 'login.html'; return false; }
 
   const initials = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
@@ -2586,7 +2586,7 @@ function applyModulos(user) {
   if (mods.diario === false) {
     if (mods.favoritos !== false)    { window.location.href = 'licitatracker-favoritos.html'; return; }
     if (mods.meus_editais !== false) { window.location.href = 'licitatracker-meus-editais.html'; return; }
-    window.location.href = 'licitatracker-login.html';
+    window.location.href = 'login.html';
   }
 }
 
@@ -2594,7 +2594,7 @@ function doLogout() {
   if (!confirm('Deseja sair do sistema?')) return;
   localStorage.removeItem('lt_user');
   localStorage.removeItem('lt_cliente');
-  window.location.href = 'licitatracker-login.html';
+  window.location.href = 'login.html';
 }
 
 // =============================================

@@ -565,7 +565,7 @@ function logout() {
   if (!confirm('Deseja sair do sistema?')) return;
   localStorage.removeItem('lt_user');
   localStorage.removeItem('lt_cliente');
-  window.location.href = 'licitatracker-login.html';
+  window.location.href = 'login.html';
 }
 
 function clearLocal() {
@@ -585,7 +585,7 @@ function toast(icon, msg) {
 
 function checkAuth() {
   const user = JSON.parse(localStorage.getItem('lt_user') || 'null');
-  if (!user) { window.location.href = 'licitatracker-login.html'; return false; }
+  if (!user) { window.location.href = 'login.html'; return false; }
   const initials = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
   document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
@@ -611,7 +611,7 @@ function applyModulos(user, paginaAtual) {
     el.style.display = (mod && mods[mod]) ? 'flex' : 'none';
   });
   if (paginaAtual && mods[paginaAtual] === false) {
-    window.location.href = mods.diario !== false ? 'licitatracker-diario.html' : 'licitatracker-login.html';
+    window.location.href = mods.diario !== false ? 'licitatracker-diario.html' : 'login.html';
   }
 }
 

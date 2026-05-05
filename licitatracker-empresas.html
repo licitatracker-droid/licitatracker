@@ -403,7 +403,7 @@ let allEmpresas = [], currentTab = 'ativas', editEmpresaId = null, usuariosEmpre
 // =============================================
 function checkAuth() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'null');
-  if (!user) { window.location.href='licitatracker-login.html'; return null; }
+  if (!user) { window.location.href='login.html'; return null; }
   if (user.role !== 'admin') { window.location.href='licitatracker-diario.html'; return null; }
   const ini = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = ini;
@@ -413,7 +413,7 @@ function checkAuth() {
 function doLogout() {
   if (!confirm('Deseja sair?')) return;
   localStorage.removeItem('lt_user'); localStorage.removeItem('lt_cliente');
-  window.location.href='licitatracker-login.html';
+  window.location.href='login.html';
 }
 
 // =============================================

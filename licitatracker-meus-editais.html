@@ -362,7 +362,7 @@ let fichaContratoId = null, fichaItensTemp = [], currentTab = 'todos';
 // =============================================
 function checkAuth() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'null');
-  if (!user) { window.location.href='licitatracker-login.html'; return null; }
+  if (!user) { window.location.href='login.html'; return null; }
   const ini = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = ini;
   document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
@@ -378,7 +378,7 @@ function applyModulos(user) {
 function doLogout() {
   if(!confirm('Deseja sair?')) return;
   localStorage.removeItem('lt_user'); localStorage.removeItem('lt_cliente');
-  window.location.href='licitatracker-login.html';
+  window.location.href='login.html';
 }
 
 // =============================================
