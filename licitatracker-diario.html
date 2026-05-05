@@ -387,6 +387,8 @@
   .btn-success:hover { background: #D1FAE5; }
   .btn-gold { background: #FFFBEB; border: 1px solid #FDE68A; color: var(--gold); }
   .btn-gold:hover { background: #FEF3C7; }
+  .btn-gold.solid { background: #D97706; color: white; border-color: #D97706; }
+  .btn-gold.solid:hover { background: #B45309; }
 
   .status-badge {
     display: inline-block; padding: 2px 7px; border-radius: 5px;
@@ -707,6 +709,9 @@
       <!-- Ações -->
       <div class="hbar-actions">
         <button class="btn btn-primary" onclick="openModal()">＋ Produto</button>
+        <button class="btn btn-gold solid" onclick="openManualModal()" style="display:flex;align-items:center;gap:6px">
+          ✏️ Inserir Manual
+        </button>
       </div>
     </div>
 
@@ -771,7 +776,162 @@
   </main>
 </div>
 
-<!-- MODAL Adicionar Produto / Item -->
+<!-- MODAL INSERÇÃO MANUAL -->
+<div class="modal-overlay" id="manual-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">✏️ Inserir Edital Manualmente</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+          Para editais de portais externos ao PNCP
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeManualModal()">✕</button>
+    </div>
+
+    <!-- Nº gerado automaticamente -->
+    <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;
+      padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:18px">🔖</span>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em">Nº de Controle Gerado</div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)" id="manual-pncp-preview">MANUAL-2026-001</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+      <!-- Col esquerda -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="modal-section-title">📄 Dados do Edital</div>
+
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Objeto / Descrição *</label>
+          <textarea class="form-input" id="man-objeto" rows="3"
+            placeholder="Descrição completa do objeto da licitação..."
+            style="resize:vertical"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group">
+            <label class="form-label">Nº Compra / Pregão *</label>
+            <input class="form-input" id="man-ncompra" type="text" placeholder="Ex: 035/2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ano</label>
+            <input class="form-input" id="man-ano" type="number" placeholder="2026"
+              value="${new Date().getFullYear()}">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group">
+            <label class="form-label">Data do Pregão *</label>
+            <input class="form-input" id="man-data" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hora</label>
+            <input class="form-input" id="man-hora" type="time" value="08:00">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Órgão Licitante *</label>
+          <input class="form-input" id="man-orgao" type="text"
+            placeholder="Ex: MUNICIPIO DE SÃO PAULO">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group">
+            <label class="form-label">Modalidade</label>
+            <select class="form-input" id="man-modalidade">
+              <option value="Pregão Eletrônico">Pregão Eletrônico</option>
+              <option value="Pregão Presencial">Pregão Presencial</option>
+              <option value="Dispensa">Dispensa</option>
+              <option value="Inexigibilidade">Inexigibilidade</option>
+              <option value="Concorrência">Concorrência</option>
+              <option value="Tomada de Preços">Tomada de Preços</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">UF *</label>
+            <input class="form-input" id="man-uf" type="text" maxlength="2"
+              style="text-transform:uppercase" placeholder="SP">
+          </div>
+        </div>
+      </div>
+
+      <!-- Col direita -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="modal-section-title">🔗 Portal & Valores</div>
+
+        <div class="form-group">
+          <label class="form-label">Link do Sistema / Portal *</label>
+          <input class="form-input" id="man-link" type="url"
+            placeholder="https://..." oninput="updateManualSiteNome()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nome do Portal</label>
+          <select class="form-input" id="man-site">
+            <option value="">— selecionar —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Valor Total Estimado (R$)</label>
+          <input class="form-input" id="man-valor" type="number" step="0.01"
+            placeholder="0,00">
+        </div>
+
+        <div class="modal-section-title" style="margin-top:4px">📦 Item Principal</div>
+        <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div class="form-group">
+              <label class="form-label">Produto</label>
+              <select class="form-input" id="man-produto"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unidade</label>
+              <select class="form-input" id="man-unidade"></select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div class="form-group">
+              <label class="form-label">Nº Item</label>
+              <input class="form-input" id="man-item" type="text" placeholder="01">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Qtd</label>
+              <input class="form-input" id="man-qtd" type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vlr Ref (R$)</label>
+              <input class="form-input" id="man-valref" type="number" step="0.01" placeholder="0,00">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px">
+            💡 Mais itens podem ser adicionados após favoritar
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:4px">
+          <label class="form-label">UASEG / Processo</label>
+          <input class="form-input" id="man-uaseg" type="text" placeholder="Ex: 0123/2026">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn btn-ghost" onclick="closeManualModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarManual(false)">💾 Salvar no Diário</button>
+      <button class="btn btn-gold" onclick="salvarManual(true)">⭐ Salvar e Favoritar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUTO -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-header">
@@ -1500,8 +1660,152 @@ function saveProduto() {
 }
 
 // =============================================
-// VISITADOS
+// INSERÇÃO MANUAL
 // =============================================
+async function openManualModal() {
+  // Gera número sequencial MANUAL-YYYY-NNN
+  const ano = new Date().getFullYear();
+  const existentes = allData.filter(r => (r.numerocontrolepncp||'').startsWith('MANUAL-')).length;
+  const seq  = String(existentes + 1).padStart(3, '0');
+  const pncp = `MANUAL-${ano}-${seq}`;
+  document.getElementById('manual-pncp-preview').textContent = pncp;
+
+  // Preenche selects
+  document.getElementById('man-produto').innerHTML = buildProdutoOptions('');
+  document.getElementById('man-unidade').innerHTML = buildUnidadeOptions('');
+  document.getElementById('man-site').innerHTML    = buildSiteOptions('');
+
+  // Limpa campos
+  ['man-objeto','man-ncompra','man-link','man-valor','man-qtd','man-valref',
+   'man-item','man-uaseg','man-orgao','man-uf','man-hora'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'man-hora' ? '08:00' : '';
+  });
+  document.getElementById('man-ano').value  = ano;
+  document.getElementById('man-data').value = '';
+
+  document.getElementById('manual-overlay').classList.add('open');
+}
+
+function closeManualModal() {
+  document.getElementById('manual-overlay').classList.remove('open');
+}
+
+function updateManualSiteNome() {
+  const url  = document.getElementById('man-link').value.trim();
+  const sel  = document.getElementById('man-site');
+  if (!url) return;
+  // Tenta selecionar o site correspondente no dropdown
+  for (const opt of sel.options) {
+    if (opt.value && url.includes(new URL(opt.value.includes('://')?opt.value:'https://'+opt.value).hostname)) {
+      sel.value = opt.value;
+      return;
+    }
+  }
+}
+
+async function salvarManual(favoritar) {
+  const ano       = parseInt(document.getElementById('man-ano').value) || new Date().getFullYear();
+  const ncompra   = document.getElementById('man-ncompra').value.trim();
+  const objeto    = document.getElementById('man-objeto').value.trim();
+  const orgao     = document.getElementById('man-orgao').value.trim();
+  const uf        = document.getElementById('man-uf').value.trim().toUpperCase();
+  const dataVal   = document.getElementById('man-data').value;
+  const horaVal   = document.getElementById('man-hora').value || '08:00';
+  const link      = document.getElementById('man-link').value.trim();
+  const modalidade= document.getElementById('man-modalidade').value;
+  const valor     = parseFloat(document.getElementById('man-valor').value||0)||null;
+
+  if (!objeto)  { toast('⚠️','Preencha o Objeto'); return; }
+  if (!orgao)   { toast('⚠️','Preencha o Órgão'); return; }
+  if (!uf)      { toast('⚠️','Preencha a UF'); return; }
+  if (!dataVal) { toast('⚠️','Preencha a Data do Pregão'); return; }
+
+  const pncp      = document.getElementById('manual-pncp-preview').textContent;
+  const dataEnc   = `${dataVal}T${horaVal}:00`;
+  const user      = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  const hoje      = new Date().toISOString();
+
+  const payload = {
+    numerocontrolepncp:          pncp,
+    numerocompra:                ncompra || null,
+    anocompra:                   ano,
+    sequencialcompra:            null,
+    objetocompra:                objeto,
+    orgaoentidade_razaosocial:   orgao,
+    unidadeorgao_ufsigla:        uf,
+    dataencerramentoproposta:    dataEnc,
+    modalidadenome:              modalidade,
+    valortotalestimado:          valor,
+    linksistemaorigem:           link || null,
+    data_carga:                  hoje,  // aparece junto com os editais de hoje
+    // Flag para identificar inserção manual
+    situacaocompraidnome:        'Manual',
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/pncp_publicacoes`, {
+      method: 'POST',
+      headers: { ...H_SUPA, 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+    const [novo] = await res.json();
+
+    // Salva dados manuais do item no localStorage
+    const m = {
+      produto:  document.getElementById('man-produto').value,
+      unidade:  document.getElementById('man-unidade').value,
+      qtd:      document.getElementById('man-qtd').value,
+      valref:   document.getElementById('man-valref').value,
+      item:     document.getElementById('man-item').value,
+      uaseg:    document.getElementById('man-uaseg').value,
+      site:     document.getElementById('man-site').value || link,
+    };
+    if (m.produto || m.qtd) {
+      m.itens = [{ item_numero: m.item, produto: m.produto, unidade: m.unidade,
+        qtd: m.qtd, valref: m.valref, uaseg: m.uaseg }];
+      if (!manualData[novo.id]) manualData[novo.id] = {};
+      Object.assign(manualData[novo.id], m);
+      localStorage.setItem('lt_manual', JSON.stringify(manualData));
+    }
+
+    // Adiciona ao allData local sem precisar recarregar tudo
+    allData.unshift(novo);
+
+    closeManualModal();
+
+    if (favoritar) {
+      const d = { ...m, datamanual: dataVal, horamanual: horaVal };
+      const hoje2 = new Date().toISOString().split('T')[0];
+      await insertToFavoritos(novo.id, 'favorito', d, hoje2);
+      toast('⭐', `"${pncp}" criado e favoritado!`);
+    } else {
+      toast('✅', `"${pncp}" inserido no Diário!`);
+    }
+
+    buildDateList();
+    applyFilters();
+
+  } catch(e) {
+    toast('❌', 'Erro ao salvar: ' + e.message);
+    console.error(e);
+  }
+}
+
+// Headers Supabase para uso nas funções manuais
+const H_SUPA = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+};
+
+document.getElementById('manual-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeManualModal();
+});
+
+
 function marcarVisitado(id) {
   visitados.add(String(id));
   localStorage.setItem('lt_visitados', JSON.stringify([...visitados]));
