@@ -623,6 +623,11 @@
     </nav>
     <div class="topbar-right">
       <button class="btn btn-ghost" onclick="openBoletim()" style="font-size:13px">📄 Boletim</button>
+      <button id="btn-inserir-manual" onclick="openManualModal()"
+        style="display:none;background:#D97706;color:white;border:none;border-radius:8px;
+        padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;align-items:center;gap:6px">
+        ✏️ Inserir Manual
+      </button>
       <div class="badge-count" id="total-badge">— editais</div>
       <div id="user-pill" style="display:flex;align-items:center;gap:8px;background:#F9FAFB;
         border:1px solid var(--border);border-radius:100px;padding:4px 12px 4px 8px;cursor:pointer"
@@ -709,9 +714,6 @@
       <!-- Ações -->
       <div class="hbar-actions">
         <button class="btn btn-primary" onclick="openModal()">＋ Produto</button>
-        <button class="btn btn-gold solid" onclick="openManualModal()" style="display:flex;align-items:center;gap:6px">
-          ✏️ Inserir Manual
-        </button>
       </div>
     </div>
 
@@ -919,6 +921,40 @@
         <div class="form-group" style="margin-top:4px">
           <label class="form-label">UASEG / Processo</label>
           <input class="form-input" id="man-uaseg" type="text" placeholder="Ex: 0123/2026">
+        </div>
+
+        <!-- Anexos -->
+        <div class="modal-section-title" style="margin-top:8px">📎 Anexos</div>
+        <div style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:10px">
+          <div style="margin-bottom:8px">
+            <label class="form-label">🔗 Link do Edital</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="url" id="man-link-edital" placeholder="https://..."
+                style="flex:1;background:white;border:1px solid var(--border);border-radius:7px;
+                padding:6px 10px;font-size:12px;font-family:'DM Mono',monospace;outline:none"
+                onfocus="this.style.borderColor='#93C5FD'" onblur="this.style.borderColor='var(--border)'">
+              <a id="man-link-edital-btn" href="#" target="_blank" style="display:none;
+                background:#EEF2FF;border:1px solid #C7D2FE;color:var(--accent);
+                border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;
+                text-decoration:none;white-space:nowrap">🔗 Abrir</a>
+            </div>
+          </div>
+          <div id="man-drop-zone" onclick="document.getElementById('man-file-input').click()"
+            style="border:2px dashed #C7D2FE;border-radius:8px;padding:10px;text-align:center;
+            cursor:pointer;background:white;margin-bottom:6px"
+            ondragover="event.preventDefault();this.style.background='#EEF2FF'"
+            ondragleave="this.style.background='white'"
+            ondrop="handleManFileDrop(event)">
+            <div style="font-size:16px;margin-bottom:2px">📁</div>
+            <div style="font-size:11px;font-weight:600;color:#374151">Clique ou arraste</div>
+            <div style="font-size:10px;color:#9CA3AF">PDF, Word, imagens · até 5MB</div>
+          </div>
+          <input type="file" id="man-file-input" multiple
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
+            style="display:none" onchange="handleManFileSelect(this.files)">
+          <div id="man-anexos-lista">
+            <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px">Nenhum anexo ainda</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1683,6 +1719,10 @@ async function openManualModal() {
   });
   document.getElementById('man-ano').value  = ano;
   document.getElementById('man-data').value = '';
+  document.getElementById('man-link-edital').value = '';
+  document.getElementById('man-link-edital-btn').style.display = 'none';
+  manAnexosTemp = [];
+  renderManAnexos();
 
   document.getElementById('manual-overlay').classList.add('open');
 }
@@ -1690,6 +1730,10 @@ async function openManualModal() {
 function closeManualModal() {
   document.getElementById('manual-overlay').classList.remove('open');
 }
+
+document.getElementById('manual-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeManualModal();
+});
 
 function updateManualSiteNome() {
   const url  = document.getElementById('man-link').value.trim();
@@ -1770,6 +1814,16 @@ async function salvarManual(favoritar) {
       localStorage.setItem('lt_manual', JSON.stringify(manualData));
     }
 
+    // Salva anexos e link do edital na chave PNCP compartilhada
+    const linkEdital = document.getElementById('man-link-edital')?.value.trim() || '';
+    if (linkEdital || manAnexosTemp.length > 0) {
+      const key   = getAnexoKey(pncp);
+      const dados = JSON.parse(localStorage.getItem(key) || '{}');
+      if (linkEdital) dados.link = linkEdital;
+      if (manAnexosTemp.length) dados.arquivos = [...(dados.arquivos||[]), ...manAnexosTemp];
+      localStorage.setItem(key, JSON.stringify(dados));
+    }
+
     // Adiciona ao allData local sem precisar recarregar tudo
     allData.unshift(novo);
 
@@ -1801,8 +1855,53 @@ const H_SUPA = {
   'Accept': 'application/json'
 };
 
-document.getElementById('manual-overlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeManualModal();
+// Anexos do modal manual — temporários, migram para chave PNCP ao salvar
+let manAnexosTemp = [];
+
+function handleManFileSelect(files) {
+  for (const f of files) {
+    if (f.size > 5*1024*1024) { toast('⚠️', `${f.name} excede 5MB`); continue; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      manAnexosTemp.push({ name:f.name, type:f.type, size:f.size,
+        date: new Date().toLocaleDateString('pt-BR'), data: e.target.result });
+      renderManAnexos();
+      toast('📎', `${f.name} anexado!`);
+    };
+    reader.readAsDataURL(f);
+  }
+  document.getElementById('man-file-input').value = '';
+}
+
+function handleManFileDrop(e) {
+  e.preventDefault();
+  document.getElementById('man-drop-zone').style.background = 'white';
+  handleManFileSelect(e.dataTransfer.files);
+}
+
+function renderManAnexos() {
+  const lista = document.getElementById('man-anexos-lista');
+  if (!manAnexosTemp.length) {
+    lista.innerHTML = `<div style="font-size:11px;color:#9CA3AF;text-align:center;padding:4px">Nenhum anexo ainda</div>`;
+    return;
+  }
+  lista.innerHTML = manAnexosTemp.map((a, idx) => `
+    <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #E5E7EB;
+      border-radius:6px;padding:6px 8px;margin-bottom:4px">
+      <span>${getAnexoIcon(a.type)}</span>
+      <div style="flex:1;min-width:0;font-size:11px;font-weight:500;white-space:nowrap;
+        overflow:hidden;text-overflow:ellipsis">${a.name}</div>
+      <span style="font-size:10px;color:#9CA3AF;white-space:nowrap">${fmtAnexoSize(a.size)}</span>
+      <button onclick="manAnexosTemp.splice(${idx},1);renderManAnexos()"
+        style="background:#FEF2F2;border:1px solid #FECACA;border-radius:4px;
+        padding:2px 6px;font-size:10px;color:#DC2626;cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+// Atualiza botão Abrir do link do edital no modal manual
+document.getElementById('man-link-edital').addEventListener('input', function() {
+  const btn = document.getElementById('man-link-edital-btn');
+  btn.href = this.value; btn.style.display = this.value ? 'inline-flex' : 'none';
 });
 
 
@@ -2444,10 +2543,12 @@ function applyModulos(user) {
   const mods = user.modulos || {};
   const isAdmin = user.role === 'admin';
 
-  // Admin vê tudo sempre
+  // Mostra link Empresas e Inserir Manual só para admin
   if (isAdmin) {
     const el = document.getElementById('nav-empresas');
     if (el) el.style.display = 'flex';
+    const btnManual = document.getElementById('btn-inserir-manual');
+    if (btnManual) btnManual.style.display = 'flex';
     return;
   }
 
