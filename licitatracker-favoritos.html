@@ -1363,56 +1363,122 @@ function dispararLembrete(nota, favId) {
   // Remove badge do localStorage após disparar
   localStorage.removeItem(`lt_lem_ativo_${favId}`);
 
-  // Som de alerta (beep via AudioContext)
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [0, 200, 400].forEach(delay => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + delay/1000);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay/1000 + 0.3);
-      osc.start(ctx.currentTime + delay/1000);
-      osc.stop(ctx.currentTime + delay/1000 + 0.3);
-    });
-  } catch(e) {}
+  // Função de beep reutilizável
+  function tocarBeep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 300, 600].forEach(delay => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.4, ctx.currentTime + delay/1000);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay/1000 + 0.4);
+        osc.start(ctx.currentTime + delay/1000);
+        osc.stop(ctx.currentTime + delay/1000 + 0.4);
+      });
+    } catch(e) {}
+  }
 
-  // Popup na tela (não some automaticamente)
+  // Toca imediatamente
+  tocarBeep();
+
+  // Popup — fica na tela até clicar
+  const overlayId = 'lem-overlay-' + favId;
   const overlay = document.createElement('div');
-  overlay.style.cssText = `position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);
+  overlay.id = overlayId;
+  overlay.style.cssText = `position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);
     display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease`;
+
+  const intervaloMin = parseInt(localStorage.getItem('lt_lem_intervalo')||'2');
+
   overlay.innerHTML = `
-    <div style="background:white;border-radius:16px;padding:32px 40px;max-width:500px;width:90%;
-      text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3);animation:popIn .3s ease">
-      <div style="font-size:48px;margin-bottom:12px">🔔</div>
-      <div style="font-size:18px;font-weight:700;color:#1F2937;margin-bottom:8px">Lembrete de Licitação!</div>
-      <div style="font-size:14px;color:#6B7280;line-height:1.5;margin-bottom:8px">${(r.orgao||'').substring(0,50)}</div>
-      <div style="font-size:13px;color:#374151;background:#F9FAFB;border-radius:8px;
-        padding:12px;margin-bottom:20px;text-align:left">${msg}</div>
+    <div style="background:white;border-radius:20px;padding:36px 40px;max-width:520px;width:92%;
+      text-align:center;box-shadow:0 28px 70px rgba(0,0,0,.35);animation:popIn .3s ease">
+      <div style="font-size:52px;margin-bottom:10px;animation:spin 1s linear infinite">🔔</div>
+      <div style="font-size:20px;font-weight:800;color:#1F2937;margin-bottom:6px">Lembrete de Licitação!</div>
+      <div style="font-size:13px;color:#6B7280;margin-bottom:4px">${(r.orgao||'').substring(0,60)}</div>
+      <div style="font-size:14px;color:#374151;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;
+        padding:14px;margin:14px 0;text-align:left;line-height:1.5">${msg}</div>
+
+      <!-- Config intervalo de repetição -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;
+        font-size:12px;color:#9CA3AF;margin-bottom:16px">
+        🔁 Repetir a cada
+        <select id="lem-intervalo-sel" style="border:1px solid #E5E7EB;border-radius:6px;
+          padding:3px 8px;font-size:12px;color:#374151;outline:none"
+          onchange="localStorage.setItem('lt_lem_intervalo',this.value);
+            clearInterval(window['lemTimer_${favId}']);
+            window['lemTimer_${favId}']=setInterval(()=>{ if(!document.getElementById('${overlayId}')) return;
+              tocarBeepGlobal(); }, parseInt(this.value)*60*1000)">
+          <option value="1" ${intervaloMin===1?'selected':''}>1 min</option>
+          <option value="2" ${intervaloMin===2?'selected':''}>2 min</option>
+          <option value="5" ${intervaloMin===5?'selected':''}>5 min</option>
+          <option value="10" ${intervaloMin===10?'selected':''}>10 min</option>
+        </select>
+        até ser fechado
+      </div>
+
       <div style="display:flex;gap:10px;justify-content:center">
-        <button onclick="this.closest('[style*=fixed]').remove();applyFilters()"
-          style="background:#2563EB;color:white;border:none;border-radius:8px;
-          padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer">✓ Entendido</button>
-        <button onclick="window.open('licitatracker-favoritos.html','_self')"
-          style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;
-          padding:10px 24px;font-size:14px;cursor:pointer">Ver Favoritos</button>
+        <button id="lem-btn-ok-${favId}"
+          style="background:#2563EB;color:white;border:none;border-radius:10px;
+          padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer">✓ Entendido</button>
+        <a href="licitatracker-favoritos.html"
+          style="background:#F3F4F6;border:1px solid #E5E7EB;border-radius:10px;
+          padding:12px 20px;font-size:14px;text-decoration:none;color:#374151;display:flex;align-items:center">
+          📋 Ver Favoritos
+        </a>
+      </div>
+      <div id="lem-counter-${favId}" style="font-size:11px;color:#9CA3AF;margin-top:10px">
+        Próximo aviso em <span id="lem-sec-${favId}">${intervaloMin * 60}</span>s
       </div>
     </div>`;
+
   document.body.appendChild(overlay);
 
-  // Notificação do sistema também
+  // Exposição global do beep para o select poder chamar
+  window.tocarBeepGlobal = tocarBeep;
+
+  // Countdown + repetição
+  let secsLeft = intervaloMin * 60;
+  const countEl = () => document.getElementById(`lem-sec-${favId}`);
+
+  const countdownTimer = setInterval(() => {
+    if (!document.getElementById(overlayId)) { clearInterval(countdownTimer); return; }
+    secsLeft--;
+    if (countEl()) countEl().textContent = secsLeft;
+    if (secsLeft <= 0) {
+      const curInt = parseInt(localStorage.getItem('lt_lem_intervalo')||'2');
+      secsLeft = curInt * 60;
+      tocarBeep();
+    }
+  }, 1000);
+
+  window[`lemTimer_${favId}`] = countdownTimer;
+
+  // Botão Entendido
+  setTimeout(() => {
+    const btn = document.getElementById(`lem-btn-ok-${favId}`);
+    if (btn) btn.onclick = () => {
+      clearInterval(countdownTimer);
+      delete window[`lemTimer_${favId}`];
+      overlay.remove();
+      applyFilters();
+    };
+  }, 100);
+
+  // Notificação do sistema
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     try { new Notification('🔔 Lembrete LicitaTracker', { body: msg, icon: 'Logo.png' }); }
     catch(e) {}
   }
 
-  // Grava no histórico de acompanhamento
+  // Grava no histórico
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
   fetch(`${SUPABASE_URL}/rest/v1/pncp_acompanhamento`, {
     method:'POST', headers:{...H,'Prefer':'return=minimal'},
-    body: JSON.stringify({ favorito_id: favId, nota: `🔔 Lembrete disparado: ${msg}`,
-      usuario: user.nome||'Sistema' })
+    body: JSON.stringify({ favorito_id: favId,
+      nota: `🔔 Lembrete disparado: ${msg}`, usuario: user.nome||'Sistema' })
   });
   applyFilters();
 }
