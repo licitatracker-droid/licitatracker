@@ -331,14 +331,15 @@ async function loadAll() {
 // =============================================
 function renderAll() {
   const total   = allFavs.length;
+  // Status mutuamente exclusivos — cada favorito está em apenas 1 status
   const favorito= allFavs.filter(f=>f.status==='favorito'||!f.status).length;
   const and     = allFavs.filter(f=>f.status==='andamento').length;
   const ganho   = allFavs.filter(f=>f.status==='ganho').length;
   const perdido = allFavs.filter(f=>f.status==='perdido').length;
 
-  // Valor potencial em andamento (vlr ref × qtd dos itens em andamento)
-  const idsAnd = new Set(allFavs.filter(f=>f.status==='andamento').map(f=>f.id));
-  const valorAnd = allItens.filter(i=>idsAnd.has(i.favorito_id))
+  // Valor potencial em andamento
+  const idsAnd  = new Set(allFavs.filter(f=>f.status==='andamento').map(f=>f.id));
+  const valorAnd= allItens.filter(i=>idsAnd.has(i.favorito_id))
     .reduce((s,i)=>s+(parseFloat(i.qtd||0)*parseFloat(i.valref||0)),0);
 
   // KPIs
@@ -348,10 +349,8 @@ function renderAll() {
   document.getElementById('k-perd').textContent  = perdido;
   document.getElementById('k-valor').textContent = fmtM(valorAnd);
 
-  const pctAnd   = total>0 ? Math.round(and/total*100) : 0;
-  const pctGanho = and>0   ? Math.round(ganho/(and+ganho+perdido)*100) : 0;
-  document.getElementById('k-and-sub').textContent   = `${pctAnd}% do total`;
-  document.getElementById('k-ganho-sub').textContent = `${pctGanho}% de conv.`;
+  document.getElementById('k-and-sub').textContent   = total>0 ? `${Math.round(and/total*100)}% do total` : '0% do total';
+  document.getElementById('k-ganho-sub').textContent = (and+ganho+perdido)>0 ? `${Math.round(ganho/(and+ganho+perdido)*100)}% de conv.` : '0% de conv.';
   document.getElementById('k-perd-sub').textContent  = `${perdido} não ganhamos`;
 
   renderFunil(favorito, and, ganho, perdido, total);
@@ -365,20 +364,21 @@ function renderAll() {
   renderNegociado();
 }
 
-// FUNIL
+// FUNIL — cada status é exclusivo, total é a entrada do funil
 function renderFunil(fav, and, ganho, perdido, total) {
   const steps = [
-    {label:'⭐ Favoritos', val:total,   color:'#3B82F6', pct:100},
-    {label:'▶ Andamento', val:and,    color:'#F59E0B', pct:total>0?Math.round(and/total*100):0},
-    {label:'🏆 Ganhos',   val:ganho,  color:'#10B981', pct:total>0?Math.round(ganho/total*100):0},
-    {label:'✗ Perdidos',  val:perdido,color:'#EF4444', pct:total>0?Math.round(perdido/total*100):0},
+    {label:'📊 Total',      val:total,   color:'#6366F1', pct:100},
+    {label:'⭐ Favorito',   val:fav,     color:'#3B82F6', pct:total>0?Math.round(fav/total*100):0},
+    {label:'▶ Andamento',  val:and,     color:'#F59E0B', pct:total>0?Math.round(and/total*100):0},
+    {label:'🏆 Ganhos',    val:ganho,   color:'#10B981', pct:total>0?Math.round(ganho/total*100):0},
+    {label:'✗ Perdidos',   val:perdido, color:'#EF4444', pct:total>0?Math.round(perdido/total*100):0},
   ];
-  const max = Math.max(...steps.map(s=>s.val), 1);
+  const max = Math.max(total, 1);
   document.getElementById('funil-wrap').innerHTML = steps.map(s=>`
     <div class="funnel-row">
       <div class="funnel-lbl">${s.label}</div>
       <div class="funnel-track">
-        <div class="funnel-fill" style="width:${Math.max(8,Math.round(s.val/max*100))}%;background:${s.color}">
+        <div class="funnel-fill" style="width:${Math.max(4,Math.round(s.val/max*100))}%;background:${s.color}">
           <span>${s.val}</span>
         </div>
       </div>
