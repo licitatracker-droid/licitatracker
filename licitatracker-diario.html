@@ -1292,8 +1292,18 @@ function applyFilters() {
   const produto = document.getElementById('filter-produto').value;
   const dataSel = document.getElementById('filter-data').value;
 
+  // Restrição de produto por empresa — obrigatória
+  const permitidos = getProdutosPermitidos();
+
   filtered = allData.filter(r => {
     const m = manualData[r.id] || {};
+
+    // Restrição obrigatória de produto
+    if (permitidos) {
+      const prodRow = m.produto || '';
+      if (!prodRow || !permitidos.includes(prodRow)) return false;
+    }
+
     const matchQ = !q ||
       (r.objetocompra||'').toLowerCase().includes(q) ||
       (r.orgaoentidade_razaosocial||'').toLowerCase().includes(q) ||

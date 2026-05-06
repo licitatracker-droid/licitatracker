@@ -1009,23 +1009,26 @@ function setTab(tab, el) {
 
 function applyFilters() {
   const q    = (document.getElementById('f-search').value||'').toLowerCase();
-  const de   = document.getElementById('f-de').value;   // YYYY-MM-DD
-  const ate  = document.getElementById('f-ate').value;  // YYYY-MM-DD
+  const de   = document.getElementById('f-de').value;
+  const ate  = document.getElementById('f-ate').value;
   const st   = document.getElementById('f-status').value;
   const prod = document.getElementById('f-produto').value;
   const uf   = document.getElementById('f-uf').value;
 
+  // Produtos permitidos — restrição obrigatória por empresa
+  const permitidos = getProdutosPermitidos();
+
   filtered = allFavs.filter(r => {
+    // Restrição de produto por empresa — SEMPRE aplicada
+    if (permitidos && !permitidos.includes(r.produto||'')) return false;
     if (currentTab !== 'todos' && r.status !== currentTab) return false;
     if (st   && r.status !== st) return false;
     if (prod && (r.produto||'') !== prod) return false;
     if (uf   && (r.uf||'') !== uf) return false;
-    // Filtro de período — data do pregão (dataencerramento)
     if (de || ate) {
-      // Normaliza: pega só YYYY-MM-DD ignorando timezone
       const raw = (r.dataencerramento||'');
       const d   = raw.length >= 10 ? raw.substring(0,10) : '';
-      if (!d) return false; // sem data, não aparece no filtro de período
+      if (!d) return false;
       if (de  && d < de)  return false;
       if (ate && d > ate) return false;
     }
