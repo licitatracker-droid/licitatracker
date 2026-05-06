@@ -245,6 +245,18 @@
       </label>
     </div>
 
+    <div class="modal-section">📦 Produtos Vinculados</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">
+      Selecione os produtos desta empresa. Deixe em branco para liberar todos.
+    </div>
+    <div id="new-produtos-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+      <span style="font-size:11px;color:#9CA3AF">Nenhum — todos liberados</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <select id="new-prod-select" class="form-input" style="flex:1"></select>
+      <button onclick="addNewEmpresaProduto()" class="btn btn-primary" style="white-space:nowrap">+ Adicionar</button>
+    </div>
+
     <div class="modal-section">Usuário Inicial</div>
     <div class="form-grid">
       <div class="form-group">
@@ -485,12 +497,49 @@ function renderEmpresas() {
 // =============================================
 // CRIAR EMPRESA
 // =============================================
+let newEmpresaProdutos = [];
+
 function openEmpresaModal() {
   ['emp-nome','emp-cnpj','emp-responsavel','emp-telefone','emp-email','emp-obs',
    'usr-nome','usr-email','usr-senha'].forEach(id => document.getElementById(id).value='');
   ['mod-diario','mod-favoritos','mod-meus-editais'].forEach(id => document.getElementById(id).checked=true);
   ['mod-pagamentos','mod-analytics','mod-config'].forEach(id => document.getElementById(id).checked=false);
+
+  // Popula produtos
+  newEmpresaProdutos = [];
+  const DEFAULTS = ['Café','Água','Açúcar','Leite','Material de Limpeza','Material de Escritório'];
+  const extras   = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
+  const todos    = [...new Set([...DEFAULTS,...extras])].sort((a,b)=>a.localeCompare(b));
+  const sel = document.getElementById('new-prod-select');
+  if (sel) sel.innerHTML = `<option value="">— selecionar produto —</option>` +
+    todos.map(p=>`<option value="${p}">${p}</option>`).join('');
+  renderNewEmpresaProdutos();
+
   document.getElementById('empresa-overlay').classList.add('open');
+}
+
+function renderNewEmpresaProdutos() {
+  const wrap = document.getElementById('new-produtos-wrap');
+  if (!wrap) return;
+  if (!newEmpresaProdutos.length) {
+    wrap.innerHTML='<span style="font-size:11px;color:#9CA3AF">Nenhum — todos liberados</span>'; return;
+  }
+  wrap.innerHTML = newEmpresaProdutos.map(p=>`
+    <span style="display:inline-flex;align-items:center;gap:5px;background:#EEF2FF;
+      border:1px solid #C7D2FE;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500;color:var(--accent)">
+      📦 ${p}
+      <button onclick="newEmpresaProdutos=newEmpresaProdutos.filter(x=>x!=='${p}');renderNewEmpresaProdutos()"
+        style="background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:12px">✕</button>
+    </span>`).join('');
+}
+
+function addNewEmpresaProduto() {
+  const sel = document.getElementById('new-prod-select');
+  const p   = sel?.value?.trim();
+  if (!p || newEmpresaProdutos.includes(p)) { toast('⚠️','Selecione um produto'); return; }
+  newEmpresaProdutos.push(p);
+  renderNewEmpresaProdutos();
+  sel.value = '';
 }
 function closeEmpresaModal() {
   document.getElementById('empresa-overlay').classList.remove('open');
@@ -545,6 +594,16 @@ async function salvarEmpresa() {
       })
     });
     if (!usrRes.ok) throw new Error('Empresa criada, mas erro no usuário');
+
+    // Salva produtos vinculados
+    if (newEmpresaProdutos.length > 0 && empresa?.id) {
+      await Promise.all(newEmpresaProdutos.map(p =>
+        fetch(`${SB}/rest/v1/lt_empresa_produtos`, {
+          method:'POST', headers:{...H,'Prefer':'return=minimal'},
+          body: JSON.stringify({ empresa_id: empresa.id, produto: p })
+        })
+      ));
+    }
 
     closeEmpresaModal();
     await loadEmpresas();
@@ -809,6 +868,7 @@ async function addEmpresaProduto() {
   });
   editEmpresaProdutos.push(p);
   renderEmpresaProdutos();
+  loadProdutosSelect(); // atualiza checkmarks no dropdown
   sel.value = '';
   toast('✅', `"${p}" vinculado!`);
 }
@@ -818,27 +878,21 @@ async function removeEmpresaProduto(produto) {
     { method:'DELETE', headers:H });
   editEmpresaProdutos = editEmpresaProdutos.filter(p=>p!==produto);
   renderEmpresaProdutos();
+  loadProdutosSelect(); // atualiza checkmarks
   toast('🗑', `"${produto}" desvinculado`);
 }
 
 async function loadProdutosSelect() {
-  // Carrega produtos do Config
-  const res = await fetch(`${SB}/rest/v1/lt_config?select=valor&chave=eq.produtos`, {headers:H});
-  const rows = res.ok ? await res.json() : [];
-  const sel  = document.getElementById('edit-prod-select');
+  const sel = document.getElementById('edit-prod-select');
   if (!sel) return;
-  let produtos = [];
-  if (rows.length) {
-    try { produtos = JSON.parse(rows[0].valor); } catch(e) {}
-  }
-  if (!produtos.length) {
-    // Fallback: busca produtos únicos dos favoritos
-    const r2 = await fetch(`${SB}/rest/v1/pncp_favoritos_itens?select=produto&order=produto.asc`, {headers:H});
-    const its = r2.ok ? await r2.json() : [];
-    produtos = [...new Set(its.map(i=>i.produto).filter(Boolean))];
-  }
+
+  // Produtos padrão (mesmos do Config)
+  const DEFAULTS = ['Café','Água','Açúcar','Leite','Material de Limpeza','Material de Escritório'];
+  const extras   = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
+  const todos    = [...new Set([...DEFAULTS, ...extras])].sort((a,b)=>a.localeCompare(b));
+
   sel.innerHTML = `<option value="">— selecionar produto —</option>` +
-    produtos.map(p=>`<option value="${p}">${p}</option>`).join('');
+    todos.map(p=>`<option value="${p}" ${editEmpresaProdutos.includes(p)?'disabled style="color:#9CA3AF"':''}>${p}${editEmpresaProdutos.includes(p)?' ✓':''}</option>`).join('');
 }
 function toggleSenha(inputId, btn) {
   const inp = document.getElementById(inputId);
