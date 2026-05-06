@@ -304,8 +304,24 @@ async function loadAll() {
       fetch(`${SB}/rest/v1/pncp_favoritos?select=*`, {headers:H}),
       fetch(`${SB}/rest/v1/pncp_favoritos_itens?select=*`, {headers:H}),
     ]);
-    allFavs  = rFavs.ok  ? await rFavs.json()  : [];
-    allItens = rItens.ok ? await rItens.json()  : [];
+    let favs  = rFavs.ok  ? await rFavs.json()  : [];
+    let itens = rItens.ok ? await rItens.json()  : [];
+
+    // Aplica restrição de produto da sessão (igual ao Diário e Favoritos)
+    const user     = JSON.parse(localStorage.getItem('lt_user')||'{}');
+    const permitidos = (user.role !== 'admin' && user.produtos && user.produtos.length)
+      ? user.produtos : null;
+
+    if (permitidos) {
+      // Filtra itens pelos produtos permitidos
+      itens = itens.filter(i => permitidos.includes(i.produto||''));
+      // Filtra favoritos que têm pelo menos um item permitido
+      const favIdsComProd = new Set(itens.map(i => i.favorito_id));
+      favs = favs.filter(f => favIdsComProd.has(f.id));
+    }
+
+    allFavs  = favs;
+    allItens = itens;
     renderAll();
   } catch(e) { toast('❌','Erro ao carregar dados: '+e.message); }
 }
