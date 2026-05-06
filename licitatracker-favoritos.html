@@ -1901,8 +1901,15 @@ function renderTable() {
         onchange="saveF('${r.id}','uaseg',this.value)" style="min-width:70px"></td>
       <td><input class="ed" type="number" value="${r.qtd||''}" placeholder="0"
         onchange="saveF('${r.id}','qtd',this.value);recalcTotal('${r.id}')" style="min-width:44px"></td>
-      <td><input class="ed" type="number" value="${r.valref||''}" placeholder="0,00"
-        onchange="saveF('${r.id}','valref',this.value);recalcTotal('${r.id}')" style="min-width:64px"></td>
+      <td>
+        <input class="ed" id="vr-${r.id}"
+          value="${r.valref ? 'R$ '+parseFloat(r.valref).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''}"
+          placeholder="R$ 0,00"
+          onfocus="this.value='${r.valref||''}';this.type='number'"
+          onblur="this.type='text';const v=parseFloat(this.value)||0;this.value=v?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''"
+          onchange="saveF('${r.id}','valref',this.value);recalcTotal('${r.id}')"
+          style="min-width:80px;font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">
+      </td>
       <td class="col-total" id="ttl-${r.id}" style="color:var(--green);font-weight:600;font-family:'DM Mono',monospace">${total}</td>
       <td><a href="${lPncp}" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a></td>
       <td style="min-width:120px">
