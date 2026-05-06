@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LicitaTracker — Manual do Administrador</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#7C3AED;--accent-soft:#F5F3FF;--gold:#D97706;--green:#059669;--red:#DC2626;
+  --text:#111827;--text-muted:#6B7280;--border:#E5E7EB;--surface:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;font-size:15px}
+body{font-family:'DM Sans',sans-serif;background:#F8FAFC;color:var(--text);line-height:1.6}
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:0 32px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);text-decoration:none}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;gap:6px}
+.nav-links a{padding:5px 12px;border-radius:8px;font-size:13px;color:var(--text-muted);text-decoration:none;transition:all .15s}
+.nav-links a:hover{background:var(--accent-soft);color:var(--accent)}
+.nav-badge{background:var(--accent);color:white;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700}
+.hero{background:linear-gradient(135deg,#4C1D95,#7C3AED,#8B5CF6);padding:80px 32px 60px;text-align:center;color:white}
+.hero-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;opacity:.7;margin-bottom:12px}
+.hero h1{font-family:'Playfair Display',serif;font-size:44px;font-weight:800;margin-bottom:14px;line-height:1.1}
+.hero p{font-size:16px;opacity:.85;max-width:520px;margin:0 auto 24px}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-hero{padding:11px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s}
+.btn-hero.primary{background:white;color:var(--accent)}
+.btn-hero.secondary{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3)}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.quick-nav{background:white;border:1px solid var(--border);border-radius:14px;padding:20px 24px;
+  margin:32px auto;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.qn-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;
+  border-radius:10px;text-decoration:none;color:var(--text);transition:all .15s;text-align:center}
+.qn-item:hover{background:var(--accent-soft);color:var(--accent)}
+.qn-item .icon{font-size:24px}.qn-item .lbl{font-size:12px;font-weight:600}
+.section{padding:40px 0}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid var(--border)}
+.section-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.section-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
+.section-sub{font-size:14px;color:var(--text-muted);margin-top:2px}
+.steps{display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:16px;align-items:flex-start;background:white;border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:all .2s}
+.step:hover{border-color:#DDD6FE;box-shadow:0 4px 16px rgba(124,58,237,.08);transform:translateX(4px)}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;margin-top:1px}
+.step-body h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--text-muted);line-height:1.5}
+.tip{display:flex;gap:10px;padding:14px 16px;border-radius:10px;margin:14px 0;font-size:13px;line-height:1.5}
+.tip.info{background:#F5F3FF;border-left:3px solid var(--accent);color:#4C1D95}
+.tip.warn{background:#FFFBEB;border-left:3px solid var(--gold);color:#92400E}
+.tip.ok{background:#ECFDF5;border-left:3px solid var(--green);color:#065F46}
+.tip.danger{background:#FEF2F2;border-left:3px solid var(--red);color:#991B1B}
+.tip-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.sql-block{background:#1F2937;border-radius:10px;padding:16px 20px;margin:12px 0;font-family:'DM Mono',monospace;font-size:12px;color:#E5E7EB;line-height:1.7;overflow-x:auto}
+.sql-block .kw{color:#93C5FD}.sql-block .tbl{color:#FCD34D}.sql-block .cmt{color:#6B7280}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.feature-card{background:white;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.feature-card h4{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.feature-card p{font-size:13px;color:var(--text-muted);line-height:1.5}
+.ref-table{width:100%;border-collapse:collapse;font-size:13px;background:white;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.ref-table th{background:#F9FAFB;padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.ref-table td{padding:10px 14px;border-bottom:1px solid #F3F4F6;vertical-align:top;font-size:13px}
+.ref-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.purple{background:#F5F3FF;color:var(--accent)}
+.badge.green{background:#ECFDF5;color:var(--green)}
+.badge.red{background:#FEF2F2;color:var(--red)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+footer{background:#1F2937;color:#9CA3AF;text-align:center;padding:32px;font-size:13px;margin-top:48px}
+footer strong{color:white}
+@media(max-width:768px){.hero h1{font-size:30px}.quick-nav{grid-template-columns:repeat(3,1fr)}.feature-grid{grid-template-columns:1fr}nav{padding:0 16px}.container{padding:0 16px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="licitatracker-diario.html" class="nav-logo">Licita<span>Tracker</span></a>
+  <div class="nav-links">
+    <a href="#empresas">🏢 Empresas</a>
+    <a href="#config">⚙️ Config</a>
+    <a href="#cargas">📦 Cargas</a>
+    <a href="#manual">✏️ Manual</a>
+    <span class="nav-badge">Admin</span>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">Manual Técnico</div>
+  <h1>Manual do<br>Administrador</h1>
+  <p>Configuração completa do sistema: empresas, usuários, produtos, cargas e inserção manual.</p>
+  <div class="hero-btns">
+    <a href="licitatracker-empresas.html" class="btn-hero primary">🏢 Gestão de Empresas</a>
+    <a href="ajuda.html" class="btn-hero secondary">👤 Guia do Usuário</a>
+  </div>
+</div>
+
+<div class="quick-nav container">
+  <a href="#empresas" class="qn-item"><div class="icon">🏢</div><div class="lbl">Empresas</div></a>
+  <a href="#usuarios" class="qn-item"><div class="icon">👥</div><div class="lbl">Usuários</div></a>
+  <a href="#permissoes" class="qn-item"><div class="icon">🔐</div><div class="lbl">Permissões</div></a>
+  <a href="#produtos-emp" class="qn-item"><div class="icon">📦</div><div class="lbl">Produtos</div></a>
+  <a href="#config" class="qn-item"><div class="icon">⚙️</div><div class="lbl">Config</div></a>
+  <a href="#cargas" class="qn-item"><div class="icon">🗄️</div><div class="lbl">Cargas</div></a>
+  <a href="#manual" class="qn-item"><div class="icon">✏️</div><div class="lbl">Inserção Manual</div></a>
+  <a href="#modulos" class="qn-item"><div class="icon">🧩</div><div class="lbl">Módulos</div></a>
+</div>
+
+<div class="container">
+
+<!-- EMPRESAS -->
+<div class="section" id="empresas">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F5F3FF">🏢</div>
+    <div><div class="section-title">Gestão de Empresas</div><div class="section-sub">Cadastro e configuração de clientes</div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">📌</div><div>A tela de Empresas é acessível apenas pelo administrador no menu principal.</div></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Acesse 🏢 Empresas no menu</h4><p>Visível apenas para o perfil Admin.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Clique em + Nova Empresa</h4><p>Preencha Nome, CNPJ, Responsável, Telefone, E-mail e Observação.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Selecione os módulos</h4><p>Marque quais módulos a empresa pode acessar: Diário, Favoritos, Conta Corrente, Analytics, Config.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Vincule os produtos</h4><p>Selecione os produtos que esta empresa pode ver no Diário e Favoritos.</p></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body"><h4>Crie o primeiro usuário</h4><p>Preencha Nome, E-mail, Perfil (Admin/Viewer) e Senha. O usuário já poderá fazer login.</p></div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- USUÁRIOS -->
+<div class="section" id="usuarios">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F5F3FF">👥</div>
+    <div><div class="section-title">Gerenciar Usuários</div><div class="section-sub">Adicionar, desativar e redefinir senhas</div></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Abra o card da empresa → botão 👥 Usuários</h4><p>Lista todos os usuários da empresa com status e permissões.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Adicione novos usuários</h4><p>No formulário inferior, preencha Nome, E-mail, Perfil e Senha. Clique em <strong>➕ Adicionar Usuário</strong>.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Redefina senha (🔑)</h4><p>Clique no ícone de chave ao lado do usuário para definir uma nova senha via prompt.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Ative/Desative (⛔ / ✅)</h4><p>Clique no ícone ao lado do usuário para suspender ou reativar o acesso sem excluir o registro.</p></div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- PERMISSÕES -->
+<div class="section" id="permissoes">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F5F3FF">🔐</div>
+    <div><div class="section-title">Permissões por Usuário</div><div class="section-sub">Override individual sobre os módulos da empresa</div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">💡</div><div>Cada usuário <strong>herda</strong> as permissões da empresa. Você pode sobrepor individualmente clicando nos módulos de cada usuário.</div></div>
+  <table class="ref-table" style="margin:16px 0 20px">
+    <thead><tr><th>Estado</th><th>Significado</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge purple">↑ herda ON</span></td><td>Empresa permite, usuário herda — módulo ATIVO</td></tr>
+      <tr><td><span class="badge purple">↑ herda OFF</span></td><td>Empresa não permite, usuário herda — módulo INATIVO</td></tr>
+      <tr><td><span class="badge green">✅ ON</span></td><td>Forçado ativo para este usuário (independente da empresa)</td></tr>
+      <tr><td><span class="badge red">❌ OFF</span></td><td>Forçado inativo para este usuário (independente da empresa)</td></tr>
+    </tbody>
+  </table>
+  <div class="tip warn"><div class="tip-icon">⚠️</div><div>Clique no módulo para ciclar entre os estados: herda → força ON → força OFF → herda.</div></div>
+</div>
+
+<hr>
+
+<!-- PRODUTOS -->
+<div class="section" id="produtos-emp">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FFFBEB">📦</div>
+    <div><div class="section-title">Produtos por Empresa</div><div class="section-sub">Restrição de visibilidade por produto</div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">📌</div><div><strong>Fonte única:</strong> produtos são cadastrados em <a href="licitatracker-config.html">⚙️ Config → Produtos</a> e depois vinculados a cada empresa.</div></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Cadastre o produto em Config</h4><p>⚙️ Config → seção Produtos → digite o nome → clique em + Adicionar.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Edite a empresa → Produtos Vinculados</h4><p>Selecione o produto no dropdown e clique em + Adicionar.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>O usuário só verá o produto vinculado</h4><p>No Diário, Favoritos e Analytics, apenas editais com aquele produto serão exibidos.</p></div></div>
+  </div>
+  <div class="tip ok"><div class="tip-icon">✅</div><div>Nenhum produto vinculado = empresa vê todos os produtos.</div></div>
+</div>
+
+<hr>
+
+<!-- CONFIG -->
+<div class="section" id="config">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EEF2FF">⚙️</div>
+    <div><div class="section-title">Configurações do Sistema</div><div class="section-sub">Produtos, portais, unidades e clientes</div></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card"><h4>📦 Produtos</h4><p>Cadastre os nomes dos produtos monitorados (ex: Café, Palestra). São usados em todo o sistema.</p></div>
+    <div class="feature-card"><h4>🌐 Portais / Sites</h4><p>Cadastre os portais de compras (ex: BLL, Compras.gov.br) para uso nos filtros e links.</p></div>
+    <div class="feature-card"><h4>📏 Unidades</h4><p>Cadastre as unidades de medida usadas nos itens dos editais (ex: KG, UN, PC-500g).</p></div>
+    <div class="feature-card"><h4>👤 Clientes</h4><p>Lista de clientes para referência interna e geração de boletins.</p></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- CARGAS -->
+<div class="section" id="cargas">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FEF2F2">🗄️</div>
+    <div><div class="section-title">Gestão de Cargas</div><div class="section-sub">Controle dos dados importados do PNCP</div></div>
+  </div>
+  <div class="tip danger"><div class="tip-icon">🚨</div><div>Apagar uma carga remove <strong>permanentemente</strong> os registros de <code>pncp_publicacoes</code> daquele período. Favoritos e contratos <strong>não</strong> são afetados.</div></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Acesse ⚙️ Config → seção Gestão de Cargas</h4><p>Lista todas as datas com quantidade de registros carregados.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Apague um dia específico</h4><p>Clique em 🗑 Apagar ao lado da data desejada e confirme.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Ou apague um período</h4><p>Use os campos De/Até e clique em 🗑 Apagar Período para remover múltiplos dias.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Reprocesse via extrator Python</h4><p>Após apagar, rode o extrator novamente para reimportar o período com os dados corretos.</p></div></div>
+  </div>
+  <div class="tip warn"><div class="tip-icon">⚠️</div><div>Também é possível apagar diretamente no Supabase com: <code>DELETE FROM pncp_publicacoes WHERE data_carga BETWEEN '2026-05-01 00:00:00' AND '2026-05-02 00:00:00'</code></div></div>
+</div>
+
+<hr>
+
+<!-- INSERÇÃO MANUAL -->
+<div class="section" id="manual">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FFF7ED">✏️</div>
+    <div><div class="section-title">Inserção Manual de Editais</div><div class="section-sub">Editais de portais externos ao PNCP</div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">💡</div><div>O botão <strong>✏️ Inserir Manual</strong> fica no canto superior direito do Diário — visível apenas para o perfil Admin.</div></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Clique em ✏️ Inserir Manual</h4><p>O botão fica no topo direito do Diário.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Preencha os dados</h4><p>Objeto, Nº Compra/Pregão, Data, Hora, Órgão, Modalidade, UF e Link do Portal.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Adicione o item principal</h4><p>Selecione Produto, Unidade, Nº Item, Qtd e Vlr Ref.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Anexe documentos</h4><p>Suba o PDF do edital e cole o link direto na seção 📎 Anexos.</p></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body"><h4>Salve ou Salve e Favorite</h4><p>O edital recebe número automático <strong>MANUAL-2026-001</strong> e aparece no Diário misturado com os demais.</p></div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- MÓDULOS -->
+<div class="section" id="modulos">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F5F3FF">🧩</div>
+    <div><div class="section-title">Tabela de Módulos</div><div class="section-sub">O que cada módulo libera</div></div>
+  </div>
+  <table class="ref-table">
+    <thead><tr><th>Módulo</th><th>Acesso</th><th>Funcionalidades</th></tr></thead>
+    <tbody>
+      <tr><td>📰 Diário</td><td>Leitura de publicações</td><td>Busca, filtro por produto/UF, favoritar, detalhes, inserção manual (admin)</td></tr>
+      <tr><td>⭐ Favoritos</td><td>Gestão de esteira</td><td>Status, editar itens, acompanhamento, lembrete, boletim, anexos</td></tr>
+      <tr><td>💰 Conta Corrente</td><td>Contratos</td><td>Ficha de contrato, NF por item, pagamentos por qtd/%, conclusão</td></tr>
+      <tr><td>📊 Analytics</td><td>Leitura de dados</td><td>KPIs, funil, vencimentos, financeiro — filtrado por produto da empresa</td></tr>
+      <tr><td>⚙️ Config</td><td>Configuração</td><td>Produtos, portais, unidades, clientes, gestão de cargas (admin)</td></tr>
+      <tr><td>🏢 Empresas</td><td>Somente Admin</td><td>Cadastro de empresas, usuários, permissões, produtos vinculados</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+  <strong>LicitaTracker — Manual do Administrador</strong><br>
+  <span style="margin-top:6px;display:block">WYC Consultoria · (19) 99014-3009 · wycconsultoria@gmail.com.br</span>
+</footer>
+</body>
+</html>

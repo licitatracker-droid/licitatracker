@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LicitaTracker — Guia do Usuário</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#2563EB;--accent-soft:#EEF2FF;--gold:#D97706;--green:#059669;
+  --text:#111827;--text-muted:#6B7280;--border:#E5E7EB;--surface:#FFFFFF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;font-size:15px}
+body{font-family:'DM Sans',sans-serif;background:#F8FAFC;color:var(--text);line-height:1.6}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:0 32px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text);text-decoration:none}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;gap:6px}
+.nav-links a{padding:5px 12px;border-radius:8px;font-size:13px;color:var(--text-muted);text-decoration:none;transition:all .15s}
+.nav-links a:hover{background:var(--accent-soft);color:var(--accent)}
+.nav-badge{background:var(--accent);color:white;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 50%,#3B82F6 100%);
+  padding:80px 32px 60px;text-align:center;color:white}
+.hero-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;
+  opacity:.7;margin-bottom:12px}
+.hero h1{font-family:'Playfair Display',serif;font-size:48px;font-weight:800;
+  margin-bottom:16px;line-height:1.1}
+.hero p{font-size:17px;opacity:.85;max-width:560px;margin:0 auto 28px}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-hero{padding:11px 24px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s}
+.btn-hero.primary{background:white;color:var(--accent)}
+.btn-hero.secondary{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3)}
+.btn-hero:hover{transform:translateY(-2px)}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* QUICK NAV */
+.quick-nav{background:white;border:1px solid var(--border);border-radius:14px;
+  padding:20px 24px;margin:32px auto;max-width:1100px;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.qn-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;
+  border-radius:10px;text-decoration:none;color:var(--text);transition:all .15s;text-align:center}
+.qn-item:hover{background:var(--accent-soft);color:var(--accent)}
+.qn-item .icon{font-size:24px}
+.qn-item .lbl{font-size:12px;font-weight:600}
+
+/* SECTIONS */
+.section{padding:40px 0}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid var(--border)}
+.section-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.section-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
+.section-sub{font-size:14px;color:var(--text-muted);margin-top:2px}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:16px}
+.step{display:flex;gap:16px;align-items:flex-start;background:white;border:1px solid var(--border);
+  border-radius:12px;padding:18px 20px;transition:all .2s}
+.step:hover{border-color:#BFDBFE;box-shadow:0 4px 16px rgba(37,99,235,.08);transform:translateX(4px)}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:white;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;margin-top:1px}
+.step-body h4{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--text-muted);line-height:1.5}
+
+/* TIP BOXES */
+.tip{display:flex;gap:10px;padding:14px 16px;border-radius:10px;margin:14px 0;font-size:13px;line-height:1.5}
+.tip.info{background:#EEF2FF;border-left:3px solid var(--accent);color:#1E40AF}
+.tip.warn{background:#FFFBEB;border-left:3px solid var(--gold);color:#92400E}
+.tip.ok{background:#ECFDF5;border-left:3px solid var(--green);color:#065F46}
+.tip-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* FEATURE GRID */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.feature-card{background:white;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.feature-card h4{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.feature-card p{font-size:13px;color:var(--text-muted);line-height:1.5}
+
+/* TABLE */
+.ref-table{width:100%;border-collapse:collapse;font-size:13px;background:white;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.ref-table th{background:#F9FAFB;padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);border-bottom:1px solid var(--border)}
+.ref-table td{padding:10px 14px;border-bottom:1px solid #F3F4F6;vertical-align:top}
+.ref-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.blue{background:#EEF2FF;color:var(--accent)}
+.badge.gold{background:#FFFBEB;color:var(--gold)}
+.badge.green{background:#ECFDF5;color:var(--green)}
+.badge.red{background:#FEF2F2;color:#DC2626}
+
+/* DIVIDER */
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+
+/* FOOTER */
+footer{background:#1F2937;color:#9CA3AF;text-align:center;padding:32px;font-size:13px;margin-top:48px}
+footer strong{color:white}
+
+@media(max-width:768px){
+  .hero h1{font-size:32px}
+  .hero p{font-size:15px}
+  .quick-nav{grid-template-columns:repeat(3,1fr)}
+  .feature-grid{grid-template-columns:1fr}
+  nav{padding:0 16px}
+  .container{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="licitatracker-diario.html" class="nav-logo">Licita<span>Tracker</span></a>
+  <div class="nav-links">
+    <a href="#diario">📰 Diário</a>
+    <a href="#favoritos">⭐ Favoritos</a>
+    <a href="#conta">💰 Conta</a>
+    <a href="#analytics">📊 Analytics</a>
+    <span class="nav-badge">Guia do Usuário</span>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-label">Central de Ajuda</div>
+  <h1>Guia Completo<br>do Usuário</h1>
+  <p>Tudo que você precisa saber para monitorar, favoritar e acompanhar licitações no LicitaTracker.</p>
+  <div class="hero-btns">
+    <a href="licitatracker-diario.html" class="btn-hero primary">▶ Acessar o Sistema</a>
+    <a href="ajuda-admin.html" class="btn-hero secondary">⚙️ Manual do Admin</a>
+  </div>
+</div>
+
+<!-- Quick Nav -->
+<div class="quick-nav container">
+  <a href="#login" class="qn-item"><div class="icon">🔐</div><div class="lbl">Login</div></a>
+  <a href="#diario" class="qn-item"><div class="icon">📰</div><div class="lbl">Diário</div></a>
+  <a href="#favoritar" class="qn-item"><div class="icon">⭐</div><div class="lbl">Favoritar</div></a>
+  <a href="#favoritos" class="qn-item"><div class="icon">📋</div><div class="lbl">Favoritos</div></a>
+  <a href="#acompanhamento" class="qn-item"><div class="icon">📝</div><div class="lbl">Acompanhamento</div></a>
+  <a href="#lembrete" class="qn-item"><div class="icon">🔔</div><div class="lbl">Lembrete</div></a>
+  <a href="#conta" class="qn-item"><div class="icon">💰</div><div class="lbl">Conta Corrente</div></a>
+  <a href="#analytics" class="qn-item"><div class="icon">📊</div><div class="lbl">Analytics</div></a>
+</div>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div class="section" id="login">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EEF2FF">🔐</div>
+    <div><div class="section-title">Acesso ao Sistema</div><div class="section-sub">Como fazer login e navegar</div></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Acesse o endereço</h4><p>Abra o navegador e acesse <strong>www.licitatracker.com.br/login.html</strong></p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Digite suas credenciais</h4><p>Informe o e-mail e senha fornecidos pelo administrador. Clique em <strong>Entrar</strong>.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Visualize apenas seu conteúdo</h4><p>O sistema já exibe automaticamente apenas os produtos e módulos liberados para sua empresa.</p></div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">💡</div><div>Caso esqueça sua senha, entre em contato com o administrador do sistema para redefinição.</div></div>
+</div>
+
+<hr>
+
+<!-- DIÁRIO -->
+<div class="section" id="diario">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EEF2FF">📰</div>
+    <div><div class="section-title">Diário de Licitações</div><div class="section-sub">Consulta e busca de editais publicados</div></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card"><h4>🔍 Busca</h4><p>Digite palavras do objeto, nome do órgão ou Nº PNCP no campo de busca para filtrar os resultados.</p></div>
+    <div class="feature-card"><h4>📅 Filtro por Data</h4><p>Selecione a data de carga para ver apenas os editais publicados naquele dia.</p></div>
+    <div class="feature-card"><h4>🗺 Filtro por UF</h4><p>Selecione um estado para ver apenas editais daquela unidade federativa.</p></div>
+    <div class="feature-card"><h4>📦 Filtro por Produto</h4><p>Filtre pelos produtos do seu interesse — o sistema já exibe os produtos da sua empresa por padrão.</p></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Leia o Objeto completo</h4><p>O texto do objeto aparece completo em cada linha. Leia com atenção para identificar se é do seu interesse.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Verifique data, pregão e órgão</h4><p>Confirme a data do pregão, o número e o órgão licitante antes de favoritar.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Abra os detalhes (botão ＋)</h4><p>Clique no botão azul <strong>＋</strong> no final da linha para abrir a ficha completa do edital, preencher os itens e adicionar o link do pregão.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Acompanhe o progresso</h4><p>A barra <strong>👁 Revisados</strong> no topo mostra quantos editais você já abriu na sessão atual. Ao atingir 100%, todos foram revisados.</p></div></div>
+  </div>
+  <div class="tip warn"><div class="tip-icon">⚠️</div><div>Editais sem data preenchida indicam que a informação não veio na base PNCP. Preencha manualmente ao abrir os detalhes.</div></div>
+</div>
+
+<hr>
+
+<!-- FAVORITAR -->
+<div class="section" id="favoritar">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FFFBEB">⭐</div>
+    <div><div class="section-title">Favoritar um Edital</div><div class="section-sub">Como salvar editais de interesse</div></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Clique na estrela ☆</h4><p>Na coluna da esquerda, clique na estrela cinza. Ela ficará dourada ★ confirmando o favorito.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Ou use o botão ＋ → Salvar e Favoritar</h4><p>Ao abrir os detalhes, preencha os itens do pregão e clique em <strong>⭐ Salvar e Favoritar</strong> para já salvar com os dados completos.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>O edital aparece em Favoritos</h4><p>Acesse a aba <strong>⭐ Favoritos</strong> no menu para ver e gerenciar todos os editais salvos.</p></div></div>
+  </div>
+  <div class="tip ok"><div class="tip-icon">✅</div><div>Você também pode usar o botão <strong>▶ Em Andamento</strong> para favoritar e já mover para o status de participação ativa.</div></div>
+</div>
+
+<hr>
+
+<!-- FAVORITOS -->
+<div class="section" id="favoritos">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FFFBEB">📋</div>
+    <div><div class="section-title">Meus Favoritos</div><div class="section-sub">Gerenciamento da esteira de editais</div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">📌</div><div><strong>Esteira de status:</strong> cada edital percorre as etapas ⭐ Favorito → ▶ Andamento → 🏆 Ganho ou ✗ Perdido.</div></div>
+
+  <table class="ref-table" style="margin:16px 0 20px">
+    <thead><tr><th>Status</th><th>Significado</th><th>Próxima ação</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge gold">⭐ Favorito</span></td><td>Edital salvo, em avaliação</td><td>Mover para Andamento ao decidir participar</td></tr>
+      <tr><td><span class="badge blue">▶ Andamento</span></td><td>Participando ativamente</td><td>Acompanhar, anotar, definir lembrete</td></tr>
+      <tr><td><span class="badge green">🏆 Ganho</span></td><td>Pregão vencido</td><td>Gerenciar na Conta Corrente</td></tr>
+      <tr><td><span class="badge red">✗ Perdido</span></td><td>Não vencemos</td><td>Registrar motivo no histórico</td></tr>
+    </tbody>
+  </table>
+
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Altere o status pela coluna STATUS</h4><p>Use o dropdown na primeira coluna para mover o edital entre as etapas.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Edite os itens (✏️)</h4><p>Clique no ícone de lápis nas Ações para editar os itens do pregão, preenchendo Produto, Qtd, Vlr Ref e o <strong>Vlr Negociado</strong> quando ganhar.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Sincronize / Salvar</h4><p>Clique no botão azul <strong>🔄 Sincronizar / Salvar</strong> para garantir que tudo foi gravado.</p></div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ACOMPANHAMENTO -->
+<div class="section" id="acompanhamento">
+  <div class="section-header">
+    <div class="section-icon" style="background:#F0FDF4">📝</div>
+    <div><div class="section-title">Ficha de Acompanhamento</div><div class="section-sub">Histórico e notas por edital</div></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Abra a ficha (botão 📋)</h4><p>Nas Ações da linha, clique no ícone verde 📋 para abrir a ficha de acompanhamento.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Registre notas</h4><p>Digite o que está acontecendo com o edital (ex: "Enviamos proposta, aguardando resultado") e clique em <strong>💾 Salvar Nota</strong>.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Adicione anexos</h4><p>Arraste ou clique na área de anexos para subir o PDF do edital, procuração ou outros documentos.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Insira o link do edital</h4><p>Cole a URL do edital no campo 🔗 Link do Edital — ficará visível em todas as telas.</p></div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- LEMBRETE -->
+<div class="section" id="lembrete">
+  <div class="section-header">
+    <div class="section-icon" style="background:#FFFBEB">🔔</div>
+    <div><div class="section-title">Lembretes</div><div class="section-sub">Alertas para não perder prazos</div></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card"><h4>⏱ Por Tempo</h4><p>Configure um alerta para disparar após 1 minuto, 15 minutos, 1 hora ou qualquer intervalo até 1 semana.</p></div>
+    <div class="feature-card"><h4>📅 Por Data</h4><p>Defina uma data e hora exata para o lembrete disparar — ideal para o dia do pregão.</p></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Abra o Acompanhamento (📋)</h4><p>Na ficha do edital, ative o checkbox <strong>Ativar lembrete</strong>.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Escolha tipo e quando</h4><p>Selecione "Após (tempo)" ou "Data específica" e configure o momento.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Digite a anotação</h4><p>Escreva o que precisa fazer quando o lembrete disparar.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Salve o lembrete</h4><p>Clique em <strong>🔔 Salvar Lembrete</strong>. A linha do edital ficará com badge laranja 🔔.</p></div></div>
+  </div>
+  <div class="tip ok"><div class="tip-icon">🔔</div><div>Quando o lembrete disparar, aparecerá um <strong>popup sonoro</strong> com o alerta. Clique em <strong>✓ Entendido</strong> para fechar. Se não fechar, repetirá a cada 2 minutos.</div></div>
+</div>
+
+<hr>
+
+<!-- CONTA CORRENTE -->
+<div class="section" id="conta">
+  <div class="section-header">
+    <div class="section-icon" style="background:#ECFDF5">💰</div>
+    <div><div class="section-title">Conta Corrente</div><div class="section-sub">Contratos e controle de pagamentos</div></div>
+  </div>
+  <div class="tip info"><div class="tip-icon">💡</div><div>A Conta Corrente é preenchida <strong>automaticamente</strong> quando você muda o status de um edital para 🏆 Ganho.</div></div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Acesse a Conta Corrente</h4><p>Clique em <strong>💰 Conta Corrente</strong> no menu para ver todos os contratos.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Abra a Ficha Completa</h4><p>Clique em <strong>📋 Ficha Completa</strong> no card do contrato para ver itens, NF e pagamentos.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Preencha o Vlr Unitário</h4><p>Insira o valor unitário negociado em cada item para calcular os totais corretamente.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Registre pagamentos</h4><p>Use <strong>+ Registrar</strong> no item para lançar pagamentos por <em>quantidade</em> (parcial) ou <em>percentual</em>.</p></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body"><h4>Preencha NF &amp; Entrega</h4><p>Registre se a NF foi emitida, o número, data e tipo de entrega em cada item.</p></div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-body"><h4>Conclua o contrato</h4><p>Quando tudo estiver pago, clique em <strong>✅ Concluir</strong> no card.</p></div></div>
+  </div>
+</div>
+
+<hr>
+
+<!-- ANALYTICS -->
+<div class="section" id="analytics">
+  <div class="section-header">
+    <div class="section-icon" style="background:#EEF2FF">📊</div>
+    <div><div class="section-title">Analytics</div><div class="section-sub">Visão inteligente dos seus dados</div></div>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card"><h4>🔢 KPIs</h4><p>Veja rapidamente o total monitorado, em andamento, ganhos, perdidos e o valor potencial.</p></div>
+    <div class="feature-card"><h4>🔽 Funil</h4><p>Acompanhe a evolução dos editais por status — de favoritos até ganhos.</p></div>
+    <div class="feature-card"><h4>⏰ Vencimentos</h4><p>Lista dos editais em andamento ordenados por prazo, com alertas para os mais urgentes.</p></div>
+    <div class="feature-card"><h4>📦 Por Produto/UF</h4><p>Veja quais produtos e estados concentram mais oportunidades em andamento.</p></div>
+    <div class="feature-card"><h4>💰 Financeiro</h4><p>Valor total monitorado por status e comparativo entre Vlr Ref e Vlr Negociado.</p></div>
+    <div class="feature-card"><h4>📅 Timeline</h4><p>Histórico mensal de favoritos cadastrados nos últimos 12 meses.</p></div>
+  </div>
+  <div class="tip ok"><div class="tip-icon">✅</div><div>O Analytics mostra apenas os dados do seu perfil — se sua empresa tem produto específico, os números refletem apenas esse produto.</div></div>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+  <strong>LicitaTracker</strong> — Sistema de Monitoramento de Licitações<br>
+  <span style="margin-top:6px;display:block">WYC Consultoria · (19) 99014-3009 · wycconsultoria@gmail.com.br</span>
+</footer>
+</body>
+</html>
