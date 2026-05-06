@@ -1417,32 +1417,6 @@ function dispararLembrete(nota, favId) {
   applyFilters();
 }
 
-  // Salva no histórico automaticamente
-  const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
-  fetch(`${SUPABASE_URL}/rest/v1/pncp_acompanhamento`, {
-    method:'POST',
-    headers:{...H,'Prefer':'return=minimal'},
-    body: JSON.stringify({
-      favorito_id: favId,
-      numerocontrolepncp: r.numerocontrolepncp || null,
-      usuario:  `🔔 Lembrete (${user.nome||'Sistema'})`,
-      nota: msg,
-      data_nota: new Date().toISOString(),
-    })
-  });
-
-  // Marca como disparado
-  fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes?favorito_id=eq.${favId}&ativo=eq.true`, {
-    method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
-    body: JSON.stringify({disparado:true})
-  });
-
-  // Recarrega histórico se o modal ainda estiver aberto
-  if (acFavId === favId && document.getElementById('acomp-overlay').classList.contains('open')) {
-    loadHistorico(favId);
-  }
-}
-
 // Solicita permissão de notificação ao carregar a página
 if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
   Notification.requestPermission().then(p => console.log('Notificações:', p));
