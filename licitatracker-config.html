@@ -411,11 +411,17 @@ function fmtDate(d) {
 // =============================================
 // DADOS
 // =============================================
-const PRODUTO_DEFAULTS  = ['Café','Palestra'];
 const SITE_DEFAULTS     = [{nome:'BLL Compras',url:'https://bllcompras.com'},{nome:'Compras.gov.br',url:'https://compras.gov.br'},{nome:'Licitar Digital',url:'https://licitardigital.com.br'}];
 const UNIDADE_DEFAULTS  = ['PC - 250Grs','PC - 500Grs','PC - 1 Kg','KG - Quilograma','LT - Litro','MT - Metro','UN - Unidade','CX - Caixa'];
 
-function getProdutos()  { return [...new Set([...PRODUTO_DEFAULTS, ...JSON.parse(localStorage.getItem('lt_produtos_list')||'[]')])].sort((a,b)=>a.localeCompare(b)); }
+// Produtos — lidos do Supabase lt_produtos
+let PRODUTOS_LIST = [];
+async function loadProdutos() {
+  const res = await fetch(`${SB}/rest/v1/lt_produtos?select=nome&order=nome.asc`, {headers:H});
+  PRODUTOS_LIST = res.ok ? (await res.json()).map(r=>r.nome) : [];
+  renderProdutos();
+}
+function getProdutos()  { return PRODUTOS_LIST; }
 function getSites()     { return [...SITE_DEFAULTS, ...JSON.parse(localStorage.getItem('lt_sites')||'[]')].sort((a,b)=>a.nome.localeCompare(b.nome)); }
 function getUnidades()  { return [...new Set([...UNIDADE_DEFAULTS, ...JSON.parse(localStorage.getItem('lt_unidades')||'[]')])].sort((a,b)=>a.localeCompare(b)); }
 function getClientes()  { return JSON.parse(localStorage.getItem('lt_clientes')||'[]'); }
@@ -434,11 +440,11 @@ function renderAll() {
 function renderProdutos() {
   const list = getProdutos();
   document.getElementById('count-produtos').textContent = list.length;
-  document.getElementById('list-produtos').innerHTML = list.map((p,i) => `
+  document.getElementById('list-produtos').innerHTML = list.map(p => `
     <div class="list-item">
       <div><div class="item-name">${p}</div></div>
       <div class="item-actions">
-        <button class="btn-icon del" onclick="delItem('produto','${p.replace(/'/g,"\\'")}')" title="Remover">🗑</button>
+        <button class="btn-icon del" onclick="delProduto('${p.replace(/'/g,"\\'")}')" title="Remover">🗑</button>
       </div>
     </div>`).join('') || '<div style="font-size:12px;color:var(--text-muted);padding:8px">Nenhum produto cadastrado</div>';
 }
@@ -497,16 +503,45 @@ function renderSys() {
 // =============================================
 // ACTIONS
 // =============================================
-function addItem(type) {
+async function addItem(type) {
   const id  = `new-${type}`;
-  const key = type === 'produto' ? 'lt_produtos_list' : 'lt_unidades';
   const val = document.getElementById(id).value.trim();
   if (!val) return;
-  const extra = JSON.parse(localStorage.getItem(key)||'[]');
-  if (!extra.includes(val)) { extra.push(val); localStorage.setItem(key, JSON.stringify(extra)); }
+
+  if (type === 'produto') {
+    if (PRODUTOS_LIST.includes(val)) { toast('⚠️','Produto já existe'); return; }
+    const res = await fetch(`${SB}/rest/v1/lt_produtos`, {
+      method:'POST', headers:{...H,'Prefer':'return=minimal'},
+      body: JSON.stringify({nome: val})
+    });
+    if (!res.ok) { toast('❌','Erro ao salvar produto'); return; }
+    await loadProdutos();
+    toast('✅','Produto adicionado!');
+  } else {
+    const key   = 'lt_unidades';
+    const extra = JSON.parse(localStorage.getItem(key)||'[]');
+    if (!extra.includes(val)) { extra.push(val); localStorage.setItem(key, JSON.stringify(extra)); }
+    renderAll();
+    toast('✅','Unidade adicionada!');
+  }
   document.getElementById(id).value = '';
+}
+
+async function delProduto(nome) {
+  if (!confirm(`Remover produto "${nome}"?\n\nIsso pode afetar empresas com este produto vinculado.`)) return;
+  await fetch(`${SB}/rest/v1/lt_produtos?nome=eq.${encodeURIComponent(nome)}`, {method:'DELETE', headers:H});
+  await loadProdutos();
+  toast('🗑','Produto removido');
+}
+
+function delItem(type, val) {
+  if (type === 'produto') { delProduto(val); return; }
+  if (!confirm(`Remover "${val}"?`)) return;
+  const key   = 'lt_unidades';
+  const extra = JSON.parse(localStorage.getItem(key)||'[]').filter(x=>x!==val);
+  localStorage.setItem(key, JSON.stringify(extra));
   renderAll();
-  toast('✅', `${type === 'produto' ? 'Produto' : 'Unidade'} adicionado!`);
+  toast('🗑','Removido');
 }
 
 function addSite() {
@@ -533,15 +568,6 @@ function addCliente() {
   document.getElementById('new-cliente-cnpj').value = '';
   renderAll();
   toast('✅', `Cliente "${nome}" adicionado!`);
-}
-
-function delItem(type, val) {
-  if (!confirm(`Remover "${val}"?`)) return;
-  const key = type === 'produto' ? 'lt_produtos_list' : 'lt_unidades';
-  const extra = JSON.parse(localStorage.getItem(key)||'[]').filter(x => x !== val);
-  localStorage.setItem(key, JSON.stringify(extra));
-  renderAll();
-  toast('🗑', 'Removido');
 }
 
 function delSite(nome) {
@@ -622,6 +648,7 @@ document.getElementById('new-site-url').addEventListener('keydown', e => { if(e.
 document.getElementById('new-cliente-cnpj').addEventListener('keydown', e => { if(e.key==='Enter') addCliente(); });
 
 if (checkAuth()) {
+  loadProdutos(); // carrega do Supabase
   renderAll();
   loadCargas();
 }

@@ -1515,12 +1515,16 @@ function buildUnidadeOptions(current) {
 }
 
 
-const PRODUTO_DEFAULTS = ['Café', 'Palestra'];
-
-function getProdutoList() {
-  const extra = JSON.parse(localStorage.getItem('lt_produtos_list') || '[]');
-  return [...new Set([...PRODUTO_DEFAULTS, ...extra])].sort((a,b) => a.localeCompare(b));
+// Produtos — cache global carregado do Supabase
+let PRODUTOS_CACHE = [];
+async function loadProdutosCache() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos?select=nome&order=nome.asc`,
+      {'headers': {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`}});
+    PRODUTOS_CACHE = res.ok ? (await res.json()).map(r=>r.nome) : [];
+  } catch(e) { PRODUTOS_CACHE = []; }
 }
+function getProdutoList() { return PRODUTOS_CACHE; }
 
 function buildProdutoOptions(current) {
   const list = getProdutoList();
@@ -1552,18 +1556,21 @@ function updateProdutoFilter() {
   }
 }
 
-function saveProdutoRow(e, id, value) {
+async function saveProdutoRow(e, id, value) {
   e.stopPropagation();
   if (value === '__novo__') {
     const nome = prompt('Nome do novo produto (ex: Notebook, Cadeira...):');
     if (!nome) { renderTable(); return; }
-    const extra = JSON.parse(localStorage.getItem('lt_produtos_list') || '[]');
-    if (!extra.includes(nome.trim())) {
-      extra.push(nome.trim());
-      localStorage.setItem('lt_produtos_list', JSON.stringify(extra));
-    }
-    saveManual(id, 'produto', nome.trim());
-    toast('✅', `Produto "${nome.trim()}" adicionado!`);
+    const n = nome.trim();
+    // Salva no Supabase
+    await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos`, {
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({nome: n})
+    });
+    await loadProdutosCache();
+    saveManual(id, 'produto', n);
+    toast('✅', `Produto "${n}" adicionado!`);
     updateProdutoFilter();
     renderTable();
     return;
@@ -2178,13 +2185,18 @@ function renderItemRows() {
     </div>`).join('');
 }
 
-function handleItemProduto(idx, val) {
+async function handleItemProduto(idx, val) {
   if (val === '__novo__') {
     const nome = prompt('Nome do novo produto:');
     if (!nome) { renderItemRows(); return; }
-    const extra = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
-    if (!extra.includes(nome.trim())) { extra.push(nome.trim()); localStorage.setItem('lt_produtos_list',JSON.stringify(extra)); }
-    detItemsTemp[idx].produto = nome.trim();
+    const n = nome.trim();
+    await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos`, {
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({nome: n})
+    });
+    await loadProdutosCache();
+    detItemsTemp[idx].produto = n;
     updateProdutoFilter();
   } else {
     detItemsTemp[idx].produto = val;
@@ -2602,8 +2614,10 @@ function doLogout() {
 // INIT
 // =============================================
 if (checkAuth()) {
-  updateProdutoFilter();
-  loadData();
+  loadProdutosCache().then(() => {
+    updateProdutoFilter();
+    loadData();
+  });
 }
 </script>
 </body>

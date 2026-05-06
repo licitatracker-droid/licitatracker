@@ -1460,13 +1460,19 @@ let editFavoritoId   = null;
 let editPncp         = null;
 let editItensTemp    = [];
 
-const PRODUTO_DEFAULTS_FAV = ['Café','Palestra'];
-const UNIDADE_DEFAULTS_FAV = ['PC - 250Grs','PC - 500Grs','PC - 1 Kg','KG - Quilograma','LT - Litro','MT - Metro','UN - Unidade','CX - Caixa'];
-
-function getProdListFav() {
-  const extra = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
-  return [...new Set([...PRODUTO_DEFAULTS_FAV,...extra])].sort((a,b)=>a.localeCompare(b));
+// Produtos — carregados do Supabase (mesma fonte)
+let PRODUTOS_CACHE_FAV = [];
+async function loadProdutosCacheFav() {
+  if (PRODUTOS_CACHE_FAV.length) return; // já carregou
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos?select=nome&order=nome.asc`,
+      {headers:H});
+    PRODUTOS_CACHE_FAV = res.ok ? (await res.json()).map(r=>r.nome) : [];
+  } catch(e) { PRODUTOS_CACHE_FAV = []; }
 }
+function getProdListFav() { return PRODUTOS_CACHE_FAV; }
+
+const UNIDADE_DEFAULTS_FAV = ['PC - 250Grs','PC - 500Grs','PC - 1 Kg','KG - Quilograma','LT - Litro','MT - Metro','UN - Unidade','CX - Caixa'];
 function getUndListFav() {
   const extra = JSON.parse(localStorage.getItem('lt_unidades')||'[]');
   return [...new Set([...UNIDADE_DEFAULTS_FAV,...extra])].sort((a,b)=>a.localeCompare(b));
@@ -1620,13 +1626,18 @@ function calcEditTotal(idx) {
   if (cell) cell.textContent = calcTotalStr(editItensTemp[idx].qtd, editItensTemp[idx].valref);
 }
 
-function handleEditProd(idx, val) {
+async function handleEditProd(idx, val) {
   if (val === '__novo__') {
     const nome = prompt('Nome do novo produto:');
     if (!nome) { renderEditItens(); return; }
-    const extra = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
-    if (!extra.includes(nome.trim())) { extra.push(nome.trim()); localStorage.setItem('lt_produtos_list',JSON.stringify(extra)); }
-    editItensTemp[idx].produto = nome.trim();
+    const n = nome.trim();
+    await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos`, {
+      method:'POST', headers:{...H,'Prefer':'return=minimal'},
+      body: JSON.stringify({nome: n})
+    });
+    PRODUTOS_CACHE_FAV = []; // força reload
+    await loadProdutosCacheFav();
+    editItensTemp[idx].produto = n;
     renderEditItens();
   } else {
     editItensTemp[idx].produto = val;
@@ -2021,7 +2032,9 @@ function toast(icon,msg) {
 
 // Init
 const currentUser = checkAuth();
-if (currentUser) loadFavs();
+if (currentUser) {
+  loadProdutosCacheFav().then(() => loadFavs());
+}
 
 // Fecha modal ao clicar fora
 document.getElementById('itens-overlay').addEventListener('click', e => {

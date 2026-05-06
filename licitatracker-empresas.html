@@ -499,20 +499,19 @@ function renderEmpresas() {
 // =============================================
 let newEmpresaProdutos = [];
 
-function openEmpresaModal() {
+async function openEmpresaModal() {
   ['emp-nome','emp-cnpj','emp-responsavel','emp-telefone','emp-email','emp-obs',
    'usr-nome','usr-email','usr-senha'].forEach(id => document.getElementById(id).value='');
   ['mod-diario','mod-favoritos','mod-meus-editais'].forEach(id => document.getElementById(id).checked=true);
   ['mod-pagamentos','mod-analytics','mod-config'].forEach(id => document.getElementById(id).checked=false);
 
-  // Popula produtos
+  // Popula produtos do Supabase
   newEmpresaProdutos = [];
-  const DEFAULTS = ['Café','Água','Açúcar','Leite','Material de Limpeza','Material de Escritório'];
-  const extras   = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
-  const todos    = [...new Set([...DEFAULTS,...extras])].sort((a,b)=>a.localeCompare(b));
+  const resProd = await fetch(`${SB}/rest/v1/lt_produtos?select=nome&order=nome.asc`, {headers:H});
+  const todosProd = resProd.ok ? (await resProd.json()).map(r=>r.nome) : [];
   const sel = document.getElementById('new-prod-select');
   if (sel) sel.innerHTML = `<option value="">— selecionar produto —</option>` +
-    todos.map(p=>`<option value="${p}">${p}</option>`).join('');
+    todosProd.map(p=>`<option value="${p}">${p}</option>`).join('');
   renderNewEmpresaProdutos();
 
   document.getElementById('empresa-overlay').classList.add('open');
@@ -885,12 +884,8 @@ async function removeEmpresaProduto(produto) {
 async function loadProdutosSelect() {
   const sel = document.getElementById('edit-prod-select');
   if (!sel) return;
-
-  // Produtos padrão (mesmos do Config)
-  const DEFAULTS = ['Café','Água','Açúcar','Leite','Material de Limpeza','Material de Escritório'];
-  const extras   = JSON.parse(localStorage.getItem('lt_produtos_list')||'[]');
-  const todos    = [...new Set([...DEFAULTS, ...extras])].sort((a,b)=>a.localeCompare(b));
-
+  const res = await fetch(`${SB}/rest/v1/lt_produtos?select=nome&order=nome.asc`, {headers:H});
+  const todos = res.ok ? (await res.json()).map(r=>r.nome) : [];
   sel.innerHTML = `<option value="">— selecionar produto —</option>` +
     todos.map(p=>`<option value="${p}" ${editEmpresaProdutos.includes(p)?'disabled style="color:#9CA3AF"':''}>${p}${editEmpresaProdutos.includes(p)?' ✓':''}</option>`).join('');
 }
