@@ -269,9 +269,23 @@ function checkAuth() {
   const ini = user.nome.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   document.getElementById('user-avatar').textContent = ini;
   document.getElementById('user-name').textContent   = user.nome.split(' ')[0];
+  // Admin: mostra Empresas
   if (user.role === 'admin') {
     const el = document.getElementById('nav-empresas');
     if (el) el.style.display = 'flex';
+  } else {
+    // Aplica módulos
+    const mods = user.modulos || {};
+    const MAP = {'nav-diario':'diario','nav-favoritos':'favoritos',
+      'nav-meus-editais':'meus_editais','nav-config':'config','nav-empresas':null};
+    Object.entries(MAP).forEach(([id,mod]) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = (mod && mods[mod] !== false) ? 'flex' : 'none';
+    });
+    // Verifica acesso ao Analytics
+    if (mods.analytics === false) {
+      window.location.href = mods.diario !== false ? 'licitatracker-diario.html' : 'login.html';
+    }
   }
   return user;
 }

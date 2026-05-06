@@ -318,7 +318,7 @@
     <a class="nav-item active" id="nav-favoritos"    href="#">⭐ Favoritos</a>
     <a class="nav-item"        id="nav-meus-editais" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
     <a class="nav-item"        id="nav-empresas"     href="licitatracker-empresas.html" style="display:none">🏢 Empresas</a>
-    <a class="nav-item" href="licitatracker-analytics.html">📊 Analytics</a>
+    <a class="nav-item" id="nav-analytics" href="licitatracker-analytics.html">📊 Analytics</a>
     <a class="nav-item"        id="nav-config"       href="licitatracker-config.html">⚙️ Config</a>
   </nav>
   <div style="display:flex;align-items:center;gap:10px">
@@ -847,7 +847,7 @@ function applyModulos(user, paginaAtual) {
   }
   const NAV_MAP = {
     'nav-diario':'diario','nav-favoritos':'favoritos','nav-meus-editais':'meus_editais',
-    'nav-config':'config','nav-empresas':null
+    'nav-analytics':'analytics','nav-config':'config','nav-empresas':null
   };
   Object.entries(NAV_MAP).forEach(([id, mod]) => {
     const el = document.getElementById(id);
@@ -1046,11 +1046,14 @@ function applyFilters() {
     return 0;
   });
 
-  // Counters
-  document.getElementById('cnt-total').textContent = allFavs.length;
-  document.getElementById('cnt-fav').textContent   = allFavs.filter(r=>r.status==='favorito').length;
-  document.getElementById('cnt-and').textContent   = allFavs.filter(r=>r.status==='andamento').length;
-  document.getElementById('cnt-gan').textContent   = allFavs.filter(r=>r.status==='ganho').length;
+  // Counters — baseados no filtered (respeita restrição de produto)
+  // Pega IDs únicos de favoritos (cada favorito pode ter múltiplas linhas de itens)
+  const favIds = new Set(filtered.map(r => r.id));
+  const favArr = [...favIds].map(id => filtered.find(r => r.id === id));
+  document.getElementById('cnt-total').textContent = favIds.size;
+  document.getElementById('cnt-fav').textContent   = favArr.filter(r=>r.status==='favorito'||!r.status).length;
+  document.getElementById('cnt-and').textContent   = favArr.filter(r=>r.status==='andamento').length;
+  document.getElementById('cnt-gan').textContent   = favArr.filter(r=>r.status==='ganho').length;
   document.getElementById('total-badge').textContent = filtered.length + ' registros';
 
   renderTable();
