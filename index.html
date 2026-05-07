@@ -8,18 +8,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#0B1F3A;--navy-mid:#112B50;--navy-light:#1A3F72;
+  --navy:#0F2744;--navy-mid:#163360;--navy-light:#1E4A85;
   --accent:#2E6FD8;--accent-glow:#4A8FFF;--gold:#F0B429;--green:#22C55E;--red:#EF4444;
-  --text:#FFFFFF;--text-muted:rgba(255,255,255,.55);--text-soft:rgba(255,255,255,.80);
-  --border:rgba(255,255,255,.10);--card:rgba(255,255,255,.05);--radius:14px;
+  --text:#FFFFFF;--text-muted:rgba(255,255,255,.60);--text-soft:rgba(255,255,255,.85);
+  --border:rgba(255,255,255,.13);--card:rgba(255,255,255,.07);--radius:14px;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
 .bg-layer{position:fixed;inset:0;z-index:0;background:
-  radial-gradient(ellipse 80% 60% at 15% 20%,rgba(46,111,216,.18) 0%,transparent 60%),
-  radial-gradient(ellipse 60% 80% at 85% 75%,rgba(26,63,114,.25) 0%,transparent 60%),
-  linear-gradient(160deg,#0B1F3A 0%,#0D2542 50%,#081526 100%)}
+  radial-gradient(ellipse 80% 60% at 15% 20%,rgba(46,111,216,.22) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 80% at 85% 75%,rgba(30,74,133,.30) 0%,transparent 60%),
+  linear-gradient(160deg,#0F2744 0%,#132F55 50%,#0C1F3A 100%)}
 .grid-overlay{position:fixed;inset:0;z-index:0;
   background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
     linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
@@ -81,24 +81,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
 .btn-ghost:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:var(--text)}
 
 /* PREVIEW */
-.preview-wrap{width:100%;max-width:980px;opacity:0;animation:fadeUp .8s ease .55s forwards;margin-bottom:56px}
+.preview-wrap{width:100%;max-width:1060px;opacity:0;animation:fadeUp .8s ease .55s forwards;margin-bottom:56px}
 .preview-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
-  color:var(--text-muted);margin-bottom:14px;text-align:center}
-.preview-window{background:rgba(10,24,48,.85);border:1px solid var(--border);border-radius:16px;
-  overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);backdrop-filter:blur(20px)}
-.preview-titlebar{display:flex;align-items:center;gap:10px;padding:12px 16px;
-  border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
-.tdots{display:flex;gap:6px}
-.tdot{width:10px;height:10px;border-radius:50%}
-.tdot.r{background:#FF5F57}.tdot.y{background:#FEBC2E}.tdot.g{background:#28C840}
-.turl{flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);
-  background:rgba(255,255,255,.05);border-radius:6px;padding:4px 12px;max-width:300px;margin:0 auto}
-.preview-tabs{display:flex;padding:10px 14px 0;gap:4px;border-bottom:1px solid var(--border);
-  background:rgba(8,18,38,.4)}
-.ptab{padding:6px 14px;font-size:11px;font-weight:500;border-radius:6px 6px 0 0;
+  color:var(--text-muted);margin-bottom:16px;text-align:center;display:flex;align-items:center;
+  justify-content:center;gap:8px}
+.preview-label::before,.preview-label::after{content:'';flex:1;height:1px;background:var(--border);max-width:80px}
+.preview-window{background:rgba(8,20,44,.9);border:1px solid rgba(74,143,255,.25);border-radius:20px;
+  overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06),
+  inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(20px)}
+/* Fake topbar nav inside preview */
+.preview-nav{display:flex;align-items:center;gap:0;padding:12px 18px;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.03)}
+.pnav-logo{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;margin-right:20px;white-space:nowrap}
+.pnav-logo span{color:var(--accent-glow)}
+.pnav-links{display:flex;gap:2px;flex:1}
+.pnav-item{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:500;color:var(--text-muted);white-space:nowrap}
+.pnav-item.active{background:rgba(46,111,216,.15);color:var(--accent-glow)}
+.pnav-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+.pnav-badge{background:rgba(46,111,216,.15);border:1px solid rgba(74,143,255,.25);border-radius:100px;
+  padding:3px 10px;font-size:9px;font-weight:600;color:var(--accent-glow);font-family:'DM Mono',monospace}
+.pnav-user{width:24px;height:24px;border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.preview-tabs{display:flex;padding:10px 18px 0;gap:4px;border-bottom:1px solid var(--border);
+  background:rgba(8,18,38,.3)}
+.ptab{padding:7px 16px;font-size:11px;font-weight:500;border-radius:6px 6px 0 0;
   color:var(--text-muted);cursor:pointer;transition:all .2s;border:1px solid transparent;border-bottom:none}
 .ptab.active{background:rgba(46,111,216,.15);color:var(--accent-glow);border-color:var(--border)}
-.preview-body{padding:16px 18px;min-height:340px}
+.preview-body{padding:18px 20px;min-height:300px}
 
 /* Diário preview */
 .prev-hbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -217,30 +226,57 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
 .footer-link{font-size:13px;color:var(--text-muted);text-decoration:none;transition:color .2s}
 .footer-link:hover{color:var(--accent-glow)}
 
-/* RESPONSIVE */
+
+/* ======= MOBILE ======= */
+.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;
+  flex-direction:column;gap:5px;align-items:center;justify-content:center}
+.ham-btn span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+.ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
 @media(max-width:900px){
   .features-grid{grid-template-columns:1fr 1fr}
-  .steps-row{flex-direction:column;align-items:center}
+  .steps-row{flex-direction:column;align-items:center;gap:28px}
   .steps-row::before{display:none}
   .modules-grid{grid-template-columns:1fr}
   .akpi{grid-template-columns:repeat(3,1fr)}
   .acharts{grid-template-columns:1fr}
+  .pnav-links .pnav-item:nth-child(n+4){display:none}
 }
 @media(max-width:768px){
-  .topbar{padding:16px 20px}
-  .nav-links{display:none}
-  .nav-cta{padding:8px 14px;font-size:12px}
-  .hero{padding:48px 20px 32px}
-  .features-grid{grid-template-columns:1fr}
-  .features-section,.how-section,.modules-section,.cta-section{padding:56px 20px}
-  .stats-strip{padding:40px 20px;gap:32px}
-  .stat-sep{display:none}
-  .footer{padding:20px;flex-direction:column;align-items:center;text-align:center}
+  /* Nav */
+  .topbar{padding:14px 20px}
+  .nav-links{display:none;position:fixed;top:62px;left:0;right:0;bottom:0;
+    background:rgba(15,39,68,.98);flex-direction:column;padding:20px;gap:6px;z-index:200;overflow-y:auto}
+  .nav-links.open{display:flex}
+  .nav-link{font-size:16px;padding:14px 18px;border-radius:12px}
+  .nav-cta{font-size:13px;padding:8px 16px}
+  .ham-btn{display:flex}
+  /* Hero */
+  .hero{padding:40px 20px 28px}
+  .hero-btns{flex-direction:column;align-items:center}
+  .btn-primary,.btn-ghost{width:100%;max-width:320px;justify-content:center;font-size:15px;padding:14px 24px}
+  /* Preview */
+  .pnav-links{display:none}
+  .pnav-badge{display:none}
+  .preview-body{padding:12px 14px}
+  .prev-sel:nth-child(n+3){display:none}
+  .prev-table th:nth-child(n+5),.prev-table td:nth-child(n+5){display:none}
   .akpi{grid-template-columns:repeat(2,1fr)}
-  .prev-hbar{gap:6px}
-  .preview-wrap{overflow-x:auto}
-  .cta-box{padding:40px 24px}
-  .how-step{padding:0 8px}
+  .acharts{grid-template-columns:1fr}
+  /* Sections */
+  .features-grid{grid-template-columns:1fr}
+  .features-section,.how-section,.modules-section,.cta-section{padding:48px 20px}
+  .stats-strip{padding:36px 20px;gap:28px}
+  .stat-num{font-size:30px}
+  .stat-sep{display:none}
+  .how-step{padding:0 4px;width:100%;max-width:300px}
+  .mod-card{flex-direction:column;gap:12px}
+  .cta-btns{flex-direction:column;align-items:center}
+  .cta-btns .btn-primary,.cta-btns .btn-ghost{width:100%;max-width:320px;justify-content:center}
+  .footer{padding:20px;flex-direction:column;align-items:center;text-align:center;gap:14px}
+  .footer-links{flex-wrap:wrap;justify-content:center;gap:12px}
 }
 </style>
 </head>
@@ -257,7 +293,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
     <div class="logo-icon">📋</div>
     <div class="logo-text">Licita<span>Tracker</span></div>
   </a>
-  <nav class="nav-links">
+  <button class="ham-btn" id="ham-btn" onclick="toggleHam()">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="nav-links" id="main-nav">
     <a href="#funcionalidades" class="nav-link">Funcionalidades</a>
     <a href="#como-funciona" class="nav-link">Como Funciona</a>
     <a href="#modulos" class="nav-link">Módulos</a>
@@ -296,20 +335,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
 
   <!-- SISTEMA PREVIEW -->
   <div class="preview-wrap">
-    <div class="preview-label">Sistema em uso — dados reais do PNCP</div>
+    <div class="preview-label">Preview do sistema — dados reais do PNCP</div>
     <div class="preview-window">
-      <div class="preview-titlebar">
-        <div class="tdots"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div></div>
-        <div class="turl">www.licitatracker.com.br/licitatracker-diario.html</div>
-        <div style="font-size:9px;color:var(--green);display:flex;align-items:center;gap:4px">
-          <div class="live-dot"></div> PNCP Live
+      <!-- Fake topbar nav — replica o sistema real -->
+      <div class="preview-nav">
+        <div class="pnav-logo">Licita<span>Tracker</span></div>
+        <div class="pnav-links">
+          <div class="pnav-item active" id="pnav-diario" onclick="showTab('diario',document.querySelectorAll('.ptab')[0]);setPnavActive('pnav-diario')">📰 Diário</div>
+          <div class="pnav-item" id="pnav-favoritos" onclick="showTab('favoritos',document.querySelectorAll('.ptab')[1]);setPnavActive('pnav-favoritos')">⭐ Favoritos</div>
+          <div class="pnav-item" id="pnav-analytics" onclick="showTab('analytics',document.querySelectorAll('.ptab')[2]);setPnavActive('pnav-analytics')">📊 Analytics</div>
+          <div class="pnav-item">💰 Conta Corrente</div>
+          <div class="pnav-item">⚙️ Config</div>
+        </div>
+        <div class="pnav-right">
+          <div class="pnav-badge">4.658 editais</div>
+          <div class="pnav-user">W</div>
         </div>
       </div>
-      <!-- Tabs -->
+      <!-- Tabs de conteúdo -->
       <div class="preview-tabs">
-        <div class="ptab active" onclick="showTab('diario',this)">📰 Diário</div>
-        <div class="ptab" onclick="showTab('favoritos',this)">⭐ Favoritos</div>
-        <div class="ptab" onclick="showTab('analytics',this)">📊 Analytics</div>
+        <div class="ptab active" onclick="showTab('diario',this);setPnavActive('pnav-diario')">📰 Diário</div>
+        <div class="ptab" onclick="showTab('favoritos',this);setPnavActive('pnav-favoritos')">⭐ Favoritos</div>
+        <div class="ptab" onclick="showTab('analytics',this);setPnavActive('pnav-analytics')">📊 Analytics</div>
       </div>
       <!-- TAB: Diário -->
       <div class="preview-body" id="tab-diario">
@@ -615,6 +662,29 @@ function showTab(id, el) {
   document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
 }
+
+// Nav active in preview
+function setPnavActive(activeId) {
+  ['pnav-diario','pnav-favoritos','pnav-analytics'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === activeId);
+  });
+}
+
+// Hamburger menu
+function toggleHam() {
+  const nav = document.getElementById('main-nav');
+  const btn = document.getElementById('ham-btn');
+  nav.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const nav = document.getElementById('main-nav');
+  const btn = document.getElementById('ham-btn');
+  if (nav && !nav.contains(e.target) && btn && !btn.contains(e.target)) {
+    nav.classList.remove('open'); btn.classList.remove('open');
+  }
+});
 
 // Smooth scroll for nav links
 document.querySelectorAll('a[href^="#"]').forEach(a => {
