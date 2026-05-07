@@ -3,534 +3,627 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Licita Tracker — Em Breve</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>LicitaTracker — Monitore, Acompanhe e Vença Licitações</title>
+<meta name="description" content="Plataforma inteligente para monitorar editais do PNCP, acompanhar pregões e gerenciar contratos. Dados oficiais, alertas em tempo real.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy:       #0B1F3A;
-    --navy-mid:   #112B50;
-    --navy-light: #1A3F72;
-    --accent:     #2E6FD8;
-    --accent-glow:#4A8FFF;
-    --gold:       #F0B429;
-    --green:      #22C55E;
-    --red:        #EF4444;
-    --text:       #FFFFFF;
-    --text-muted: rgba(255,255,255,0.55);
-    --text-soft:  rgba(255,255,255,0.80);
-    --border:     rgba(255,255,255,0.10);
-    --card:       rgba(255,255,255,0.05);
-    --radius:     14px;
-  }
+:root{
+  --navy:#0B1F3A;--navy-mid:#112B50;--navy-light:#1A3F72;
+  --accent:#2E6FD8;--accent-glow:#4A8FFF;--gold:#F0B429;--green:#22C55E;--red:#EF4444;
+  --text:#FFFFFF;--text-muted:rgba(255,255,255,.55);--text-soft:rgba(255,255,255,.80);
+  --border:rgba(255,255,255,.10);--card:rgba(255,255,255,.05);--radius:14px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden}
+.bg-layer{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 80% 60% at 15% 20%,rgba(46,111,216,.18) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 80% at 85% 75%,rgba(26,63,114,.25) 0%,transparent 60%),
+  linear-gradient(160deg,#0B1F3A 0%,#0D2542 50%,#081526 100%)}
+.grid-overlay{position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 90% 90% at center,black 30%,transparent 100%)}
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;border-radius:50%;background:rgba(74,143,255,.35);animation:float linear infinite}
+@keyframes float{0%{transform:translateY(110vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.6}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.wrapper{position:relative;z-index:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 6px currentColor}50%{opacity:.3;box-shadow:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--navy);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* NAV */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:24px 48px;
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);
+  background:rgba(11,31,58,.85);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:14px;text-decoration:none}
+.logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--navy-light));
+  border:1px solid rgba(74,143,255,.4);display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:0 0 20px rgba(46,111,216,.35)}
+.logo-text{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.logo-text span{color:var(--accent-glow)}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-link{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);
+  text-decoration:none;transition:all .15s}
+.nav-link:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.nav-cta{background:var(--accent);color:white!important;border-radius:8px;
+  padding:8px 20px;font-weight:600;font-size:13px;transition:all .2s;text-decoration:none;display:flex;align-items:center;gap:6px}
+.nav-cta:hover{background:#3B7FE8;transform:translateY(-1px);box-shadow:0 4px 20px rgba(46,111,216,.4)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
 
-  .bg-layer {
-    position: fixed; inset: 0; z-index: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 15% 20%, rgba(46,111,216,0.18) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 85% 75%, rgba(26,63,114,0.25) 0%, transparent 60%),
-      linear-gradient(160deg, #0B1F3A 0%, #0D2542 50%, #081526 100%);
-  }
-  .grid-overlay {
-    position: fixed; inset: 0; z-index: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse 90% 90% at center, black 30%, transparent 100%);
-  }
-  .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-  .particle {
-    position: absolute; border-radius: 50%;
-    background: rgba(74,143,255,0.35);
-    animation: float linear infinite;
-  }
-  @keyframes float {
-    0%   { transform: translateY(110vh) scale(0); opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 0.6; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-  }
+/* HERO */
+.hero{padding:90px 48px 60px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--accent-glow);margin-bottom:24px;
+  opacity:0;animation:fadeUp .7s ease .1s forwards}
+.eyebrow-line{width:32px;height:1px;background:var(--accent-glow);opacity:.6}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(38px,6vw,76px);font-weight:800;
+  line-height:1.06;letter-spacing:-.03em;margin-bottom:12px;
+  opacity:0;animation:fadeUp .7s ease .25s forwards}
+.hero-title .hi{background:linear-gradient(90deg,var(--accent-glow),#89BFFF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-family:'Playfair Display',serif;font-size:clamp(18px,2.5vw,28px);font-weight:400;
+  font-style:italic;color:var(--text-muted);margin-bottom:24px;
+  opacity:0;animation:fadeUp .7s ease .35s forwards}
+.hero-desc{max-width:580px;font-size:16px;line-height:1.75;color:var(--text-soft);margin-bottom:40px;
+  opacity:0;animation:fadeUp .7s ease .45s forwards}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:56px;
+  opacity:0;animation:fadeUp .7s ease .5s forwards}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-glow));color:white;
+  border:none;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;
+  text-decoration:none;display:flex;align-items:center;gap:8px;transition:all .2s;
+  box-shadow:0 4px 24px rgba(46,111,216,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(46,111,216,.5)}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-soft);
+  border-radius:12px;padding:14px 28px;font-size:15px;font-weight:500;cursor:pointer;
+  text-decoration:none;display:flex;align-items:center;gap:8px;transition:all .2s}
+.btn-ghost:hover{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:var(--text)}
 
-  .wrapper {
-    position: relative; z-index: 1;
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-  }
+/* PREVIEW */
+.preview-wrap{width:100%;max-width:980px;opacity:0;animation:fadeUp .8s ease .55s forwards;margin-bottom:56px}
+.preview-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text-muted);margin-bottom:14px;text-align:center}
+.preview-window{background:rgba(10,24,48,.85);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);backdrop-filter:blur(20px)}
+.preview-titlebar{display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.tdots{display:flex;gap:6px}
+.tdot{width:10px;height:10px;border-radius:50%}
+.tdot.r{background:#FF5F57}.tdot.y{background:#FEBC2E}.tdot.g{background:#28C840}
+.turl{flex:1;text-align:center;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);
+  background:rgba(255,255,255,.05);border-radius:6px;padding:4px 12px;max-width:300px;margin:0 auto}
+.preview-tabs{display:flex;padding:10px 14px 0;gap:4px;border-bottom:1px solid var(--border);
+  background:rgba(8,18,38,.4)}
+.ptab{padding:6px 14px;font-size:11px;font-weight:500;border-radius:6px 6px 0 0;
+  color:var(--text-muted);cursor:pointer;transition:all .2s;border:1px solid transparent;border-bottom:none}
+.ptab.active{background:rgba(46,111,216,.15);color:var(--accent-glow);border-color:var(--border)}
+.preview-body{padding:16px 18px;min-height:340px}
 
-  /* TOPBAR */
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 28px 48px;
-  }
-  .logo { display: flex; align-items: center; gap: 14px; }
-  .logo-icon {
-    width: 44px; height: 44px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), var(--navy-light));
-    border: 1px solid rgba(74,143,255,0.4);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; box-shadow: 0 0 20px rgba(46,111,216,0.35);
-  }
-  .logo-text { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; letter-spacing:-0.01em; }
-  .logo-text span { color: var(--accent-glow); }
-  .status-pill {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(240,180,41,0.12); border: 1px solid rgba(240,180,41,0.30);
-    border-radius: 100px; padding: 7px 16px 7px 12px;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--gold);
-  }
-  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--gold); animation:blink 1.8s ease-in-out infinite; }
-  @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 6px var(--gold)} 50%{opacity:0.3;box-shadow:none} }
+/* Diário preview */
+.prev-hbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.prev-search{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;
+  padding:7px 12px;font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.prev-sel{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;
+  padding:7px 10px;font-size:10px;color:var(--text-muted)}
+.prev-table{width:100%;border-collapse:collapse;font-size:10px}
+.prev-table th{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);
+  padding:6px 8px;border-bottom:1px solid var(--border);text-align:left}
+.prev-table td{padding:8px 8px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text-soft)}
+.prev-table tr:last-child td{border-bottom:none}
+.prev-table tr:hover td{background:rgba(255,255,255,.03)}
+.uf-badge{display:inline-block;background:rgba(46,111,216,.15);color:#7EB5FF;
+  border-radius:4px;padding:1px 5px;font-size:8px;font-weight:700}
+.pncp-link{color:var(--accent-glow);font-size:9px;text-decoration:none}
+.prev-status{display:inline-block;padding:2px 7px;border-radius:100px;font-size:8px;font-weight:600}
+.ps-fav{background:rgba(240,180,41,.12);color:var(--gold)}
+.ps-and{background:rgba(46,111,216,.15);color:#7EB5FF}
+.ps-gan{background:rgba(34,197,94,.12);color:#86EFAC}
+.btn-sm{padding:3px 9px;border-radius:5px;font-size:9px;font-weight:600;border:none;cursor:pointer}
+.btn-star{background:rgba(240,180,41,.15);color:var(--gold)}
+.btn-plus{background:var(--accent);color:white}
 
-  /* HERO */
-  .hero {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center; padding: 40px 24px 48px;
-  }
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--accent-glow);
-    margin-bottom: 28px; opacity:0; animation: fadeUp 0.7s ease 0.1s forwards;
-  }
-  .eyebrow-line { width:32px; height:1px; background:var(--accent-glow); opacity:0.6; }
-  .hero-title {
-    font-family:'Playfair Display',serif;
-    font-size: clamp(42px,7vw,88px); font-weight:700;
-    line-height:1.05; letter-spacing:-0.03em; margin-bottom:10px;
-    opacity:0; animation:fadeUp 0.7s ease 0.25s forwards;
-  }
-  .hero-title .highlight {
-    background: linear-gradient(90deg, var(--accent-glow), #89BFFF);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  }
-  .hero-sub {
-    font-family:'Playfair Display',serif;
-    font-size:clamp(20px,3vw,32px); font-weight:400; font-style:italic;
-    color:var(--text-muted); margin-bottom:28px;
-    opacity:0; animation:fadeUp 0.7s ease 0.35s forwards;
-  }
-  .hero-desc {
-    max-width:560px; font-size:16px; line-height:1.75;
-    color:var(--text-soft); margin-bottom:44px;
-    opacity:0; animation:fadeUp 0.7s ease 0.45s forwards;
-  }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+/* Analytics preview */
+.akpi{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
+.akcard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.akval{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;line-height:1;margin-bottom:3px}
+.aklbl{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.ak-blue{color:var(--accent-glow)}.ak-gold{color:var(--gold)}.ak-green{color:var(--green)}.ak-red{color:#FCA5A5}.ak-purple{color:#C4B5FD}
+.acharts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.achart{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.achart h5{font-size:9px;font-weight:700;color:var(--text-soft);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.funnel-mini{display:flex;flex-direction:column;gap:5px}
+.fm-row{display:flex;align-items:center;gap:6px}
+.fm-lbl{font-size:9px;color:var(--text-soft);width:68px}
+.fm-track{flex:1;height:14px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.fm-fill{height:100%;border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:5px}
+.fm-fill span{font-size:8px;font-weight:700;color:white}
+.fm-pct{font-size:8px;color:var(--text-muted);width:24px;text-align:right}
 
-  /* ===== DASHBOARD PREVIEW ===== */
-  .dashboard-preview {
-    width:100%; max-width:960px;
-    opacity:0; animation:fadeUp 0.8s ease 0.55s forwards;
-    margin-bottom:44px;
-  }
-  .preview-label {
-    font-size:11px; font-weight:600; text-transform:uppercase;
-    letter-spacing:0.12em; color:var(--text-muted);
-    margin-bottom:14px; text-align:center;
-  }
-  .preview-window {
-    background:rgba(10,24,48,0.85);
-    border:1px solid var(--border); border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
-    backdrop-filter:blur(20px);
-  }
-  .preview-titlebar {
-    display:flex; align-items:center; gap:10px;
-    padding:12px 16px; border-bottom:1px solid var(--border);
-    background:rgba(255,255,255,0.02);
-  }
-  .titlebar-dots { display:flex; gap:6px; }
-  .tdot { width:10px; height:10px; border-radius:50%; }
-  .tdot.r{background:#FF5F57} .tdot.y{background:#FEBC2E} .tdot.g{background:#28C840}
-  .titlebar-url {
-    flex:1; text-align:center;
-    font-family:'DM Mono',monospace; font-size:11px; color:var(--text-muted);
-    background:rgba(255,255,255,0.05); border-radius:6px;
-    padding:4px 12px; max-width:280px; margin:0 auto;
-  }
+/* STATS STRIP */
+.stats-strip{padding:56px 48px;display:flex;align-items:center;justify-content:center;
+  gap:64px;flex-wrap:wrap;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.stat-item{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.stat-num{font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:var(--accent-glow);line-height:1}
+.stat-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+.stat-sep{width:1px;height:52px;background:var(--border)}
 
-  .preview-inner { display:grid; grid-template-columns:160px 1fr; height:420px; }
+/* FEATURES */
+.features-section{padding:80px 48px}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--accent-glow);text-align:center;margin-bottom:10px}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,44px);font-weight:800;
+  text-align:center;margin-bottom:10px;line-height:1.1}
+.sec-sub{font-size:16px;color:var(--text-muted);text-align:center;margin-bottom:56px;max-width:560px;margin-left:auto;margin-right:auto}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+.feat-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;
+  padding:28px 26px;transition:all .25s;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,
+  rgba(46,111,216,.08) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+.feat-card:hover{border-color:rgba(74,143,255,.3);transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.feat-card:hover::before{opacity:1}
+.feat-icon{width:48px;height:48px;border-radius:12px;background:rgba(46,111,216,.15);
+  border:1px solid rgba(74,143,255,.2);display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:16px}
+.feat-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.feat-desc{font-size:13px;color:var(--text-muted);line-height:1.6}
+.feat-list{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:5px}
+.feat-list li{font-size:12px;color:var(--text-soft);display:flex;align-items:flex-start;gap:7px}
+.feat-list li::before{content:'→';color:var(--accent-glow);font-size:11px;margin-top:1px;flex-shrink:0}
 
-  /* mini sidebar */
-  .mini-sidebar {
-    border-right:1px solid var(--border); padding:14px 10px;
-    display:flex; flex-direction:column; gap:4px;
-    background:rgba(8,18,38,0.6);
-  }
-  .mini-logo {
-    display:flex; align-items:center; gap:8px;
-    padding:0 4px 12px; border-bottom:1px solid var(--border); margin-bottom:8px;
-  }
-  .mini-logo-icon {
-    width:26px; height:26px; border-radius:6px;
-    background:linear-gradient(135deg,var(--accent),var(--navy-light));
-    display:flex; align-items:center; justify-content:center; font-size:13px;
-  }
-  .mini-logo-text { font-family:'Playfair Display',serif; font-size:13px; font-weight:700; }
-  .mini-logo-text span { color:var(--accent-glow); }
-  .mini-nav-item {
-    display:flex; align-items:center; gap:8px;
-    padding:7px 8px; border-radius:6px;
-    font-size:11px; font-weight:500; color:var(--text-muted);
-  }
-  .mini-nav-item.active {
-    background:rgba(46,111,216,0.18); color:var(--accent-glow);
-    border:1px solid rgba(74,143,255,0.2);
-  }
-  .mini-nav-item .ni { font-size:12px; width:16px; }
-  .mini-badge { margin-left:auto; background:var(--accent); font-size:9px; font-weight:700; padding:1px 5px; border-radius:100px; color:white; }
+/* HOW IT WORKS */
+.how-section{padding:80px 48px;background:rgba(255,255,255,.02);border-top:1px solid var(--border)}
+.steps-row{display:flex;gap:0;max-width:1000px;margin:0 auto;position:relative}
+.steps-row::before{content:'';position:absolute;top:24px;left:calc(50px + 28px);
+  right:calc(50px + 28px);height:1px;background:linear-gradient(90deg,var(--accent),var(--accent-glow));opacity:.3}
+.how-step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 16px}
+.how-num{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-glow));
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;
+  margin-bottom:16px;position:relative;z-index:1;box-shadow:0 0 20px rgba(46,111,216,.4)}
+.how-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.how-desc{font-size:12px;color:var(--text-muted);line-height:1.5}
 
-  /* main panel */
-  .preview-main { overflow:hidden; display:flex; flex-direction:column; }
-  .preview-topbar {
-    height:44px; border-bottom:1px solid var(--border);
-    display:flex; align-items:center; padding:0 16px; gap:10px;
-    background:rgba(255,255,255,0.02);
-  }
-  .preview-topbar-title { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; }
-  .online-badge {
-    display:flex; align-items:center; gap:5px;
-    background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.25);
-    border-radius:100px; padding:3px 8px;
-    font-size:10px; font-weight:600; color:var(--green);
-  }
-  .dot-g { width:5px; height:5px; border-radius:50%; background:var(--green); animation:blink 2s infinite; }
-  .preview-topbar-right { margin-left:auto; display:flex; gap:6px; }
-  .mini-icon-btn {
-    width:28px; height:28px; border-radius:6px;
-    background:var(--card); border:1px solid var(--border);
-    display:flex; align-items:center; justify-content:center; font-size:12px;
-  }
+/* MODULES */
+.modules-section{padding:80px 48px}
+.modules-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:1000px;margin:0 auto}
+.mod-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;
+  padding:22px 24px;display:flex;gap:18px;align-items:flex-start;transition:all .2s}
+.mod-card:hover{border-color:rgba(74,143,255,.3);background:rgba(255,255,255,.06)}
+.mod-icon-wrap{width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+.mod-body h4{font-size:15px;font-weight:700;margin-bottom:5px}
+.mod-body p{font-size:13px;color:var(--text-muted);line-height:1.5}
+.mod-badge{display:inline-block;background:rgba(74,143,255,.12);border:1px solid rgba(74,143,255,.2);
+  color:var(--accent-glow);border-radius:100px;padding:2px 8px;font-size:10px;font-weight:600;margin-top:8px}
 
-  .preview-content { padding:12px 14px; flex:1; overflow:hidden; }
+/* CTA SECTION */
+.cta-section{padding:100px 48px;text-align:center}
+.cta-box{background:linear-gradient(135deg,rgba(46,111,216,.2),rgba(26,63,114,.3));
+  border:1px solid rgba(74,143,255,.3);border-radius:24px;padding:64px 48px;
+  max-width:760px;margin:0 auto;position:relative;overflow:hidden}
+.cta-box::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(46,111,216,.15),transparent);pointer-events:none}
+.cta-title{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,44px);font-weight:800;margin-bottom:14px;line-height:1.1}
+.cta-sub{font-size:16px;color:var(--text-muted);margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
-  /* KPIs */
-  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:10px; }
-  .kpi-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
-  .kpi-val { font-family:'DM Mono',monospace; font-size:18px; font-weight:500; line-height:1; letter-spacing:-0.02em; margin-bottom:3px; }
-  .kpi-label { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
-  .kpi-delta { font-size:9px; font-weight:600; margin-top:2px; }
-  .kpi-delta.up{color:var(--green)} .kpi-delta.warn{color:var(--gold)}
+/* FOOTER */
+.footer{padding:32px 48px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:13px;color:var(--text-muted)}
+.footer-copy span{color:var(--accent-glow);font-weight:500}
+.footer-links{display:flex;gap:24px}
+.footer-link{font-size:13px;color:var(--text-muted);text-decoration:none;transition:color .2s}
+.footer-link:hover{color:var(--accent-glow)}
 
-  /* bottom grid */
-  .preview-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; height:230px; }
-  .mini-card { background:var(--card); border:1px solid var(--border); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; }
-  .mini-card-header {
-    padding:8px 10px; border-bottom:1px solid var(--border);
-    font-size:10px; font-weight:600; color:var(--text-soft);
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .mini-card-header span { font-size:9px; color:var(--text-muted); }
-  .mini-card-body { padding:8px 10px; flex:1; overflow:hidden; }
-
-  .mini-bars { display:flex; flex-direction:column; gap:5px; margin-top:2px; }
-  .mini-bar-row { display:flex; align-items:center; gap:6px; }
-  .mini-bar-lbl { font-size:9px; color:var(--text-soft); width:22px; text-align:right; }
-  .mini-bar-track { flex:1; height:5px; border-radius:100px; background:rgba(255,255,255,0.06); overflow:hidden; }
-  .mini-bar-fill { height:100%; border-radius:100px; background:linear-gradient(90deg,var(--accent),var(--accent-glow)); transition:width 1s cubic-bezier(.4,0,.2,1); }
-  .mini-bar-num { font-family:'DM Mono',monospace; font-size:9px; color:var(--text-muted); }
-
-  .mini-table { width:100%; border-collapse:collapse; }
-  .mini-table th {
-    font-size:8px; text-transform:uppercase; letter-spacing:0.08em;
-    color:var(--text-muted); padding:0 6px 5px; text-align:left;
-    border-bottom:1px solid var(--border);
-  }
-  .mini-table td {
-    padding:5px 6px; font-size:9px; color:var(--text-soft);
-    border-bottom:1px solid rgba(255,255,255,0.03);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px;
-  }
-  .mini-table tr:last-child td { border-bottom:none; }
-  .mini-badge-m { display:inline-block; padding:1px 5px; border-radius:100px; font-size:8px; font-weight:600; }
-  .mb-pregao {background:rgba(46,111,216,0.15);color:#7EB5FF}
-  .mb-dispensa{background:rgba(240,180,41,0.12);color:var(--gold)}
-  .mb-inexig {background:rgba(139,92,246,0.15);color:#C4B5FD}
-  .mb-credenc{background:rgba(34,197,94,0.10);color:#86EFAC}
-  .mb-conc   {background:rgba(239,68,68,0.10);color:#FCA5A5}
-  .prazo-pill { display:inline-block; padding:1px 5px; border-radius:100px; font-size:8px; font-weight:600; }
-  .pp-urgent{background:rgba(239,68,68,0.12);color:#FCA5A5}
-  .pp-ok    {background:rgba(240,180,41,0.12);color:var(--gold)}
-  .pp-far   {background:rgba(255,255,255,0.06);color:var(--text-muted)}
-
-  /* FEATURES */
-  .features {
-    opacity:0; animation:fadeUp 0.7s ease 0.65s forwards;
-    display:flex; gap:12px; justify-content:center;
-    flex-wrap:wrap; margin-bottom:52px; max-width:760px;
-  }
-  .feat-tag {
-    display:flex; align-items:center; gap:8px;
-    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10);
-    border-radius:100px; padding:8px 16px;
-    font-size:13px; font-weight:500; color:var(--text-soft); transition:all 0.2s;
-  }
-  .feat-tag:hover { background:rgba(46,111,216,0.15); border-color:rgba(74,143,255,0.35); color:var(--text); }
-  .feat-tag .icon { font-size:15px; }
-
-  /* DIVIDER */
-  .divider {
-    width:100%; max-width:900px; margin:0 auto; height:1px;
-    background:linear-gradient(90deg,transparent,var(--border) 30%,var(--border) 70%,transparent);
-    opacity:0; animation:fadeUp 0.7s ease 0.75s forwards;
-  }
-
-  /* INFO STRIP */
-  .info-strip {
-    padding:48px 48px; display:flex; align-items:center;
-    justify-content:center; gap:60px; flex-wrap:wrap;
-    opacity:0; animation:fadeUp 0.7s ease 0.85s forwards;
-  }
-  .info-item { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; }
-  .info-num { font-family:'Playfair Display',serif; font-size:36px; font-weight:700; color:var(--accent-glow); line-height:1; }
-  .info-label { font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); }
-  .info-sep { width:1px; height:48px; background:var(--border); }
-
-  /* FOOTER */
-  .footer {
-    padding:24px 48px; border-top:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between;
-    flex-wrap:wrap; gap:12px;
-    opacity:0; animation:fadeUp 0.7s ease 0.95s forwards;
-  }
-  .footer-copy { font-size:13px; color:var(--text-muted); }
-  .footer-copy span { color:var(--accent-glow); font-weight:500; }
-  .footer-links { display:flex; gap:24px; }
-  .footer-link { font-size:13px; color:var(--text-muted); text-decoration:none; transition:color 0.2s; }
-  .footer-link:hover { color:var(--accent-glow); }
-
-  @media (max-width:768px) {
-    .topbar { padding:20px 24px; }
-    .logo-text { font-size:18px; }
-    .mini-sidebar { display:none; }
-    .preview-inner { grid-template-columns:1fr; }
-    .kpi-row { grid-template-columns:repeat(2,1fr); }
-    .preview-grid { grid-template-columns:1fr; height:auto; }
-    .info-strip { padding:32px 24px; gap:32px; }
-    .info-sep { display:none; }
-    .footer { padding:20px 24px; flex-direction:column; align-items:center; text-align:center; }
-  }
+/* RESPONSIVE */
+@media(max-width:900px){
+  .features-grid{grid-template-columns:1fr 1fr}
+  .steps-row{flex-direction:column;align-items:center}
+  .steps-row::before{display:none}
+  .modules-grid{grid-template-columns:1fr}
+  .akpi{grid-template-columns:repeat(3,1fr)}
+  .acharts{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .topbar{padding:16px 20px}
+  .nav-links{display:none}
+  .nav-cta{padding:8px 14px;font-size:12px}
+  .hero{padding:48px 20px 32px}
+  .features-grid{grid-template-columns:1fr}
+  .features-section,.how-section,.modules-section,.cta-section{padding:56px 20px}
+  .stats-strip{padding:40px 20px;gap:32px}
+  .stat-sep{display:none}
+  .footer{padding:20px;flex-direction:column;align-items:center;text-align:center}
+  .akpi{grid-template-columns:repeat(2,1fr)}
+  .prev-hbar{gap:6px}
+  .preview-wrap{overflow-x:auto}
+  .cta-box{padding:40px 24px}
+  .how-step{padding:0 8px}
+}
 </style>
 </head>
 <body>
-
 <div class="bg-layer"></div>
 <div class="grid-overlay"></div>
 <div class="particles" id="particles"></div>
 
 <div class="wrapper">
 
-  <header class="topbar">
-    <div class="logo">
-      <div class="logo-icon">📋</div>
-      <div class="logo-text">Licita<span>Tracker</span></div>
-    </div>
-    <div class="status-pill">
-      <div class="status-dot"></div>
-      Em Desenvolvimento
-    </div>
-  </header>
+<!-- NAV -->
+<header class="topbar">
+  <a href="#" class="logo">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">Licita<span>Tracker</span></div>
+  </a>
+  <nav class="nav-links">
+    <a href="#funcionalidades" class="nav-link">Funcionalidades</a>
+    <a href="#como-funciona" class="nav-link">Como Funciona</a>
+    <a href="#modulos" class="nav-link">Módulos</a>
+    <a href="https://www.licitatracker.com.br/ajuda.html" class="nav-link">Ajuda</a>
+  </nav>
+  <a href="https://www.licitatracker.com.br/login.html" class="nav-cta">
+    <div class="live-dot"></div>
+    Acessar o Sistema
+  </a>
+</header>
 
-  <main class="hero">
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">
+    <div class="eyebrow-line"></div>
+    Plataforma de Monitoramento de Licitações · PNCP Oficial
+    <div class="eyebrow-line"></div>
+  </div>
+  <h1 class="hero-title">
+    Rastreie. Acompanhe.<br><span class="hi">Vença Licitações.</span>
+  </h1>
+  <p class="hero-sub">Inteligência competitiva para o mercado público</p>
+  <p class="hero-desc">
+    O <strong>LicitaTracker</strong> monitora editais do PNCP e portais públicos com cargas diárias,
+    organiza sua esteira de propostas e centraliza contratos ganhos —
+    tudo em uma única plataforma acessível de qualquer lugar.
+  </p>
+  <div class="hero-btns">
+    <a href="https://www.licitatracker.com.br/login.html" class="btn-primary">
+      ▶ Acessar o Sistema Agora
+    </a>
+    <a href="#funcionalidades" class="btn-ghost">
+      📋 Ver Funcionalidades
+    </a>
+  </div>
 
-    <div class="eyebrow">
-      <div class="eyebrow-line"></div>
-      Plataforma de Monitoramento de Licitações
-      <div class="eyebrow-line"></div>
-    </div>
-
-    <h1 class="hero-title">
-      Algo grande<br>está <span class="highlight">chegando</span>
-    </h1>
-
-    <p class="hero-sub">Rastreie. Analise. Vença.</p>
-
-    <p class="hero-desc">
-      O <strong>Licita Tracker</strong> é o sistema inteligente para monitorar editais,
-      acompanhar prazos e gerenciar oportunidades do PNCP e portais públicos,
-      tudo em um único lugar.
-    </p>
-
-    <!-- PREVIEW DO SISTEMA -->
-    <div class="dashboard-preview">
-      <div class="preview-label">Preview do sistema</div>
-      <div class="preview-window">
-
-        <div class="preview-titlebar">
-          <div class="titlebar-dots">
-            <div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div>
-          </div>
-          <div class="titlebar-url">app.licitatracker.com.br</div>
+  <!-- SISTEMA PREVIEW -->
+  <div class="preview-wrap">
+    <div class="preview-label">Sistema em uso — dados reais do PNCP</div>
+    <div class="preview-window">
+      <div class="preview-titlebar">
+        <div class="tdots"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div></div>
+        <div class="turl">www.licitatracker.com.br/licitatracker-diario.html</div>
+        <div style="font-size:9px;color:var(--green);display:flex;align-items:center;gap:4px">
+          <div class="live-dot"></div> PNCP Live
         </div>
-
-        <div class="preview-inner">
-
-          <!-- sidebar -->
-          <div class="mini-sidebar">
-            <div class="mini-logo">
-              <div class="mini-logo-icon">📋</div>
-              <div class="mini-logo-text">Licita<span>T</span></div>
-            </div>
-            <div class="mini-nav-item active"><span class="ni">🏠</span> Dashboard</div>
-            <div class="mini-nav-item"><span class="ni">🔍</span> Editais <span class="mini-badge">61</span></div>
-            <div class="mini-nav-item"><span class="ni">⭐</span> Monitorados</div>
-            <div class="mini-nav-item"><span class="ni">📅</span> Calendário</div>
-            <div class="mini-nav-item"><span class="ni">📊</span> Relatórios</div>
-            <div class="mini-nav-item"><span class="ni">🔔</span> Alertas <span class="mini-badge">3</span></div>
+      </div>
+      <!-- Tabs -->
+      <div class="preview-tabs">
+        <div class="ptab active" onclick="showTab('diario',this)">📰 Diário</div>
+        <div class="ptab" onclick="showTab('favoritos',this)">⭐ Favoritos</div>
+        <div class="ptab" onclick="showTab('analytics',this)">📊 Analytics</div>
+      </div>
+      <!-- TAB: Diário -->
+      <div class="preview-body" id="tab-diario">
+        <div class="prev-hbar">
+          <div class="prev-search">🔍 <span style="opacity:.5">Buscar objeto, órgão, PNCP...</span></div>
+          <div class="prev-sel">📅 ter, 05 de mai. (4658) ▾</div>
+          <div class="prev-sel">UF: Todas ▾</div>
+          <div class="prev-sel">📦 Produto: Todos ▾</div>
+        </div>
+        <table class="prev-table">
+          <thead><tr><th>Nº PNCP</th><th>Objeto</th><th>Data</th><th>N° Pregão</th><th>Órgão</th><th>UF</th><th>Total</th><th>Ações</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)"><div style="font-size:7px;color:var(--text-muted)">1/4658</div>95422846000126...</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Contratação de empresa para palestra de capacitação de enfermagem</td><td>15/05/2026 10:15</td><td style="font-weight:700;color:var(--accent-glow)">PE 36/2026</td><td style="color:var(--text-muted)">MUNICIPIO DE ITAPERUCU</td><td><span class="uf-badge">PR</span></td><td style="color:var(--green);font-family:'DM Mono',monospace;font-weight:700">R$5.133,33</td><td><button class="btn-sm btn-star">⭐</button> <button class="btn-sm btn-plus">＋</button></td></tr>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)"><div style="font-size:7px;color:var(--text-muted)">2/4658</div>71480560000139...</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Aquisição de café torrado e moído para atender secretaria da saúde</td><td>14/05/2026 09:45</td><td style="font-weight:700;color:var(--accent-glow)">PCE 56/2026</td><td style="color:var(--text-muted)">MUNICIPIO DE ARARANGUA</td><td><span class="uf-badge">SC</span></td><td style="color:var(--green);font-family:'DM Mono',monospace;font-weight:700">R$239.200,00</td><td><button class="btn-sm btn-star">⭐</button> <button class="btn-sm btn-plus">＋</button></td></tr>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)"><div style="font-size:7px;color:var(--text-muted)">3/4658</div>45656872000179...</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Pregão Eletrônico nº 035/2026 — registro de preços pelo período de 12 meses para café</td><td>14/05/2026 05:59</td><td style="font-weight:700;color:var(--accent-glow)">PE 45/2026</td><td style="color:var(--text-muted)">MUNICIPIO DE REGISTRO</td><td><span class="uf-badge">SP</span></td><td style="color:var(--text-muted)">—</td><td><button class="btn-sm btn-star">⭐</button> <button class="btn-sm btn-plus">＋</button></td></tr>
+            <tr><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)"><div style="font-size:7px;color:var(--text-muted)">4/4658</div>04755519000130...</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Contratação de empresa especializada para fornecimento de café — Fundação Instituto</td><td>13/05/2026 05:00</td><td style="font-weight:700;color:var(--accent-glow)">PE 76/2026</td><td style="color:var(--text-muted)">FUNDACAO INSTITUTO POLO</td><td><span class="uf-badge">SP</span></td><td style="color:var(--green);font-family:'DM Mono',monospace;font-weight:700">R$13.980,00</td><td><button class="btn-sm btn-star">⭐</button> <button class="btn-sm btn-plus">＋</button></td></tr>
+          </tbody>
+        </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:10px;color:var(--text-muted)">
+          <span>Mostrando 1–4 de 4.658 editais</span>
+          <div style="display:flex;gap:4px"><div style="padding:2px 8px;background:var(--accent);border-radius:4px;font-size:9px">1</div><div style="padding:2px 8px;background:var(--card);border-radius:4px;font-size:9px">2</div><div style="padding:2px 8px;background:var(--card);border-radius:4px;font-size:9px">3</div></div>
+        </div>
+      </div>
+      <!-- TAB: Favoritos -->
+      <div class="preview-body" id="tab-favoritos" style="display:none">
+        <div style="display:flex;gap:12px;margin-bottom:14px">
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+            <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--accent-glow)">13</div>
+            <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-top:2px">Total</div>
           </div>
-
-          <!-- main -->
-          <div class="preview-main">
-            <div class="preview-topbar">
-              <div class="preview-topbar-title">Dashboard</div>
-              <div class="online-badge"><div class="dot-g"></div> PNCP Online</div>
-              <div class="preview-topbar-right">
-                <div class="mini-icon-btn">🔍</div>
-                <div class="mini-icon-btn">🔔</div>
-              </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+            <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--gold)">7</div>
+            <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-top:2px">Favoritos</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+            <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:#7EB5FF">4</div>
+            <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-top:2px">Andamento</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center">
+            <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--green)">2</div>
+            <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-top:2px">Ganhos</div>
+          </div>
+        </div>
+        <table class="prev-table">
+          <thead><tr><th>Status</th><th>Nº PNCP</th><th>Objeto</th><th>Órgão</th><th>UF</th><th>Produto</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td><span class="prev-status ps-and">▶ Andamento</span></td><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)">95422846...</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Palestra capacitação enfermagem</td><td style="color:var(--text-muted)">MUNICIPIO ITAPERUCU</td><td><span class="uf-badge">PR</span></td><td style="color:var(--green)">Palestra</td><td style="color:var(--green);font-family:'DM Mono',monospace">R$5.133</td></tr>
+            <tr><td><span class="prev-status ps-gan">🏆 Ganho</span></td><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)">45656872...</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Café torrado e moído — registro de preços</td><td style="color:var(--text-muted)">MUNICIPIO DE REGISTRO</td><td><span class="uf-badge">SP</span></td><td style="color:var(--green)">Café</td><td style="color:var(--green);font-family:'DM Mono',monospace">R$71.131</td></tr>
+            <tr><td><span class="prev-status ps-fav">⭐ Favorito</span></td><td style="font-family:'DM Mono',monospace;font-size:8px;color:var(--accent-glow)">82911249...</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Aquisição café torrado e moído PCE 56/2026</td><td style="color:var(--text-muted)">MUNICIPIO ARARANGUA</td><td><span class="uf-badge">SC</span></td><td style="color:var(--green)">Café</td><td style="color:var(--green);font-family:'DM Mono',monospace">R$239.200</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- TAB: Analytics -->
+      <div class="preview-body" id="tab-analytics" style="display:none">
+        <div class="akpi">
+          <div class="akcard"><div class="akval ak-blue">13</div><div class="aklbl">Monitorados</div></div>
+          <div class="akcard"><div class="akval ak-gold">4</div><div class="aklbl">Andamento</div></div>
+          <div class="akcard"><div class="akval ak-green">2</div><div class="aklbl">Ganhos</div></div>
+          <div class="akcard"><div class="akval ak-red">1</div><div class="aklbl">Perdidos</div></div>
+          <div class="akcard"><div class="akval ak-purple" style="font-size:11px">R$18.400</div><div class="aklbl">Potencial</div></div>
+        </div>
+        <div class="acharts">
+          <div class="achart">
+            <h5>🔽 Funil Favorito → Ganho</h5>
+            <div class="funnel-mini">
+              <div class="fm-row"><div class="fm-lbl">📊 Total</div><div class="fm-track"><div class="fm-fill" style="width:100%;background:#6366F1"><span>13</span></div></div><div class="fm-pct">100%</div></div>
+              <div class="fm-row"><div class="fm-lbl">⭐ Favorito</div><div class="fm-track"><div class="fm-fill" style="width:54%;background:#3B82F6"><span>7</span></div></div><div class="fm-pct">54%</div></div>
+              <div class="fm-row"><div class="fm-lbl">▶ Andamento</div><div class="fm-track"><div class="fm-fill" style="width:31%;background:#F59E0B"><span>4</span></div></div><div class="fm-pct">31%</div></div>
+              <div class="fm-row"><div class="fm-lbl">🏆 Ganhos</div><div class="fm-track"><div class="fm-fill" style="width:15%;background:#10B981"><span>2</span></div></div><div class="fm-pct">15%</div></div>
+              <div class="fm-row"><div class="fm-lbl">✗ Perdidos</div><div class="fm-track"><div class="fm-fill" style="width:8%;background:#EF4444"><span>1</span></div></div><div class="fm-pct">8%</div></div>
             </div>
-
-            <div class="preview-content">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-val">61</div>
-                  <div class="kpi-label">Editais</div>
-                  <div class="kpi-delta up">↑ +4 hoje</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-val" style="font-size:14px">R$ 45M</div>
-                  <div class="kpi-label">Vol. Estimado</div>
-                  <div class="kpi-delta up">↑ +R$2,6M</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-val">18</div>
-                  <div class="kpi-label">Enc. em 7d</div>
-                  <div class="kpi-delta warn">⚠ 3 urgentes</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-val">49</div>
-                  <div class="kpi-label">Órgãos</div>
-                  <div class="kpi-delta up">12 estados</div>
-                </div>
+          </div>
+          <div class="achart">
+            <h5>⏰ Próximos Vencimentos</h5>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:5px">
+                <span style="font-size:9px;font-weight:700;color:#FCA5A5;white-space:nowrap">HOJE</span>
+                <span style="font-size:9px;color:var(--text-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Palestra enfermagem — ITAPERUCU/PR</span>
               </div>
-
-              <div class="preview-grid">
-                <div class="mini-card">
-                  <div class="mini-card-header">Top Estados <span>por editais</span></div>
-                  <div class="mini-card-body">
-                    <div class="mini-bars">
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">PA</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="100%"></div></div><div class="mini-bar-num">11</div></div>
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">RN</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="91%"></div></div><div class="mini-bar-num">10</div></div>
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">PE</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="55%"></div></div><div class="mini-bar-num">6</div></div>
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">BA</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="45%"></div></div><div class="mini-bar-num">5</div></div>
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">MA</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="36%"></div></div><div class="mini-bar-num">4</div></div>
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">GO</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="36%"></div></div><div class="mini-bar-num">4</div></div>
-                      <div class="mini-bar-row"><div class="mini-bar-lbl">PI</div><div class="mini-bar-track"><div class="mini-bar-fill" data-w="27%"></div></div><div class="mini-bar-num">3</div></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mini-card">
-                  <div class="mini-card-header">Editais Recentes <span>29/03/2026</span></div>
-                  <div class="mini-card-body" style="padding:0">
-                    <table class="mini-table">
-                      <thead><tr><th style="padding-left:8px">Objeto</th><th>Modal.</th><th>UF</th><th>Prazo</th></tr></thead>
-                      <tbody>
-                        <tr><td style="padding-left:8px">Gêneros alimentícios PNAE</td><td><span class="mini-badge-m mb-credenc">Cred.</span></td><td>BA</td><td><span class="prazo-pill pp-ok">15/04</span></td></tr>
-                        <tr><td style="padding-left:8px">Serviços de saúde PMAE</td><td><span class="mini-badge-m mb-credenc">Cred.</span></td><td>PI</td><td><span class="prazo-pill pp-ok">10/04</span></td></tr>
-                        <tr><td style="padding-left:8px">Obra de engenharia civil</td><td><span class="mini-badge-m mb-conc">Conc.</span></td><td>CE</td><td><span class="prazo-pill pp-ok">13/04</span></td></tr>
-                        <tr><td style="padding-left:8px">Enxoval hospitalar</td><td><span class="mini-badge-m mb-pregao">Pregão</span></td><td>AL</td><td><span class="prazo-pill pp-urgent">01/04</span></td></tr>
-                        <tr><td style="padding-left:8px">Consultoria jurídica</td><td><span class="mini-badge-m mb-inexig">Inex.</span></td><td>PA</td><td><span class="prazo-pill pp-ok">05/04</span></td></tr>
-                        <tr><td style="padding-left:8px">Medicamentos hospitalares</td><td><span class="mini-badge-m mb-pregao">Pregão</span></td><td>RN</td><td><span class="prazo-pill pp-ok">08/04</span></td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              <div style="display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:5px">
+                <span style="font-size:9px;font-weight:700;color:var(--gold);white-space:nowrap">2d</span>
+                <span style="font-size:9px;color:var(--text-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Café torrado — ARARANGUA/SC</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:5px">
+                <span style="font-size:9px;font-weight:700;color:#7EB5FF;white-space:nowrap">7d</span>
+                <span style="font-size:9px;color:var(--text-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Café moído registros preços — REGISTRO/SP</span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <!-- FIM PREVIEW -->
-
-    <!-- Features -->
-    <div class="features">
-      <div class="feat-tag"><span class="icon">🔍</span> Busca no PNCP</div>
-      <div class="feat-tag"><span class="icon">📊</span> Dashboard de Oportunidades</div>
-      <div class="feat-tag"><span class="icon">⏰</span> Alertas de Prazo</div>
-      <div class="feat-tag"><span class="icon">📁</span> Gestão de Documentos</div>
-      <div class="feat-tag"><span class="icon">🏆</span> Análise de Concorrentes</div>
-      <div class="feat-tag"><span class="icon">📧</span> Notificações Automáticas</div>
-    </div>
-
-  </main>
-
-  <div class="divider"></div>
-
-  <div class="info-strip">
-    <div class="info-item">
-      <div class="info-num">+47k</div>
-      <div class="info-label">Editais Publicados/Mês</div>
-    </div>
-    <div class="info-sep"></div>
-    <div class="info-item">
-      <div class="info-num">R$ 2B+</div>
-      <div class="info-label">Volume Monitorado</div>
-    </div>
-    <div class="info-sep"></div>
-    <div class="info-item">
-      <div class="info-num">5.000+</div>
-      <div class="info-label">Órgãos Públicos</div>
-    </div>
-    <div class="info-sep"></div>
-    <div class="info-item">
-      <div class="info-num">100%</div>
-      <div class="info-label">Dados Oficiais PNCP</div>
-    </div>
   </div>
+</section>
 
-  <footer class="footer">
-    <div class="footer-copy">© 2026 <span>LicitaTracker</span> — Todos os direitos reservados</div>
-    <div class="footer-links">
-      <a href="mailto:licitatracker@gmail.com" class="footer-link">licitatracker@gmail.com</a>
-      <a href="#" class="footer-link">Privacidade</a>
-    </div>
-  </footer>
-
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stat-item"><div class="stat-num">+47k</div><div class="stat-lbl">Editais Publicados/Mês</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><div class="stat-num">19k+</div><div class="stat-lbl">Registros Monitorados</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><div class="stat-num">5.000+</div><div class="stat-lbl">Órgãos Públicos</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">Dados Oficiais PNCP</div></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><div class="stat-num">Multi</div><div class="stat-lbl">Empresas e Usuários</div></div>
 </div>
 
-<script>
-  // Particles
-  const container = document.getElementById('particles');
-  for (let i = 0; i < 18; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 2;
-    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${Math.random()*18+12}s;animation-delay:${Math.random()*10}s;opacity:${Math.random()*0.5+0.1};`;
-    container.appendChild(p);
-  }
+<!-- FUNCIONALIDADES -->
+<section class="features-section" id="funcionalidades">
+  <div class="sec-label">O que o LicitaTracker faz</div>
+  <h2 class="sec-title">Tudo que você precisa para<br><span class="hi">vencer no mercado público</span></h2>
+  <p class="sec-sub">Do edital ao contrato — a esteira completa de gestão de licitações em um único sistema.</p>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">📰</div>
+      <div class="feat-title">Diário de Licitações</div>
+      <div class="feat-desc">Acesse editais do PNCP atualizados diariamente, filtre por produto, UF e modalidade.</div>
+      <ul class="feat-list">
+        <li>Atualização automática dos dados oficiais do PNCP</li>
+        <li>Busca por objeto, órgão ou Nº PNCP</li>
+        <li>Filtro exclusivo por produto da empresa</li>
+        <li>Marcação de editais revisados com barra de progresso</li>
+        <li>Inserção manual de editais de portais externos</li>
+      </ul>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">⭐</div>
+      <div class="feat-title">Esteira de Favoritos</div>
+      <div class="feat-desc">Gerencie oportunidades em tempo real com status, histórico e documentos centralizados.</div>
+      <ul class="feat-list">
+        <li>Status: Favorito → Andamento → Ganho → Perdido</li>
+        <li>Histórico de acompanhamento por edital</li>
+        <li>Valor de referência e valor negociado por item</li>
+        <li>Anexos (PDFs, documentos) por edital</li>
+        <li>Boletim PDF com design profissional</li>
+      </ul>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔔</div>
+      <div class="feat-title">Lembretes Inteligentes</div>
+      <div class="feat-desc">Nunca perca um prazo. Configure alertas por tempo ou data específica com som e popup.</div>
+      <ul class="feat-list">
+        <li>Alerta com popup visual e beep sonoro</li>
+        <li>Repetição configurável (1, 2, 5, 10 min)</li>
+        <li>Agendamento por tempo ou data/hora exata</li>
+        <li>Badge de lembrete ativo na linha do edital</li>
+        <li>Registro automático no histórico ao disparar</li>
+      </ul>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💰</div>
+      <div class="feat-title">Conta Corrente</div>
+      <div class="feat-desc">Controle completo dos contratos ganhos: itens, NF, pagamentos e saldo em aberto.</div>
+      <ul class="feat-list">
+        <li>Criação automática ao marcar como Ganho</li>
+        <li>Pagamento por quantidade ou percentual</li>
+        <li>NF por item com número, data e tipo de entrega</li>
+        <li>Barra de progresso de pagamento por item</li>
+        <li>Status de contrato com movimentação na esteira</li>
+      </ul>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Analytics Completo</div>
+      <div class="feat-desc">Painéis de inteligência com KPIs, funil de conversão, vencimentos e análise financeira.</div>
+      <ul class="feat-list">
+        <li>KPIs: total, andamento, ganhos, perdidos e valor</li>
+        <li>Funil Favorito → Ganho com status exclusivos</li>
+        <li>Próximos vencimentos em andamento</li>
+        <li>Por produto, UF, órgão e período</li>
+        <li>Vlr Ref × Vlr Negociado com % de economia</li>
+      </ul>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🏢</div>
+      <div class="feat-title">Multi-Empresa e Usuários</div>
+      <div class="feat-desc">Cada empresa vê apenas seus produtos. Permissões por módulo e por usuário individualmente.</div>
+      <ul class="feat-list">
+        <li>Cadastro ilimitado de empresas e usuários</li>
+        <li>Produtos vinculados por empresa — isolamento total</li>
+        <li>Permissões por módulo: empresa + override por usuário</li>
+        <li>Perfis: Admin (acesso total) e Viewer (somente leitura)</li>
+        <li>Gestão de cargas PNCP com apagar por período</li>
+      </ul>
+    </div>
+  </div>
+</section>
 
-  // Animate bars
-  window.addEventListener('load', () => {
-    document.querySelectorAll('.mini-bar-fill').forEach(b => {
-      const w = b.getAttribute('data-w');
-      b.style.width = '0';
-      setTimeout(() => { b.style.width = w; }, 900);
-    });
+<!-- HOW IT WORKS -->
+<section class="how-section" id="como-funciona">
+  <div class="sec-label">Fluxo de uso</div>
+  <h2 class="sec-title" style="margin-bottom:48px">Como funciona na prática</h2>
+  <div class="steps-row">
+    <div class="how-step"><div class="how-num">1</div><div class="how-title">Dados carregam automaticamente</div><div class="how-desc">Editais do PNCP são importados diariamente. Filtre por produto do seu negócio.</div></div>
+    <div class="how-step"><div class="how-num">2</div><div class="how-title">Favorite e acompanhe</div><div class="how-desc">Salve oportunidades, preencha itens e defina lembretes para os prazos.</div></div>
+    <div class="how-step"><div class="how-num">3</div><div class="how-title">Mova pela esteira</div><div class="how-desc">Favorito → Andamento ao entrar, 🏆 Ganho ao vencer. Registro automático do contrato.</div></div>
+    <div class="how-step"><div class="how-num">4</div><div class="how-title">Gerencie o contrato</div><div class="how-desc">Registre pagamentos parciais ou por %, NF por item e conclua quando quitado.</div></div>
+    <div class="how-step"><div class="how-num">5</div><div class="how-title">Analise e melhore</div><div class="how-desc">Analytics mostra sua taxa de conversão, produtos mais disputados e vencimentos urgentes.</div></div>
+  </div>
+</section>
+
+<!-- MÓDULOS -->
+<section class="modules-section" id="modulos">
+  <div class="sec-label">Módulos do sistema</div>
+  <h2 class="sec-title" style="margin-bottom:48px">Cada módulo, um propósito</h2>
+  <div class="modules-grid">
+    <div class="mod-card">
+      <div class="mod-icon-wrap" style="background:rgba(37,99,235,.15);border:1px solid rgba(74,143,255,.2)">📰</div>
+      <div class="mod-body">
+        <h4>Diário de Licitações</h4>
+        <p>Listagem completa dos editais do dia com filtros por produto, UF, modalidade e busca textual. Editais manuais para portais externos.</p>
+        <span class="mod-badge">Acesso diário</span>
+      </div>
+    </div>
+    <div class="mod-card">
+      <div class="mod-icon-wrap" style="background:rgba(217,119,6,.15);border:1px solid rgba(245,158,11,.2)">⭐</div>
+      <div class="mod-body">
+        <h4>Meus Favoritos</h4>
+        <p>Esteira completa com status, histórico de acompanhamento, lembretes, anexos, boletim PDF e filtros por produto e período.</p>
+        <span class="mod-badge">Gestão de oportunidades</span>
+      </div>
+    </div>
+    <div class="mod-card">
+      <div class="mod-icon-wrap" style="background:rgba(5,150,105,.15);border:1px solid rgba(34,197,94,.2)">💰</div>
+      <div class="mod-body">
+        <h4>Conta Corrente</h4>
+        <p>Gestão de contratos ganhos: ficha completa com itens, NF por item, controle de pagamentos por quantidade ou percentual.</p>
+        <span class="mod-badge">Pós-ganho</span>
+      </div>
+    </div>
+    <div class="mod-card">
+      <div class="mod-icon-wrap" style="background:rgba(124,58,237,.15);border:1px solid rgba(167,139,250,.2)">📊</div>
+      <div class="mod-body">
+        <h4>Analytics</h4>
+        <p>Painéis com KPIs, funil de conversão exclusivo, próximos vencimentos, análise financeira, comparativo Ref × Negociado.</p>
+        <span class="mod-badge">Inteligência de dados</span>
+      </div>
+    </div>
+    <div class="mod-card">
+      <div class="mod-icon-wrap" style="background:rgba(46,111,216,.15);border:1px solid rgba(74,143,255,.2)">⚙️</div>
+      <div class="mod-body">
+        <h4>Configurações</h4>
+        <p>Produtos, portais, unidades e gestão de cargas. Administrador pode apagar períodos e reprocessar dados do PNCP.</p>
+        <span class="mod-badge">Administração</span>
+      </div>
+    </div>
+    <div class="mod-card">
+      <div class="mod-icon-wrap" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2)">🏢</div>
+      <div class="mod-body">
+        <h4>Empresas e Usuários</h4>
+        <p>Multi-tenant completo: empresas com produtos vinculados, permissões por módulo herdadas da empresa com override por usuário.</p>
+        <span class="mod-badge">Somente Admin</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+  <div class="cta-box">
+    <h2 class="cta-title">Pronto para vencer<br><span class="hi">mais licitações?</span></h2>
+    <p class="cta-sub">Acesse o sistema agora e comece a monitorar editais do PNCP em tempo real.</p>
+    <div class="cta-btns">
+      <a href="https://www.licitatracker.com.br/login.html" class="btn-primary" style="font-size:16px;padding:16px 36px">
+        ▶ Acessar o Sistema
+      </a>
+      <a href="mailto:wycconsultoria@gmail.com.br" class="btn-ghost" style="font-size:16px;padding:16px 28px">
+        📬 Falar com a Equipe
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-copy">© 2026 <span>LicitaTracker</span> · Desenvolvido por <a href="https://www.wycconsultoria.com.br" target="_blank" style="color:var(--accent-glow);text-decoration:none;font-weight:500">WYC Consultoria</a></div>
+  <div class="footer-links">
+    <a href="https://www.licitatracker.com.br/ajuda.html" class="footer-link">❓ Ajuda</a>
+    <a href="https://www.licitatracker.com.br/ajuda-admin.html" class="footer-link">⚙️ Admin</a>
+    <a href="https://www.licitatracker.com.br/login.html" class="footer-link">▶ Acessar</a>
+    <a href="mailto:wycconsultoria@wycconsultoria.com.br" class="footer-link">wycconsultoria@wycconsultoria.com.br</a>
+  </div>
+</footer>
+
+</div><!-- /wrapper -->
+
+<script>
+// Particles
+const c = document.getElementById('particles');
+for (let i=0;i<18;i++){
+  const p=document.createElement('div'); p.className='particle';
+  const s=Math.random()*4+2;
+  p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${Math.random()*18+12}s;animation-delay:${Math.random()*10}s;opacity:${Math.random()*.5+.1};`;
+  c.appendChild(p);
+}
+
+// Tab switcher
+function showTab(id, el) {
+  ['diario','favoritos','analytics'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
   });
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) { e.preventDefault(); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+  });
+});
 </script>
 </body>
 </html>
