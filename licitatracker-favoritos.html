@@ -314,6 +314,91 @@
     table{font-size:11px}
     th,td{padding:6px 7px!important}
   }
+
+  /* ============================================
+     MOBILE RESPONSIVO — ≤ 768px
+  ============================================ */
+  .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;
+    flex-direction:column;gap:5px;align-items:center;justify-content:center;flex-shrink:0}
+  .ham-btn span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+  .ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+  .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  @media(max-width:768px){
+    /* Topbar */
+    .topbar{padding:0 14px !important;height:52px}
+    .ham-btn{display:flex !important}
+    .topbar-nav{
+      display:none !important;
+      position:fixed;top:52px;left:0;right:0;bottom:0;
+      background:rgba(255,255,255,.98);
+      flex-direction:column !important;
+      padding:16px;gap:4px;z-index:200;
+      overflow-y:auto;
+      box-shadow:0 8px 32px rgba(0,0,0,.12)
+    }
+    .topbar-nav.open{display:flex !important}
+    .nav-item{font-size:15px !important;padding:12px 16px !important;border-radius:10px !important;justify-content:flex-start}
+    .logo-text{font-size:15px !important}
+    /* Badge */
+    .badge-count{display:none}
+    /* Main */
+    .main,.page-main{padding:12px 14px !important}
+    /* Page header */
+    .page-header{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:14px}
+    .page-title{font-size:20px !important}
+    .page-label{font-size:10px}
+    /* Header bar / filters */
+    .header-bar{flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+    .hbar-div,.hbar-divider{display:none}
+    .counters-wrap{justify-content:space-around;flex-wrap:wrap}
+    .filters-inline{flex-direction:column;gap:6px}
+    .search-box{max-width:100% !important;min-width:0 !important}
+    .filter-select{width:100%;font-size:14px}
+    /* Tabs */
+    .tabs{overflow-x:auto;width:100%;flex-wrap:nowrap}
+    .tab{white-space:nowrap;padding:7px 14px;font-size:12px}
+    /* Table → scroll */
+    .table-wrap{border-radius:10px}
+    .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{font-size:11px}
+    th,td{padding:7px 8px !important}
+    /* Modals full-screen */
+    .modal-overlay{align-items:flex-start !important;padding:0 !important}
+    .modal,.modal-lg,.modal-xl{
+      max-width:100% !important;width:100% !important;min-width:0 !important;
+      min-height:100dvh;height:auto;border-radius:0 !important;
+      margin:0 !important;overflow-y:auto;padding:16px !important
+    }
+    .modal-header{flex-wrap:wrap;gap:8px}
+    .detail-grid{grid-template-columns:1fr !important}
+    .detail-grid.cols3{grid-template-columns:1fr !important}
+    .modal-actions{flex-wrap:wrap;gap:8px}
+    .modal-actions .btn,.modal-actions button{flex:1;min-width:120px;justify-content:center}
+    /* Config / grids */
+    .config-grid,.charts-grid-2,.charts-grid-3,.kpi-grid{grid-template-columns:1fr !important}
+    /* Cards */
+    .cards-grid,.card-grid,.empresa-grid{grid-template-columns:1fr !important}
+    /* Buttons */
+    .btn{font-size:13px;padding:9px 14px}
+  }
+
+  /* Mobile card list (replaces table on small screens) */
+  #mobile-cards-fav{display:none}
+  @media(max-width:768px){
+    #fav-tbody-wrap{display:none}
+    #mobile-cards-fav{display:block;padding:4px 0}
+  }
+
+  @media(max-width:768px){
+    .bol-wrap{border-radius:0;max-height:100dvh}
+    .bol-overlay{padding:0}
+    .bol-header{padding:12px 14px}
+    .bol-title{font-size:15px}
+    .bol-footer-bar{flex-wrap:wrap;gap:8px;padding:10px 14px}
+    .bol-footer-bar button{flex:1;font-size:13px;padding:9px 12px}
+  }
 </style>
 </head>
 <body>
@@ -1986,6 +2071,54 @@ document.getElementById('itens-overlay').addEventListener('click', e => {
 
 function toggleMenu(){const n=document.getElementById("main-nav"),b=document.getElementById("ham-btn");n.classList.toggle("open");b.classList.toggle("open");}
 document.addEventListener("click",e=>{const n=document.getElementById("main-nav"),b=document.getElementById("ham-btn");if(n&&!n.contains(e.target)&&b&&!b.contains(e.target)){n.classList.remove("open");b.classList.remove("open");}});
+
+// ── MOBILE CARDS (favoritos) ──────────────────
+function renderMobileCardsFav() {
+  const container = document.getElementById('mobile-cards-fav');
+  if (!container) return;
+  if (!filtered.length) {
+    container.innerHTML = '<div style="text-align:center;padding:32px;color:#6B7280;font-size:13px">Nenhum favorito encontrado</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(r => {
+    const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
+    const dtOk = dt && !isNaN(dt);
+    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
+    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const nPregao = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
+    const q = parseFloat(r.qtd||0), v = parseFloat(r.valref||0);
+    const total = (q&&v) ? fmtM(q*v) : '—';
+    const st = r.status||'favorito';
+    const stColor = {favorito:'#D97706',andamento:'#059669',ganho:'#2563EB',perdido:'#9CA3AF'}[st]||'#D97706';
+    const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const lPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
+    return `<div style="background:white;border:1px solid #E5E7EB;border-radius:12px;padding:14px;
+      margin-bottom:10px;border-left:4px solid ${stColor}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:#6B7280;word-break:break-all;flex:1">${r.numerocontrolepncp||'—'}</div>
+        <span style="font-size:10px;font-weight:700;color:${stColor};white-space:nowrap;background:#F9FAFB;border-radius:5px;padding:2px 6px">${{favorito:'⭐',andamento:'▶',ganho:'🏆',perdido:'✗'}[st]||'⭐'} ${st}</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.4;margin-bottom:8px">${r.objetocompra||'—'}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;font-size:11px;margin-bottom:10px">
+        <span style="background:#F3F4F6;border-radius:5px;padding:2px 7px">📅 ${dStr} ${hStr}</span>
+        <span style="background:#F3F4F6;border-radius:5px;padding:2px 7px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.orgao||'—'}</span>
+        <span style="background:#EEF2FF;border-radius:5px;padding:2px 7px;color:#2563EB;font-weight:600">${r.uf||'?'}</span>
+        ${r.produto?`<span style="background:#ECFDF5;border-radius:5px;padding:2px 7px;color:#059669;font-weight:600">📦 ${r.produto}</span>`:''}
+        ${nPregao!=='—'?`<span style="background:#FFFBEB;border-radius:5px;padding:2px 7px;color:#D97706;font-weight:600">PE ${nPregao}</span>`:''}
+        ${total!=='—'?`<span style="background:#F0FDF4;border-radius:5px;padding:2px 7px;color:#059669;font-weight:700">${total}</span>`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <a href="${lPncp}" target="_blank" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none">🔗 PNCP</a>
+        ${r.site?`<a href="${r.site}" target="_blank" style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none">🔗 Pregão</a>`:''}
+        <button onclick="openAcomp('${r.id}')" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#059669;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">📋</button>
+        <button onclick="changeStatus('${r.id}','${st==='favorito'?'andamento':st==='andamento'?'ganho':'favorito'}')" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer">
+          ${{favorito:'▶',andamento:'🏆',ganho:'✓',perdido:'↩'}[st]||'▶'}
+        </button>
+        <button onclick="delFav('${r.id}')" style="background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 </script>
 </body>
 </html>

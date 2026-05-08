@@ -95,6 +95,81 @@ body{font-family:'DM Sans',sans-serif;background:#F1F3F9;color:var(--text);min-h
   border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty-chart{text-align:center;padding:30px;color:var(--text-muted);font-size:12px}
+
+  /* ============================================
+     MOBILE RESPONSIVO — ≤ 768px
+  ============================================ */
+  .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;
+    flex-direction:column;gap:5px;align-items:center;justify-content:center;flex-shrink:0}
+  .ham-btn span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+  .ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+  .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  @media(max-width:768px){
+    /* Topbar */
+    .topbar{padding:0 14px !important;height:52px}
+    .ham-btn{display:flex !important}
+    .topbar-nav{
+      display:none !important;
+      position:fixed;top:52px;left:0;right:0;bottom:0;
+      background:rgba(255,255,255,.98);
+      flex-direction:column !important;
+      padding:16px;gap:4px;z-index:200;
+      overflow-y:auto;
+      box-shadow:0 8px 32px rgba(0,0,0,.12)
+    }
+    .topbar-nav.open{display:flex !important}
+    .nav-item{font-size:15px !important;padding:12px 16px !important;border-radius:10px !important;justify-content:flex-start}
+    .logo-text{font-size:15px !important}
+    /* Badge */
+    .badge-count{display:none}
+    /* Main */
+    .main,.page-main{padding:12px 14px !important}
+    /* Page header */
+    .page-header{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:14px}
+    .page-title{font-size:20px !important}
+    .page-label{font-size:10px}
+    /* Header bar / filters */
+    .header-bar{flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+    .hbar-div,.hbar-divider{display:none}
+    .counters-wrap{justify-content:space-around;flex-wrap:wrap}
+    .filters-inline{flex-direction:column;gap:6px}
+    .search-box{max-width:100% !important;min-width:0 !important}
+    .filter-select{width:100%;font-size:14px}
+    /* Tabs */
+    .tabs{overflow-x:auto;width:100%;flex-wrap:nowrap}
+    .tab{white-space:nowrap;padding:7px 14px;font-size:12px}
+    /* Table → scroll */
+    .table-wrap{border-radius:10px}
+    .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{font-size:11px}
+    th,td{padding:7px 8px !important}
+    /* Modals full-screen */
+    .modal-overlay{align-items:flex-start !important;padding:0 !important}
+    .modal,.modal-lg,.modal-xl{
+      max-width:100% !important;width:100% !important;min-width:0 !important;
+      min-height:100dvh;height:auto;border-radius:0 !important;
+      margin:0 !important;overflow-y:auto;padding:16px !important
+    }
+    .modal-header{flex-wrap:wrap;gap:8px}
+    .detail-grid{grid-template-columns:1fr !important}
+    .detail-grid.cols3{grid-template-columns:1fr !important}
+    .modal-actions{flex-wrap:wrap;gap:8px}
+    .modal-actions .btn,.modal-actions button{flex:1;min-width:120px;justify-content:center}
+    /* Config / grids */
+    .config-grid,.charts-grid-2,.charts-grid-3,.kpi-grid{grid-template-columns:1fr !important}
+    /* Cards */
+    .cards-grid,.card-grid,.empresa-grid{grid-template-columns:1fr !important}
+    /* Buttons */
+    .btn{font-size:13px;padding:9px 14px}
+  }
+
+  @media(max-width:768px){
+    canvas{max-height:220px !important}
+    .kpi-card{padding:12px}
+    .chart-wrap{padding:12px}
+  }
 </style>
 </head>
 <body>
@@ -104,7 +179,10 @@ body{font-family:'DM Sans',sans-serif;background:#F1F3F9;color:var(--text);min-h
     <div class="logo-icon">📋</div>
     <div class="logo-text">Licita<span>Tracker</span></div>
   </a>
-  <nav class="topbar-nav">
+  <button class="ham-btn" id="ham-btn" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="topbar-nav" id="main-nav">
     <a class="nav-item" id="nav-diario"       href="licitatracker-diario.html">📰 Diário</a>
     <a class="nav-item" id="nav-favoritos"    href="licitatracker-favoritos.html">⭐ Favoritos</a>
     <a class="nav-item" id="nav-meus-editais" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
@@ -304,24 +382,8 @@ async function loadAll() {
       fetch(`${SB}/rest/v1/pncp_favoritos?select=*`, {headers:H}),
       fetch(`${SB}/rest/v1/pncp_favoritos_itens?select=*`, {headers:H}),
     ]);
-    let favs  = rFavs.ok  ? await rFavs.json()  : [];
-    let itens = rItens.ok ? await rItens.json()  : [];
-
-    // Aplica restrição de produto da sessão (igual ao Diário e Favoritos)
-    const user     = JSON.parse(localStorage.getItem('lt_user')||'{}');
-    const permitidos = (user.role !== 'admin' && user.produtos && user.produtos.length)
-      ? user.produtos : null;
-
-    if (permitidos) {
-      // Filtra itens pelos produtos permitidos
-      itens = itens.filter(i => permitidos.includes(i.produto||''));
-      // Filtra favoritos que têm pelo menos um item permitido
-      const favIdsComProd = new Set(itens.map(i => i.favorito_id));
-      favs = favs.filter(f => favIdsComProd.has(f.id));
-    }
-
-    allFavs  = favs;
-    allItens = itens;
+    allFavs  = rFavs.ok  ? await rFavs.json()  : [];
+    allItens = rItens.ok ? await rItens.json()  : [];
     renderAll();
   } catch(e) { toast('❌','Erro ao carregar dados: '+e.message); }
 }
@@ -331,15 +393,14 @@ async function loadAll() {
 // =============================================
 function renderAll() {
   const total   = allFavs.length;
-  // Status mutuamente exclusivos — cada favorito está em apenas 1 status
   const favorito= allFavs.filter(f=>f.status==='favorito'||!f.status).length;
   const and     = allFavs.filter(f=>f.status==='andamento').length;
   const ganho   = allFavs.filter(f=>f.status==='ganho').length;
   const perdido = allFavs.filter(f=>f.status==='perdido').length;
 
-  // Valor potencial em andamento
-  const idsAnd  = new Set(allFavs.filter(f=>f.status==='andamento').map(f=>f.id));
-  const valorAnd= allItens.filter(i=>idsAnd.has(i.favorito_id))
+  // Valor potencial em andamento (vlr ref × qtd dos itens em andamento)
+  const idsAnd = new Set(allFavs.filter(f=>f.status==='andamento').map(f=>f.id));
+  const valorAnd = allItens.filter(i=>idsAnd.has(i.favorito_id))
     .reduce((s,i)=>s+(parseFloat(i.qtd||0)*parseFloat(i.valref||0)),0);
 
   // KPIs
@@ -349,8 +410,10 @@ function renderAll() {
   document.getElementById('k-perd').textContent  = perdido;
   document.getElementById('k-valor').textContent = fmtM(valorAnd);
 
-  document.getElementById('k-and-sub').textContent   = total>0 ? `${Math.round(and/total*100)}% do total` : '0% do total';
-  document.getElementById('k-ganho-sub').textContent = (and+ganho+perdido)>0 ? `${Math.round(ganho/(and+ganho+perdido)*100)}% de conv.` : '0% de conv.';
+  const pctAnd   = total>0 ? Math.round(and/total*100) : 0;
+  const pctGanho = and>0   ? Math.round(ganho/(and+ganho+perdido)*100) : 0;
+  document.getElementById('k-and-sub').textContent   = `${pctAnd}% do total`;
+  document.getElementById('k-ganho-sub').textContent = `${pctGanho}% de conv.`;
   document.getElementById('k-perd-sub').textContent  = `${perdido} não ganhamos`;
 
   renderFunil(favorito, and, ganho, perdido, total);
@@ -364,21 +427,20 @@ function renderAll() {
   renderNegociado();
 }
 
-// FUNIL — cada status é exclusivo, total é a entrada do funil
+// FUNIL
 function renderFunil(fav, and, ganho, perdido, total) {
   const steps = [
-    {label:'📊 Total',      val:total,   color:'#6366F1', pct:100},
-    {label:'⭐ Favorito',   val:fav,     color:'#3B82F6', pct:total>0?Math.round(fav/total*100):0},
-    {label:'▶ Andamento',  val:and,     color:'#F59E0B', pct:total>0?Math.round(and/total*100):0},
-    {label:'🏆 Ganhos',    val:ganho,   color:'#10B981', pct:total>0?Math.round(ganho/total*100):0},
-    {label:'✗ Perdidos',   val:perdido, color:'#EF4444', pct:total>0?Math.round(perdido/total*100):0},
+    {label:'⭐ Favoritos', val:total,   color:'#3B82F6', pct:100},
+    {label:'▶ Andamento', val:and,    color:'#F59E0B', pct:total>0?Math.round(and/total*100):0},
+    {label:'🏆 Ganhos',   val:ganho,  color:'#10B981', pct:total>0?Math.round(ganho/total*100):0},
+    {label:'✗ Perdidos',  val:perdido,color:'#EF4444', pct:total>0?Math.round(perdido/total*100):0},
   ];
-  const max = Math.max(total, 1);
+  const max = Math.max(...steps.map(s=>s.val), 1);
   document.getElementById('funil-wrap').innerHTML = steps.map(s=>`
     <div class="funnel-row">
       <div class="funnel-lbl">${s.label}</div>
       <div class="funnel-track">
-        <div class="funnel-fill" style="width:${Math.max(4,Math.round(s.val/max*100))}%;background:${s.color}">
+        <div class="funnel-fill" style="width:${Math.max(8,Math.round(s.val/max*100))}%;background:${s.color}">
           <span>${s.val}</span>
         </div>
       </div>
@@ -637,6 +699,18 @@ function toast(icon,msg){
 // INIT
 const u = checkAuth();
 if (u) loadAll();
+
+// Mobile menu
+function toggleMenu(){
+  const n=document.getElementById('main-nav'),b=document.getElementById('ham-btn');
+  n.classList.toggle('open');b.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const n=document.getElementById('main-nav'),b=document.getElementById('ham-btn');
+  if(n&&b&&!n.contains(e.target)&&!b.contains(e.target)){
+    n.classList.remove('open');b.classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
