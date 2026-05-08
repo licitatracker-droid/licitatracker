@@ -97,8 +97,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
 .pnav-logo{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;margin-right:20px;white-space:nowrap}
 .pnav-logo span{color:var(--accent-glow)}
 .pnav-links{display:flex;gap:2px;flex:1}
-.pnav-item{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:500;color:var(--text-muted);white-space:nowrap}
-.pnav-item.active{background:rgba(46,111,216,.15);color:var(--accent-glow)}
+.pnav-item{padding:5px 12px;border-radius:6px;font-size:10px;font-weight:500;color:var(--text-muted);white-space:nowrap;cursor:pointer;transition:all .15s}
+.pnav-item:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.pnav-item.active{background:rgba(46,111,216,.2);color:var(--accent-glow);font-weight:600}
 .pnav-right{display:flex;align-items:center;gap:8px;margin-left:auto}
 .pnav-badge{background:rgba(46,111,216,.15);border:1px solid rgba(74,143,255,.25);border-radius:100px;
   padding:3px 10px;font-size:9px;font-weight:600;color:var(--accent-glow);font-family:'DM Mono',monospace}
@@ -109,7 +110,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
 .ptab{padding:7px 16px;font-size:11px;font-weight:500;border-radius:6px 6px 0 0;
   color:var(--text-muted);cursor:pointer;transition:all .2s;border:1px solid transparent;border-bottom:none}
 .ptab.active{background:rgba(46,111,216,.15);color:var(--accent-glow);border-color:var(--border)}
-.preview-body{padding:18px 20px;min-height:300px}
+.preview-body{padding:18px 20px;min-height:280px}
 
 /* Diário preview */
 .prev-hbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -260,10 +261,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
   /* Botão Acessar destacado dentro do dropdown */
   .nav-link-cta-mob{
     background:var(--accent);color:white !important;
-    text-align:center;font-weight:700;margin-top:8px;
-    border-radius:12px;padding:14px 18px;font-size:16px;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    text-decoration:none
+    text-align:center;font-weight:600;margin-top:12px;
+    border-radius:10px;padding:14px 18px;font-size:15px;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    text-decoration:none;letter-spacing:.01em;
+    border:1px solid rgba(255,255,255,.15)
   }
   .nav-link-cta-mob:hover{background:#3B7FE8}
   /* Hero */
@@ -343,7 +345,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
     <a href="#como-funciona" class="nav-link">Como Funciona</a>
     <a href="#modulos" class="nav-link">Módulos</a>
     <a href="https://www.licitatracker.com.br/ajuda.html" class="nav-link">Ajuda</a>
-    <a href="https://www.licitatracker.com.br/login.html" class="nav-link-cta-mob">🔑 Acessar o Sistema</a>
+    <a href="https://www.licitatracker.com.br/login.html" class="nav-link-cta-mob">Acessar o Sistema →</a>
   </nav>
   <a href="https://www.licitatracker.com.br/login.html" class="nav-cta">
     <div class="live-dot"></div>
@@ -396,12 +398,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
           <div class="pnav-user">W</div>
         </div>
       </div>
-      <!-- Tabs de conteúdo -->
-      <div class="preview-tabs">
-        <div class="ptab active" onclick="showTab('diario',this);setPnavActive('pnav-diario')">📰 Diário</div>
-        <div class="ptab" onclick="showTab('favoritos',this);setPnavActive('pnav-favoritos')">⭐ Favoritos</div>
-        <div class="ptab" onclick="showTab('analytics',this);setPnavActive('pnav-analytics')">📊 Analytics</div>
-      </div>
+      <!-- Tabs de conteúdo (removido — navegação via pnav-links acima) -->
       <!-- TAB: Diário -->
       <div class="preview-body" id="tab-diario">
         <div class="prev-hbar">
