@@ -228,12 +228,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
 
 
 /* ======= MOBILE ======= */
-.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;
-  flex-direction:column;gap:5px;align-items:center;justify-content:center}
+.ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;
+  flex-direction:column;gap:5px;align-items:center;justify-content:center;flex-shrink:0}
 .ham-btn span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
 .ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
 .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 
 @media(max-width:900px){
   .features-grid{grid-template-columns:1fr 1fr}
@@ -245,14 +246,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
   .pnav-links .pnav-item:nth-child(n+4){display:none}
 }
 @media(max-width:768px){
-  /* Nav */
-  .topbar{padding:14px 20px}
-  .nav-links{display:none;position:fixed;top:62px;left:0;right:0;bottom:0;
-    background:rgba(15,39,68,.98);flex-direction:column;padding:20px;gap:6px;z-index:200;overflow-y:auto}
+  /* Topbar: Logo à esquerda, [Acessar + ☰] à direita */
+  .topbar{padding:0 16px;height:56px}
+  .ham-btn{display:flex}
+  .nav-cta{font-size:12px !important;padding:7px 12px !important;white-space:nowrap}
+  .live-dot{display:none}
+
+  /* Dropdown nav: abre abaixo do topbar (56px) */
+  .nav-links{
+    display:none;
+    position:fixed;top:56px;left:0;right:0;bottom:0;
+    background:rgba(15,39,68,.98);
+    flex-direction:column;
+    padding:16px;gap:4px;
+    z-index:200;overflow-y:auto
+  }
   .nav-links.open{display:flex}
   .nav-link{font-size:16px;padding:14px 18px;border-radius:12px}
-  .nav-cta{font-size:13px;padding:8px 16px}
-  .ham-btn{display:flex}
+  /* Mostra link "Acessar" também dentro do menu mobile */
+  .nav-cta-mobile{display:flex !important;background:var(--accent);color:white !important;
+    margin-top:8px;justify-content:center;font-weight:600}
+
   /* Hero */
   .hero{padding:40px 20px 28px}
   .hero-btns{flex-direction:column;align-items:center}
@@ -279,32 +293,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
   .footer-links{flex-wrap:wrap;justify-content:center;gap:12px}
 }
 
-/* INDEX MOBILE */
-.mob-ham{display:none;background:none;border:none;cursor:pointer;padding:8px;
-  flex-direction:column;gap:5px;align-items:center;z-index:201}
-.mob-ham span{display:block;width:22px;height:2px;background:white;border-radius:2px;transition:all .3s}
-.mob-ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.mob-ham.open span:nth-child(2){opacity:0}
-.mob-ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-@media(max-width:768px){
-  .mob-ham{display:flex !important}
-  .top-nav-links{display:none !important}
-  .top-nav-links.open{
-    display:flex !important;flex-direction:column;
-    position:fixed;top:56px;left:0;right:0;
-    background:rgba(15,39,68,.97);padding:16px;gap:4px;z-index:200;
-    box-shadow:0 8px 32px rgba(0,0,0,.4)
-  }
-  .top-nav-links a,.top-nav-links button{font-size:15px !important;padding:12px 16px !important;border-radius:10px !important;width:100%;text-align:left}
-  .hero-title{font-size:clamp(28px,8vw,52px) !important}
-  .hero-sub{font-size:14px !important}
-  .hero-btns{flex-direction:column;align-items:center;gap:10px}
-  .hero-btns a,.hero-btns button{width:100%;max-width:300px;text-align:center;justify-content:center}
-  .features-grid,.stats-grid,.pricing-grid{grid-template-columns:1fr !important}
-  .feature-card,.stat-card,.pricing-card{padding:20px}
-  section{padding:40px 16px !important}
-  .section-title{font-size:clamp(20px,6vw,36px) !important}
-}
 </style>
 </head>
 <body>
@@ -320,19 +308,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);o
     <div class="logo-icon">📋</div>
     <div class="logo-text">Licita<span>Tracker</span></div>
   </a>
-  <button class="ham-btn" id="ham-btn" onclick="toggleHam()">
-    <span></span><span></span><span></span>
-  </button>
   <nav class="nav-links" id="main-nav">
     <a href="#funcionalidades" class="nav-link">Funcionalidades</a>
     <a href="#como-funciona" class="nav-link">Como Funciona</a>
     <a href="#modulos" class="nav-link">Módulos</a>
     <a href="https://www.licitatracker.com.br/ajuda.html" class="nav-link">Ajuda</a>
+    <!-- link duplicado no menu mobile -->
+    <a href="https://www.licitatracker.com.br/login.html" class="nav-link nav-cta-mobile" style="display:none">🔑 Acessar o Sistema</a>
   </nav>
-  <a href="https://www.licitatracker.com.br/login.html" class="nav-cta">
-    <div class="live-dot"></div>
-    Acessar o Sistema
-  </a>
+  <div class="topbar-right">
+    <a href="https://www.licitatracker.com.br/login.html" class="nav-cta">
+      <div class="live-dot"></div>
+      Acessar o Sistema
+    </a>
+    <button class="ham-btn" id="ham-btn" onclick="toggleHam()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </header>
 
 <!-- HERO -->
@@ -721,12 +713,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (el) { e.preventDefault(); el.scrollIntoView({behavior:'smooth',block:'start'}); }
   });
 });
-
-function toggleIndexMenu(){
-  const n=document.querySelector('.top-nav-links'),b=document.getElementById('mob-ham');
-  if(!n||!b) return;
-  n.classList.toggle('open');b.classList.toggle('open');
-}
 </script>
 </body>
 </html>
