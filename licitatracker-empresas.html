@@ -136,6 +136,64 @@
   .user-pill{display:flex;align-items:center;gap:8px;background:#F9FAFB;
     border:1px solid var(--border);border-radius:100px;padding:4px 12px 4px 8px;cursor:pointer}
   .user-pill:hover{background:#F3F4F6}
+
+  /* ============================================
+     MOBILE RESPONSIVO — ≤ 768px
+  ============================================ */
+  .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:8px;border-radius:8px;
+    flex-direction:column;gap:5px;align-items:center;justify-content:center;flex-shrink:0}
+  .ham-btn span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+  .ham-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .ham-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+  .ham-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  @media(max-width:768px){
+    .topbar{padding:0 14px !important;height:52px}
+    .ham-btn{display:flex !important}
+    .topbar-nav{
+      display:none !important;
+      position:fixed;top:52px;left:0;right:0;bottom:0;
+      background:rgba(255,255,255,.98);
+      flex-direction:column !important;
+      padding:16px;gap:4px;z-index:200;
+      overflow-y:auto;
+      box-shadow:0 8px 32px rgba(0,0,0,.12)
+    }
+    .topbar-nav.open{display:flex !important}
+    .nav-item{font-size:15px !important;padding:12px 16px !important;border-radius:10px !important;justify-content:flex-start}
+    .logo-text{font-size:15px !important}
+    .badge-count{display:none}
+    .main,.page-main{padding:12px 14px !important}
+    .page-header{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:14px}
+    .page-title{font-size:20px !important}
+    /* Header bar / filters */
+    .header-bar,.hbar{flex-direction:column;align-items:stretch;gap:8px;padding:12px}
+    .hbar-div,.hbar-divider{display:none}
+    .filters-inline{flex-direction:column;gap:6px}
+    .search-box{max-width:100% !important;min-width:0 !important}
+    .filter-select{width:100%;font-size:14px}
+    /* Grids */
+    .empresa-grid,.cards-grid,.config-grid{grid-template-columns:1fr !important}
+    .empresa-card{padding:14px}
+    /* Modals full-screen */
+    .modal-overlay{align-items:flex-start !important;padding:0 !important}
+    .modal,.modal-lg,.modal-xl{
+      max-width:100% !important;width:100% !important;min-width:0 !important;
+      min-height:100dvh;height:auto;border-radius:0 !important;
+      margin:0 !important;overflow-y:auto;padding:16px !important
+    }
+    .modal-header{flex-wrap:wrap;gap:8px}
+    .detail-grid{grid-template-columns:1fr !important}
+    .modal-actions{flex-wrap:wrap;gap:8px}
+    .modal-actions .btn,.modal-actions button{flex:1;min-width:120px;justify-content:center}
+    /* Tables */
+    .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{font-size:11px}
+    th,td{padding:7px 8px !important}
+    /* Toolbar */
+    .toolbar{flex-direction:column;gap:8px}
+    .toolbar-right{margin-left:0;flex-wrap:wrap}
+  }
 </style>
 </head>
 <body>
@@ -145,7 +203,10 @@
     <div class="logo-icon">📋</div>
     <div class="logo-text">Licita<span>Tracker</span></div>
   </a>
-  <nav class="topbar-nav">
+  <button class="ham-btn" id="ham-btn" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <nav class="topbar-nav" id="main-nav">
     <a class="nav-item" href="licitatracker-diario.html">📰 Diário</a>
     <a class="nav-item" href="licitatracker-favoritos.html">⭐ Favoritos</a>
     <a class="nav-item" href="licitatracker-meus-editais.html">💰 Conta Corrente</a>
@@ -913,6 +974,18 @@ function toast(icon, msg) {
 // INIT
 const currentUser = checkAuth();
 if (currentUser) loadEmpresas();
+
+// Mobile menu
+function toggleMenu(){
+  const n=document.getElementById('main-nav'),b=document.getElementById('ham-btn');
+  n.classList.toggle('open');b.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const n=document.getElementById('main-nav'),b=document.getElementById('ham-btn');
+  if(n&&b&&!n.contains(e.target)&&!b.contains(e.target)){
+    n.classList.remove('open');b.classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
