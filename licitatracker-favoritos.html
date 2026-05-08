@@ -35,7 +35,6 @@
   .page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
   .page-title span{color:var(--accent)}
 
-  /* HEADER BAR */
   .header-bar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);
     border-radius:var(--radius);padding:10px 16px;margin-bottom:14px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.05)}
   .counters-wrap{display:flex;align-items:center;gap:12px;flex-shrink:0}
@@ -56,7 +55,6 @@
     font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-soft);cursor:pointer;outline:none}
   .filter-select option{background:white}
 
-  /* TABS */
   .tabs{display:flex;gap:4px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);
     border-radius:var(--radius);padding:4px;width:fit-content}
   .tab{padding:7px 18px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;
@@ -64,11 +62,10 @@
   .tab.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(37,99,235,.3)}
   .tab:hover:not(.active){background:var(--surface-hover);color:var(--text)}
 
-  /* TABLE */
   .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;
     overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
   .table-scroll{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;min-width:1100px}
+  table{width:100%;border-collapse:collapse;min-width:1200px}
   thead tr{background:#F9FAFB;border-bottom:1px solid var(--border)}
   th{padding:9px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;
     letter-spacing:.07em;color:var(--text-muted);white-space:nowrap;cursor:pointer;user-select:none}
@@ -85,10 +82,6 @@
   td{padding:8px 10px;font-size:12px;color:var(--text-soft);vertical-align:middle}
 
   .col-pncp{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);min-width:120px;max-width:140px}
-  .col-objeto{min-width:220px;max-width:320px;font-size:12px;line-height:1.45}
-  .obj-txt{font-weight:500;white-space:normal;overflow:visible;display:block}
-  /* Remove expand button — objeto sempre completo */
-  .obj-exp{display:none}
   .col-objeto{min-width:200px;max-width:260px}
   .obj-txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
     line-height:1.4;color:var(--text);font-size:12px}
@@ -103,7 +96,6 @@
     border:1px solid #C7D2FE;font-size:10px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace}
   .col-total{text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600;white-space:nowrap}
 
-  /* Editable */
   .ed{background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;
     font-size:12px;color:var(--text-soft);width:100%;border-bottom:1px dashed transparent;
     transition:border-color .15s;padding:2px 0}
@@ -115,7 +107,6 @@
   .ed-select:focus{border-bottom-color:var(--accent)}
   .ed-select option{background:white}
 
-  /* Links */
   .lbtn{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;
     font-size:10px;font-weight:600;text-decoration:none;transition:all .15s;white-space:nowrap;margin:1px 0}
   .lbtn-pncp{background:#EEF2FF;border:1px solid #C7D2FE;color:var(--accent)}
@@ -123,7 +114,6 @@
   .lbtn-preg{background:#ECFDF5;border:1px solid #A7F3D0;color:var(--green)}
   .lbtn-preg:hover{background:#D1FAE5}
 
-  /* Action btns */
   .abtn{padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;
     transition:all .15s;border:none;display:inline-flex;align-items:center;gap:2px;margin:1px}
   .abtn-green{background:#ECFDF5;border:1px solid #A7F3D0;color:var(--green)}
@@ -152,7 +142,6 @@
     transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
   .toast.show{transform:translateY(0);opacity:1}
 
-  /* Modal — mesmo padrão do Diário */
   .modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.35);
     backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
   .modal-overlay.open{display:flex !important}
@@ -187,12 +176,8 @@
 
   @media print {
     @page { margin: 6mm; size: A4 landscape; }
-
-    /* Esconde TUDO exceto o boletim */
     body { margin: 0 !important; }
     body > * { display: none !important; }
-
-    /* Mostra só o overlay e o conteúdo do boletim */
     #bol-overlay { display: block !important; position: static !important;
       background: none !important; padding: 0 !important; }
     #bol-print-area { display: flex !important; flex-direction: column !important;
@@ -201,8 +186,6 @@
       overflow: visible !important; }
     .bol-no-print { display: none !important; }
     .bol-body { overflow: visible !important; max-height: none !important; }
-
-    /* Cores forçadas */
     .bol-header {
       background: #C2560A !important;
       -webkit-print-color-adjust: exact !important;
@@ -222,8 +205,6 @@
     .bol-table td { border: 1px solid #FDE68A !important; }
     .bol-table td.money { color: #065F46 !important; }
     .bol-footer-txt { display: block !important; }
-
-    /* Tabela cabe em A4 paisagem — font menor e colunas compactas */
     .bol-table { font-size: 8px !important; }
     .bol-table th, .bol-table td { padding: 4px 4px !important; font-size: 8px !important; }
     .bol-logo-img { height: 32px !important; }
@@ -236,7 +217,6 @@
   .bol-wrap{background:white;border-radius:12px;width:100%;max-width:1200px;max-height:92vh;
     overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.25)}
 
-  /* Header laranja igual ao PDF */
   .bol-header{
     background:linear-gradient(135deg,#C2560A,#E07018);
     color:white;padding:16px 24px;
@@ -253,7 +233,6 @@
   .bol-contact-name{font-size:13px;font-weight:700;color:white}
   .bol-contact-sub{font-size:11px;opacity:.85;margin-top:1px;color:white}
 
-  /* Tabela */
   .bol-body{flex:1;overflow-y:auto;overflow-x:auto}
   .bol-table{width:100%;border-collapse:collapse;table-layout:fixed;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .bol-table thead tr{background:#D4660E !important;color:white !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -274,28 +253,25 @@
   .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;color:#065F46}
   .bol-table td.strong{font-weight:700;color:#92400E}
 
-  /* Nº PNCP pode quebrar, os demais ficam numa linha */
   .bol-table th:nth-child(1), .bol-table td:nth-child(1) {
     width:110px; white-space:normal; word-break:break-all; font-size:9px;
   }
-  /* Órgão também pode ter 2 linhas se necessário */
   .bol-table th:nth-child(5), .bol-table td:nth-child(5) {
     width:150px; white-space:normal; word-break:break-word;
   }
   .bol-table th:nth-child(2), .bol-table td:nth-child(2)  { width:76px; }
-  .bol-table th:nth-child(3), .bol-table td:nth-child(3) { width:42px;  } /* Hora */
-  .bol-table th:nth-child(4), .bol-table td:nth-child(4) { width:90px;  } /* N Pregão */
-  .bol-table th:nth-child(6), .bol-table td:nth-child(6) { width:32px;  } /* Item */
-  .bol-table th:nth-child(7), .bol-table td:nth-child(7) { width:28px;  } /* UF */
-  .bol-table th:nth-child(8), .bol-table td:nth-child(8) { width:90px;  } /* Site */
-  .bol-table th:nth-child(9), .bol-table td:nth-child(9) { width:84px;  } /* VI Estimado */
-  .bol-table th:nth-child(10),.bol-table td:nth-child(10){ width:54px;  } /* Qtd Est */
-  .bol-table th:nth-child(11),.bol-table td:nth-child(11){ width:58px;  } /* Und */
-  .bol-table th:nth-child(12),.bol-table td:nth-child(12){ width:70px;  } /* Vlr Unit */
-  .bol-table th:nth-child(13),.bol-table td:nth-child(13){ width:80px;  } /* UASEG */
-  .bol-table th:nth-child(14),.bol-table td:nth-child(14){ width:70px;  } /* Nº Compra */
+  .bol-table th:nth-child(3), .bol-table td:nth-child(3) { width:42px;  }
+  .bol-table th:nth-child(4), .bol-table td:nth-child(4) { width:90px;  }
+  .bol-table th:nth-child(6), .bol-table td:nth-child(6) { width:32px;  }
+  .bol-table th:nth-child(7), .bol-table td:nth-child(7) { width:28px;  }
+  .bol-table th:nth-child(8), .bol-table td:nth-child(8) { width:90px;  }
+  .bol-table th:nth-child(9), .bol-table td:nth-child(9) { width:84px;  }
+  .bol-table th:nth-child(10),.bol-table td:nth-child(10){ width:54px;  }
+  .bol-table th:nth-child(11),.bol-table td:nth-child(11){ width:58px;  }
+  .bol-table th:nth-child(12),.bol-table td:nth-child(12){ width:70px;  }
+  .bol-table th:nth-child(13),.bol-table td:nth-child(13){ width:80px;  }
+  .bol-table th:nth-child(14),.bol-table td:nth-child(14){ width:70px;  }
 
-  /* Rodapé */
   .bol-footer-txt{
     font-size:10px;color:#9CA3AF;text-align:right;
     padding:6px 20px;border-top:1px solid #FDE68A;background:#FFFBEB;flex-shrink:0;
@@ -307,7 +283,6 @@
 
   @media(max-width:768px){.main{padding:16px}.topbar{padding:0 16px}}
 
-  /* === MOBILE === */
   .ham-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;
     flex-direction:column;gap:5px;align-items:center;justify-content:center}
   .ham-btn span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
@@ -381,7 +356,6 @@
     </div>
   </div>
 
-  <!-- Header bar -->
   <div class="header-bar">
     <div class="counters-wrap">
       <div class="counter-item">
@@ -445,7 +419,6 @@
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="setTab('todos',this)">Todos</button>
     <button class="tab" onclick="setTab('favorito',this)">⭐ Favoritos</button>
@@ -453,7 +426,6 @@
     <button class="tab" onclick="setTab('ganho',this)">🏆 Ganhos</button>
   </div>
 
-  <!-- Table -->
   <div class="table-wrap">
     <div class="table-scroll">
       <table>
@@ -474,13 +446,14 @@
             <th>Qtd</th>
             <th>Vlr Ref</th>
             <th>Total</th>
+            <th>Site</th>
             <th>Link PNCP</th>
             <th>Link Pregão</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody id="fav-tbody">
-          <tr><td colspan="18" style="text-align:center;padding:48px">
+          <tr><td colspan="19" style="text-align:center;padding:48px">
             <span class="spinner"></span> Carregando favoritos...
           </td></tr>
         </tbody>
@@ -494,7 +467,6 @@
 <div class="modal-overlay" id="acomp-overlay">
   <div class="modal" style="max-width:1100px;width:96vw;max-height:92vh;overflow-y:auto;padding:0;display:flex;flex-direction:column">
 
-    <!-- Cabeçalho da ficha -->
     <div style="background:linear-gradient(135deg,#1E3A5F,#2563EB);color:white;
       padding:20px 28px;border-radius:16px 16px 0 0;display:flex;align-items:flex-start;justify-content:space-between">
       <div>
@@ -519,14 +491,8 @@
     </div>
 
     <div style="padding:24px 28px;flex:1;overflow-y:auto">
-
-      <!-- Grid 2 colunas: esquerda dados + direita lembrete/anexos -->
       <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
-
-        <!-- COLUNA ESQUERDA -->
         <div>
-
-          <!-- Dados do Edital -->
           <div class="modal-section-title">📄 Dados do Edital</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
             <div class="detail-readonly" style="grid-column:1/-1">
@@ -567,12 +533,11 @@
             <span id="ac-link-preg"></span>
           </div>
 
-          <!-- Histórico -->
           <div class="modal-section-title">📝 Histórico de Acompanhamento</div>
           <div style="margin-bottom:10px">
             <textarea id="ac-nova-nota" class="form-input" rows="3"
-              placeholder="Digite o que está acontecendo com este edital...&#10;Ex: Enviamos proposta, aguardando abertura das propostas."
-              style="resize:vertical;margin-bottom:8px;width:100%"></textarea>
+              placeholder="Digite o que está acontecendo com este edital..."
+              style="resize:vertical;margin-bottom:8px;width:100%;background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none"></textarea>
             <button onclick="salvarNota()" style="background:var(--accent);color:white;border:none;
               border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer">
               💾 Salvar Nota
@@ -582,37 +547,28 @@
             max-height:280px;overflow-y:auto;padding-right:4px"></div>
         </div>
 
-        <!-- COLUNA DIREITA — alinha com os dados do edital -->
         <div style="display:flex;flex-direction:column;gap:12px;margin-top:28px">
-
-          <!-- Lembrete compacto -->
           <div style="background:white;border:1px solid #E5E7EB;border-radius:12px;padding:14px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
               color:var(--accent);margin-bottom:10px">🔔 Lembrete</div>
-
             <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;
               cursor:pointer;margin-bottom:8px;color:#374151">
               <input type="checkbox" id="ac-lem-ativo" style="width:14px;height:14px;accent-color:var(--accent)"
                 onchange="toggleLembreteConfig()">
               Ativar lembrete
             </label>
-
             <div id="ac-lem-config" style="display:none;flex-direction:column;gap:8px">
-              <!-- Tipo + Quando na mesma linha -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                 <div>
-                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
-                    color:#9CA3AF;margin-bottom:4px">Tipo</div>
-                  <select class="form-input" id="ac-lem-tipo" onchange="toggleLembreteConfig()"
-                    style="padding:6px 8px;font-size:12px">
+                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;margin-bottom:4px">Tipo</div>
+                  <select style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;width:100%;outline:none" id="ac-lem-tipo" onchange="toggleLembreteConfig()">
                     <option value="tempo">Após (tempo)</option>
                     <option value="data">Data específica</option>
                   </select>
                 </div>
                 <div id="ac-lem-tempo-wrap">
-                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
-                    color:#9CA3AF;margin-bottom:4px">Quando</div>
-                  <select class="form-input" id="ac-lem-tempo" style="padding:6px 8px;font-size:12px">
+                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;margin-bottom:4px">Quando</div>
+                  <select style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;width:100%;outline:none" id="ac-lem-tempo">
                     <option value="1">1 min (teste)</option>
                     <option value="15" selected>15 minutos</option>
                     <option value="30">30 minutos</option>
@@ -625,16 +581,13 @@
                   </select>
                 </div>
                 <div id="ac-lem-data-wrap" style="display:none;grid-column:1/-1">
-                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
-                    color:#9CA3AF;margin-bottom:4px">Data e Hora</div>
-                  <input type="datetime-local" class="form-input" id="ac-lem-data" style="padding:6px 8px;font-size:12px">
+                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;margin-bottom:4px">Data e Hora</div>
+                  <input type="datetime-local" style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;width:100%;outline:none" id="ac-lem-data">
                 </div>
               </div>
               <div>
-                <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
-                  color:#9CA3AF;margin-bottom:4px">Anotação</div>
-                <input type="text" class="form-input" id="ac-lem-nota"
-                  placeholder="O que precisa verificar..." style="padding:6px 10px;font-size:12px">
+                <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;margin-bottom:4px">Anotação</div>
+                <input type="text" style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;width:100%;outline:none" id="ac-lem-nota" placeholder="O que precisa verificar...">
               </div>
               <button onclick="salvarLembrete()" style="background:#D97706;color:white;border:none;
                 border-radius:7px;padding:7px 10px;font-size:11px;font-weight:600;cursor:pointer;
@@ -644,13 +597,9 @@
             </div>
           </div>
 
-          <!-- Anexos -->
           <div style="background:white;border:1px solid #E5E7EB;border-radius:12px;padding:14px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
               color:var(--accent);margin-bottom:10px">📎 Anexos</div>
-
-            <!-- Drop zone compacta -->
-            <!-- Drop zone compacta -->
             <div style="margin-bottom:8px">
               <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;margin-bottom:4px">🔗 Link do Edital</div>
               <div style="display:flex;gap:6px;align-items:center">
@@ -679,8 +628,6 @@
             <input type="file" id="ac-file-input" multiple
               accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif"
               style="display:none" onchange="handleFileSelect(this.files)">
-
-            <!-- Lista de anexos -->
             <div id="ac-anexos-lista" style="display:flex;flex-direction:column;gap:5px;
               max-height:140px;overflow-y:auto">
               <div style="font-size:11px;color:#9CA3AF;text-align:center;padding:6px">
@@ -688,30 +635,24 @@
               </div>
             </div>
           </div>
-
-        </div><!-- fim col direita -->
-      </div><!-- fim grid -->
-
-      <!-- Ações -->
-      <div style="display:flex;justify-content:flex-end;margin-top:16px;padding-top:14px;
-        border-top:1px solid var(--border)">
-        <button class="btn btn-ghost" onclick="closeAcomp()">Fechar</button>
+        </div>
       </div>
 
-    </div><!-- fim padding -->
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;padding-top:14px;
+        border-top:1px solid var(--border)">
+        <button style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-soft)" onclick="closeAcomp()">Fechar</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- MODAL EDITAR ITENS — mesmo padrão do Diário -->
+<!-- MODAL EDITAR ITENS -->
 <div class="modal-overlay" id="itens-overlay" style="display:none;align-items:center;justify-content:center">
   <div class="modal modal-lg" style="max-height:90vh;overflow-y:auto">
-
     <div class="modal-header">
       <div class="modal-title">✏️ Editar Itens do Pregão</div>
       <button class="modal-close" onclick="closeEditItens()">✕</button>
     </div>
-
-    <!-- Dados do edital (readonly) -->
     <div class="modal-section-title">Dados do Edital (PNCP)</div>
     <div class="detail-grid">
       <div class="detail-readonly" style="grid-column:1/-1">
@@ -735,8 +676,6 @@
         <div class="dr-val mono" id="ei-ncompra">—</div>
       </div>
     </div>
-
-    <!-- Itens do Pregão -->
     <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between">
       <span>Itens do Pregão</span>
       <button onclick="addEditItemRow()" style="background:var(--accent);color:white;border:none;border-radius:8px;
@@ -744,7 +683,6 @@
         ＋ Adicionar Item
       </button>
     </div>
-
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
         <thead>
@@ -763,25 +701,20 @@
         <tbody id="edit-itens-body"></tbody>
       </table>
     </div>
-
     <div id="edit-itens-empty" style="text-align:center;padding:16px;font-size:12px;color:#9CA3AF;
       background:#F9FAFB;border:1px dashed #E5E7EB;border-radius:8px;margin-top:8px;display:none">
       Clique em <strong>＋ Adicionar Item</strong> para incluir os itens deste pregão
     </div>
-
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeEditItens()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveEditItens()">💾 Salvar Itens</button>
+      <button style="background:#F9FAFB;border:1px solid var(--border);border-radius:10px;padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text-soft)" onclick="closeEditItens()">Cancelar</button>
+      <button style="background:var(--accent);color:white;border:none;border-radius:10px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer" onclick="saveEditItens()">💾 Salvar Itens</button>
     </div>
-
   </div>
 </div>
 
 <!-- BOLETIM MODAL -->
 <div class="bol-overlay" id="bol-overlay">
   <div class="bol-wrap" id="bol-print-area">
-
-    <!-- Cabeçalho laranja -->
     <div class="bol-header">
       <div class="bol-header-left">
         <div class="bol-title">
@@ -797,8 +730,6 @@
         <div class="bol-contact-sub">wycconsultoria@gmail.com.br</div>
       </div>
     </div>
-
-    <!-- Tabela -->
     <div class="bol-body">
       <table class="bol-table">
         <thead>
@@ -822,11 +753,7 @@
         <tbody id="bol-tbody"></tbody>
       </table>
     </div>
-
-    <!-- Rodapé da tabela -->
     <div class="bol-footer-txt" id="bol-footer-txt"></div>
-
-    <!-- Botões (não imprimem) -->
     <div class="bol-footer-bar bol-no-print">
       <button onclick="printBol()" style="background:#D97706;color:white;border:none;border-radius:10px;
         padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px">
@@ -837,7 +764,6 @@
         ✕ Fechar
       </button>
     </div>
-
   </div>
 </div>
 
@@ -850,13 +776,28 @@ const FAV_TABLE = 'pncp_favoritos';
 const SB = SUPABASE_URL;
 const H = { 'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Accept':'application/json' };
 
-// Logo WYC em base64
-const LOGO_B64 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAAB';
-
 let allFavs = [], filtered = [];
 let sortCol = 'dataencerramento', sortDir = 'asc';
 let currentTab = 'todos';
 let saveTimers = {};
+
+// =============================================
+// HELPERS — Site label
+// =============================================
+function getSiteLabelFav(url) {
+  if (!url) return '—';
+  try { return new URL(url.includes('://')?url:'https://'+url).hostname.replace('www.',''); }
+  catch(e) { return url.substring(0,22); }
+}
+
+function refreshLinkPregao(id, url) {
+  const td = document.getElementById('lpreg-'+id);
+  if (td) td.innerHTML = url
+    ? `<a href="${url}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>`
+    : '<span style="font-size:10px;color:#D1D5DB">—</span>';
+  const lbl = document.getElementById('slabel-'+id);
+  if (lbl) lbl.textContent = getSiteLabelFav(url);
+}
 
 // AUTH
 function checkAuth() {
@@ -886,7 +827,6 @@ function applyModulos(user, paginaAtual) {
     if (!el) return;
     el.style.display = (mod && mods[mod]) || mod === null ? (mod?'flex':'none') : 'none';
   });
-  // Redireciona se módulo atual desabilitado
   if (paginaAtual && mods[paginaAtual] === false) {
     window.location.href = mods.diario !== false ? 'licitatracker-diario.html' : 'login.html';
   }
@@ -903,16 +843,13 @@ async function loadFavs() {
   document.getElementById('fav-tbody').innerHTML =
     `<tr><td colspan="19" style="text-align:center;padding:48px"><span class="spinner"></span> Carregando...</td></tr>`;
   try {
-    // Busca favoritos cabeçalho
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}?select=*&order=dataencerramento.asc`, {headers:H});
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const favs = await res.json();
 
-    // Busca itens
     const resItens = await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?select=*&order=item_numero.asc`, {headers:H});
     const itens = resItens.ok ? await resItens.json() : [];
 
-    // Expande: cada item vira uma linha; se não tiver itens usa o cabeçalho como linha única
     allFavs = [];
     favs.forEach(fav => {
       const favItens = itens.filter(i => i.favorito_id === fav.id);
@@ -945,7 +882,6 @@ async function loadFavs() {
   }
 }
 
-// IMPORT DOS FAVORITOS DO DIÁRIO (localStorage → Supabase)
 async function importFromLocal() {
   const manual = JSON.parse(localStorage.getItem('lt_manual')||'{}');
   const entries = Object.entries(manual).filter(([,m])=>m.starred||m.status==='andamento');
@@ -955,7 +891,6 @@ async function importFromLocal() {
   let imported = 0;
 
   for (const [id, m] of entries) {
-    // Busca o edital original
     const src = await fetch(
       `${SUPABASE_URL}/rest/v1/pncp_publicacoes?select=*&id=eq.${id}`,
       {headers:H}
@@ -964,7 +899,7 @@ async function importFromLocal() {
     if (!rows.length) continue;
     const r = rows[0];
 
-    if (existingPncps.has(r.numerocontrolepncp)) continue; // já existe
+    if (existingPncps.has(r.numerocontrolepncp)) continue;
 
     const payload = {
       numerocontrolepncp: r.numerocontrolepncp,
@@ -986,7 +921,7 @@ async function importFromLocal() {
       item_numero:        m.item      || null,
       uaseg:              m.uaseg     || null,
       data_carga:         r.data_carga || null,
-      data_favorito:      new Date().toISOString().substring(0,10), // data de hoje ao favoritar
+      data_favorito:      new Date().toISOString().substring(0,10),
     };
 
     const ins = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}`, {
@@ -1008,7 +943,6 @@ async function importFromLocal() {
   }
 }
 
-// FILTERS
 function getProdutosPermitidos() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
   if (user.role === 'admin' || !user.produtos || !user.produtos.length) return null;
@@ -1017,15 +951,12 @@ function getProdutosPermitidos() {
 
 function buildFilters() {
   const permitidos = getProdutosPermitidos();
-
-  // Produtos — filtra pelos permitidos se houver restrição
   let prods = [...new Set(allFavs.filter(r=>r.produto).map(r=>r.produto))].sort();
   if (permitidos) prods = prods.filter(p => permitidos.includes(p));
   const pSel = document.getElementById('f-produto');
   pSel.innerHTML = '<option value="">Produto: Todos</option>';
   prods.forEach(p => pSel.innerHTML += `<option value="${p}">${p}</option>`);
 
-  // UFs
   const ufs = [...new Set(allFavs.filter(r=>r.uf).map(r=>r.uf))].sort();
   const uSel = document.getElementById('f-uf');
   uSel.innerHTML = '<option value="">Todas as UFs</option>';
@@ -1046,12 +977,9 @@ function applyFilters() {
   const st   = document.getElementById('f-status').value;
   const prod = document.getElementById('f-produto').value;
   const uf   = document.getElementById('f-uf').value;
-
-  // Produtos permitidos — restrição obrigatória por empresa
   const permitidos = getProdutosPermitidos();
 
   filtered = allFavs.filter(r => {
-    // Restrição de produto por empresa — SEMPRE aplicada
     if (permitidos && !permitidos.includes(r.produto||'')) return false;
     if (currentTab !== 'todos' && r.status !== currentTab) return false;
     if (st   && r.status !== st) return false;
@@ -1070,7 +998,6 @@ function applyFilters() {
     return true;
   });
 
-  // Sort
   filtered.sort((a,b) => {
     let va=a[sortCol]||'', vb=b[sortCol]||'';
     if(va<vb) return sortDir==='asc'?-1:1;
@@ -1078,8 +1005,6 @@ function applyFilters() {
     return 0;
   });
 
-  // Counters — baseados no filtered (respeita restrição de produto)
-  // Pega IDs únicos de favoritos (cada favorito pode ter múltiplas linhas de itens)
   const favIds = new Set(filtered.map(r => r.id));
   const favArr = [...favIds].map(id => filtered.find(r => r.id === id));
   document.getElementById('cnt-total').textContent = favIds.size;
@@ -1102,7 +1027,300 @@ function clearFilters() {
 }
 
 // =============================================
-// ACOMPANHAMENTO MODAL
+// RENDER TABLE
+// =============================================
+function renderTable() {
+  const tbody = document.getElementById('fav-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="19"><div class="empty-state">
+      <div class="empty-icon">⭐</div>
+      <div class="empty-text">Nenhum favorito encontrado</div>
+      <div class="empty-sub">Acesse o Diário → modal + → "Salvar e Favoritar"</div>
+    </div></td></tr>`;
+    document.getElementById('table-footer').textContent = '0 registros';
+    return;
+  }
+
+  const uniqueIds  = [...new Set(filtered.map(r => r.id))];
+  const totalUniq  = uniqueIds.length;
+
+  tbody.innerHTML = filtered.map((r, rowIdx) => {
+    const favPos = uniqueIds.indexOf(r.id) + 1;
+    const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
+    const dtOk = dt && !isNaN(dt);
+    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
+    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const nPregao = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
+    const q = parseFloat(r.qtd||0), v = parseFloat(r.valref||0);
+    const total = (q&&v) ? fmtM(q*v) : '—';
+    const st  = r.status||'favorito';
+    const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const lPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
+    const hasLem = !!localStorage.getItem(`lt_lem_ativo_${r.id}`);
+    const siteLabel = getSiteLabelFav(r.site);
+
+    return `<tr class="st-${st}" data-id="${r.id}">
+      <td>
+        <select class="ed-select" onchange="changeStatus('${r.id}',this.value);refreshRow(this,'${r.id}')">
+          <option value="favorito"  ${st==='favorito' ?'selected':''}>⭐ Favorito</option>
+          <option value="andamento" ${st==='andamento'?'selected':''}>▶ Andamento</option>
+          <option value="ganho"     ${st==='ganho'    ?'selected':''}>🏆 Ganho</option>
+          <option value="perdido"   ${st==='perdido'  ?'selected':''}>✗ Perdido</option>
+        </select>
+      </td>
+      <td class="col-pncp" title="${r.numerocontrolepncp||''}">
+        <span style="display:block;word-break:break-all">${r.numerocontrolepncp||'—'}</span>
+      </td>
+      <td class="col-objeto">
+        <div class="obj-txt" style="-webkit-line-clamp:unset;overflow:visible;white-space:normal">${r.objetocompra||'—'}</div>
+      </td>
+      <td class="col-data">${dStr}</td>
+      <td class="col-hora">${hStr}</td>
+      <td class="col-pregao">${nPregao}</td>
+      <td class="col-orgao"><span title="${r.orgao||''}">${r.orgao||'—'}</span></td>
+      <td><span class="uf-badge">${r.uf||'?'}</span></td>
+      <td><input class="ed" value="${esc(r.produto)}" placeholder="produto"
+        onchange="saveF('${r.id}','produto',this.value)" style="min-width:70px"></td>
+      <td><input class="ed" value="${esc(r.unidade)}" placeholder="unidade"
+        onchange="saveF('${r.id}','unidade',this.value)" style="min-width:70px"></td>
+      <td><input class="ed" value="${esc(r.item_numero)}" placeholder="nº"
+        onchange="saveF('${r.id}','item_numero',this.value)" style="min-width:36px"></td>
+      <td><input class="ed" value="${esc(r.uaseg)}" placeholder="UASEG"
+        onchange="saveF('${r.id}','uaseg',this.value)" style="min-width:70px"></td>
+      <td><input class="ed" type="number" value="${r.qtd||''}" placeholder="0"
+        onchange="saveF('${r.id}','qtd',this.value);recalcTotal('${r.id}')" style="min-width:44px"></td>
+      <td>
+        <input class="ed" id="vr-${r.id}"
+          value="${r.valref ? 'R$ '+parseFloat(r.valref).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''}"
+          placeholder="R$ 0,00"
+          onfocus="this.value='${r.valref||''}';this.type='number'"
+          onblur="this.type='text';const v=parseFloat(this.value)||0;this.value=v?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''"
+          onchange="saveF('${r.id}','valref',this.value);recalcTotal('${r.id}')"
+          style="min-width:80px;font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">
+      </td>
+      <td class="col-total" id="ttl-${r.id}">${total}</td>
+      <td style="min-width:110px">
+        <div id="slabel-${r.id}" style="font-size:11px;font-weight:600;color:var(--text-soft);margin-bottom:3px">${siteLabel}</div>
+        <input class="ed" value="${esc(r.site)}" placeholder="https://..."
+          onchange="saveF('${r.id}','site',this.value);refreshLinkPregao('${r.id}',this.value)"
+          style="min-width:90px;font-size:10px;font-family:'DM Mono',monospace;color:var(--text-muted)">
+      </td>
+      <td><a href="${lPncp}" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a></td>
+      <td id="lpreg-${r.id}" style="white-space:nowrap">
+        ${r.site ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : '<span style="font-size:10px;color:#D1D5DB">—</span>'}
+      </td>
+      <td style="white-space:nowrap">
+        ${hasLem ? `<span title="Lembrete ativo" style="display:inline-flex;align-items:center;gap:2px;
+          background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px;padding:2px 6px;
+          font-size:10px;font-weight:700;color:#D97706;margin-bottom:3px">🔔 Lembrete</span><br>` : ''}
+        <button class="abtn" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#059669"
+          onclick="openAcomp('${r.id}')" title="Acompanhamento / Histórico">📋</button>
+        <button class="abtn" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB"
+          onclick="openEditItens('${r.id}','${esc(r.numerocontrolepncp)}')" title="Editar itens">✏</button>
+        ${st==='favorito'  ? `<button class="abtn abtn-green" onclick="changeStatus('${r.id}','andamento')">▶</button>` : ''}
+        ${st==='andamento' ? `<button class="abtn abtn-blue"  onclick="changeStatus('${r.id}','ganho')">🏆</button>` : ''}
+        <button class="abtn abtn-red" onclick="delFav('${r.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const uniqueFiltered = new Set(filtered.map(r=>r.id)).size;
+  document.getElementById('table-footer').textContent = `${uniqueFiltered} de ${uniqueFiltered} registros`;
+}
+
+// SAVE FIELD
+async function saveF(id, field, value) {
+  const row = allFavs.find(r=>r.id===id);
+  if (row) row[field] = value||null;
+  clearTimeout(saveTimers[id+field]);
+  saveTimers[id+field] = setTimeout(async()=>{
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}?id=eq.${id}`,{
+        method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
+        body:JSON.stringify({[field]:value||null})
+      });
+      if (!res.ok) throw new Error(res.status);
+    } catch(e) { toast('❌','Erro ao salvar: '+e.message); }
+  }, 700);
+}
+
+async function changeStatus(id, st) {
+  saveF(id,'status',st);
+  const row = allFavs.find(r=>r.id===id);
+  if (row) row.status = st;
+  if (st === 'ganho') {
+    await criarContrato(id);
+    toast('🏆','Parabéns! Contrato criado em Conta Corrente.');
+  } else {
+    toast('✅',`Movido para ${st}`);
+  }
+  setTimeout(()=>applyFilters(),200);
+}
+
+async function criarContrato(favoritoId) {
+  const r = allFavs.find(x=>x.id===favoritoId)||{};
+  try {
+    const check = await fetch(`${SB}/rest/v1/pncp_contratos?select=id&favorito_id=eq.${favoritoId}`,{headers:H});
+    const existing = check.ok ? await check.json() : [];
+    if (existing.length > 0) return;
+    const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
+    const resI = await fetch(`${SB}/rest/v1/pncp_favoritos_itens?select=*&favorito_id=eq.${favoritoId}`,{headers:H});
+    const itens = resI.ok ? await resI.json() : [];
+    const resC = await fetch(`${SB}/rest/v1/pncp_contratos`,{
+      method:'POST', headers:{...H,'Prefer':'return=representation'},
+      body: JSON.stringify({
+        favorito_id: favoritoId,
+        numerocontrolepncp: r.numerocontrolepncp||null,
+        orgao: r.orgao||null,
+        objeto: r.objetocompra||null,
+        data_ganho: new Date().toISOString().split('T')[0],
+        usuario: user.nome||null,
+        concluido: false,
+      })
+    });
+    const [contrato] = await resC.json();
+    if (itens.length > 0 && contrato?.id) {
+      const payload = itens.map(i=>({
+        contrato_id: contrato.id,
+        item_numero: i.item_numero||null,
+        descricao: i.produto||null,
+        quantidade: i.qtd?parseFloat(i.qtd):null,
+        vl_unitario: i.vlr_negociado ? parseFloat(i.vlr_negociado) : (i.valref?parseFloat(i.valref):null),
+        forma_pagamento:'qtd',
+        total_pago:0,
+      }));
+      await fetch(`${SB}/rest/v1/pncp_contrato_itens`,{
+        method:'POST', headers:{...H,'Prefer':'return=minimal'},
+        body: JSON.stringify(payload)
+      });
+    }
+  } catch(e) {
+    console.warn('Erro ao criar contrato:', e.message);
+    toast('❌', 'Erro ao criar contrato: ' + e.message);
+  }
+}
+
+function refreshRow(sel, id) {
+  const tr = sel.closest('tr');
+  tr.className = `st-${sel.value}`;
+}
+
+function recalcTotal(id) {
+  const row = allFavs.find(r=>r.id===id);
+  if (!row) return;
+  const q=parseFloat(row.qtd||0), v=parseFloat(row.valref||0);
+  const cell = document.getElementById('ttl-'+id);
+  if (cell) cell.textContent = (q&&v)?fmtM(q*v):'—';
+}
+
+async function delFav(id) {
+  if (!confirm('Remover este favorito?')) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { ...H, 'Prefer': 'return=minimal' }
+    });
+    if (!res.ok) { const txt = await res.text(); toast('❌', `Erro ${res.status}: ${txt.substring(0,80)}`); return; }
+    allFavs = allFavs.filter(r => r.id !== id);
+    buildFilters();
+    applyFilters();
+    toast('🗑', 'Favorito removido!');
+  } catch(e) {
+    toast('❌', 'Erro: ' + e.message);
+  }
+}
+
+function sortBy(col) {
+  document.querySelectorAll('th').forEach(th=>{th.classList.remove('sort-asc','sort-desc')});
+  if (sortCol===col) sortDir=sortDir==='asc'?'desc':'asc';
+  else { sortCol=col; sortDir='asc'; }
+  event.target.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
+  applyFilters();
+}
+
+// =============================================
+// BOLETIM — Site (nome), não link
+// =============================================
+function openBoletim() {
+  if (!filtered.length) { toast('⚠️','Nenhum registro para gerar o boletim'); return; }
+
+  const user  = JSON.parse(localStorage.getItem('lt_user')||'{}');
+  const de    = document.getElementById('f-de').value;
+  const ate   = document.getElementById('f-ate').value;
+  const prod  = document.getElementById('f-produto').value || 'Todos os produtos';
+  const now   = new Date();
+
+  document.getElementById('bol-title-text').textContent = `Boletim de Licitações — ${prod}`;
+  const periodo = de && ate ? `${fmtDate(de)} até ${fmtDate(ate)}`
+    : de ? `A partir de ${fmtDate(de)}`
+    : ate ? `Até ${fmtDate(ate)}`
+    : 'Todos os períodos';
+  document.getElementById('bol-subtitle').textContent =
+    `Gerado em: ${now.toLocaleDateString('pt-BR')}, ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}  |  Período: ${periodo}  |  Total: ${filtered.length} registro(s)`;
+
+  const logoImg = document.getElementById('bol-logo-img');
+  logoImg.style.display = 'block';
+  logoImg.src = 'Logo.png';
+  logoImg.onerror = () => { logoImg.style.display = 'none'; };
+
+  document.getElementById('bol-contact-name').textContent = user.nome || 'Wilson';
+  document.getElementById('bol-footer-txt').textContent =
+    `Boletim de Licitações — ${prod} | ${now.toLocaleDateString('pt-BR')}`;
+
+  // Boletim: usa siteLabel (nome do portal), não o link
+  document.getElementById('bol-tbody').innerHTML = filtered.map(r => {
+    const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
+    const dtOk = dt && !isNaN(dt);
+    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
+    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const nPregao = (r.numerocompra && r.anocompra) ? `PE ${r.numerocompra}/${r.anocompra}` : '—';
+    const nCompra = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
+
+    // Boletim: apenas o nome do site, sem link clicável
+    const siteLabel = getSiteLabelFav(r.site || r.linksistemaorigem || '');
+
+    const vEst  = r.valortotalestimado ? fmtM(parseFloat(r.valortotalestimado)) : '—';
+    const vUnit = r.valref ? fmtM(parseFloat(r.valref)) : '—';
+    const qtdStr = r.qtd ? parseFloat(r.qtd).toLocaleString('pt-BR') : '—';
+
+    return `<tr>
+      <td class="num" style="font-size:9px;max-width:120px;word-break:break-all">${r.numerocontrolepncp||'—'}</td>
+      <td class="num">${dStr}</td>
+      <td class="num">${hStr}</td>
+      <td class="num strong">${nPregao}</td>
+      <td style="font-size:10px;max-width:160px">${r.orgao||'—'}</td>
+      <td class="num" style="text-align:center">${r.item_numero||'—'}</td>
+      <td style="text-align:center;font-weight:700">${r.uf||'?'}</td>
+      <td style="font-size:10px">${siteLabel}</td>
+      <td class="money">${vEst}</td>
+      <td class="num" style="text-align:right">${qtdStr}</td>
+      <td class="num">${r.unidade||'—'}</td>
+      <td class="money">${vUnit}</td>
+      <td class="num">${r.uaseg||'—'}</td>
+      <td class="num">${nCompra}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('bol-overlay').classList.add('open');
+}
+
+function closeBol() {
+  document.getElementById('bol-overlay').classList.remove('open');
+}
+
+function printBol() {
+  toast('💡', 'Ative "Gráficos de fundo" nas opções de impressão para cores corretas');
+  setTimeout(() => window.print(), 400);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+// =============================================
+// ACOMPANHAMENTO
 // =============================================
 let acFavId = null;
 
@@ -1110,7 +1328,6 @@ async function openAcomp(favId) {
   acFavId = favId;
   const r = allFavs.find(x => x.id === favId) || {};
 
-  // Cabeçalho
   document.getElementById('ac-objeto-titulo').textContent = r.objetocompra || '—';
   document.getElementById('ac-objeto').textContent        = r.objetocompra || '—';
   document.getElementById('ac-pncp').textContent          = r.numerocontrolepncp || '—';
@@ -1131,23 +1348,18 @@ async function openAcomp(favId) {
   document.getElementById('ac-valores').textContent = v
     ? `${fmtM(v)} = ${(q&&v) ? fmtM(q*v) : '—'}` : '—';
 
-  // Links
   const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
   document.getElementById('ac-link-pncp').href =
     `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
   const slinkEl = document.getElementById('ac-link-preg');
   slinkEl.innerHTML = r.site
-    ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : '';
+    ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 ${getSiteLabelFav(r.site)}</a>` : '';
 
-  // Status
   document.getElementById('ac-status').value = r.status || 'favorito';
-
-  // Reset lembrete
   document.getElementById('ac-lem-ativo').checked = false;
   document.getElementById('ac-lem-config').style.display = 'none';
   document.getElementById('ac-nova-nota').value = '';
 
-  // Busca lembrete ativo
   try {
     const resL = await fetch(
       `${SUPABASE_URL}/rest/v1/pncp_lembretes?select=*&favorito_id=eq.${favId}&ativo=eq.true&order=created_at.desc&limit=1`,
@@ -1166,16 +1378,11 @@ async function openAcomp(favId) {
     }
   } catch(e) {}
 
-  // Carrega histórico e anexos
   await loadHistorico(favId);
   loadAnexos(favId);
-
   document.getElementById('acomp-overlay').classList.add('open');
 }
 
-// =============================================
-// ANEXOS (localStorage por enquanto — base para integração futura)
-// =============================================
 function getAnexoKey(pncp) {
   return `lt_anx_${(pncp||'').replace(/[^a-zA-Z0-9]/g,'_')}`;
 }
@@ -1187,7 +1394,6 @@ function loadAnexos(favId) {
   const dados = JSON.parse(localStorage.getItem(key) || '{}');
   const lista = document.getElementById('ac-anexos-lista');
 
-  // Mostra link do edital se existir
   const linkInput = document.getElementById('ac-link-edital-input');
   if (linkInput) {
     linkInput.value = dados.link || '';
@@ -1261,7 +1467,20 @@ function delAnexo(pncp, idx) {
   toast('🗑', 'Anexo removido');
 }
 
-function getAnexoIcon(type) { return getFileIcon(type); }
+function getAnexoIcon(type) {
+  if (!type) return '📄';
+  if (type.includes('pdf'))   return '📕';
+  if (type.includes('image')) return '🖼';
+  if (type.includes('word') || type.includes('document')) return '📝';
+  if (type.includes('sheet') || type.includes('excel'))   return '📊';
+  return '📄';
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
 
 function saveAcLink() {
   const r    = allFavs.find(x => x.id === acFavId) || {};
@@ -1278,21 +1497,6 @@ function updateAcLinkBtn(url) {
   const btn = document.getElementById('ac-link-edital-btn');
   if (!btn) return;
   btn.href = url; btn.style.display = url ? 'flex' : 'none';
-}
-
-function getFileIcon(type) {
-  if (!type) return '📄';
-  if (type.includes('pdf'))   return '📕';
-  if (type.includes('image')) return '🖼';
-  if (type.includes('word') || type.includes('document')) return '📝';
-  if (type.includes('sheet') || type.includes('excel'))   return '📊';
-  return '📄';
-}
-
-function fmtSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
-  return (bytes/1048576).toFixed(1) + ' MB';
 }
 
 function refreshAcompStatus() {
@@ -1321,7 +1525,6 @@ async function salvarLembrete() {
   if (!acFavId) return;
   const ativo = document.getElementById('ac-lem-ativo').checked;
 
-  // Desativa lembretes anteriores
   await fetch(`${SUPABASE_URL}/rest/v1/pncp_lembretes?favorito_id=eq.${acFavId}`,{
     method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
     body: JSON.stringify({ativo:false})
@@ -1348,10 +1551,8 @@ async function salvarLembrete() {
       body: JSON.stringify(payload)
     });
 
-    // Marca lembrete ativo no localStorage para badge na linha
     localStorage.setItem(`lt_lem_ativo_${acFavId}`, '1');
 
-    // Agenda disparo local
     if (tipo === 'tempo') {
       const ms = parseInt(minutos) * 60 * 1000;
       const savedFavId = acFavId;
@@ -1372,28 +1573,22 @@ async function salvarLembrete() {
       }
     }
   } else {
-    // Remove badge do localStorage
     localStorage.removeItem(`lt_lem_ativo_${acFavId}`);
   }
 
-  // Fix 4: Limpa campos após salvar
   document.getElementById('ac-lem-nota').value = '';
   document.getElementById('ac-lem-ativo').checked = false;
   document.getElementById('ac-lem-config').style.display = 'none';
 
-  const lemTxt = ativo ? `Lembrete agendado! ⏰` : 'Lembrete removido';
-  toast('🔔', lemTxt);
-  applyFilters(); // atualiza badge na linha
+  toast('🔔', ativo ? 'Lembrete agendado! ⏰' : 'Lembrete removido');
+  applyFilters();
 }
 
 function dispararLembrete(nota, favId) {
   const r   = allFavs.find(x => x.id === favId) || {};
   const msg = nota || `Revisar: ${(r.objetocompra||'').substring(0,80)}`;
-
-  // Remove badge do localStorage após disparar
   localStorage.removeItem(`lt_lem_ativo_${favId}`);
 
-  // Função de beep reutilizável
   function tocarBeep() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1410,10 +1605,8 @@ function dispararLembrete(nota, favId) {
     } catch(e) {}
   }
 
-  // Toca imediatamente
   tocarBeep();
 
-  // Popup — fica na tela até clicar
   const overlayId = 'lem-overlay-' + favId;
   const overlay = document.createElement('div');
   overlay.id = overlayId;
@@ -1425,30 +1618,11 @@ function dispararLembrete(nota, favId) {
   overlay.innerHTML = `
     <div style="background:white;border-radius:20px;padding:36px 40px;max-width:520px;width:92%;
       text-align:center;box-shadow:0 28px 70px rgba(0,0,0,.35);animation:popIn .3s ease">
-      <div style="font-size:52px;margin-bottom:10px;animation:spin 1s linear infinite">🔔</div>
+      <div style="font-size:52px;margin-bottom:10px">🔔</div>
       <div style="font-size:20px;font-weight:800;color:#1F2937;margin-bottom:6px">Lembrete de Licitação!</div>
       <div style="font-size:13px;color:#6B7280;margin-bottom:4px">${(r.orgao||'').substring(0,60)}</div>
       <div style="font-size:14px;color:#374151;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;
         padding:14px;margin:14px 0;text-align:left;line-height:1.5">${msg}</div>
-
-      <!-- Config intervalo de repetição -->
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;
-        font-size:12px;color:#9CA3AF;margin-bottom:16px">
-        🔁 Repetir a cada
-        <select id="lem-intervalo-sel" style="border:1px solid #E5E7EB;border-radius:6px;
-          padding:3px 8px;font-size:12px;color:#374151;outline:none"
-          onchange="localStorage.setItem('lt_lem_intervalo',this.value);
-            clearInterval(window['lemTimer_${favId}']);
-            window['lemTimer_${favId}']=setInterval(()=>{ if(!document.getElementById('${overlayId}')) return;
-              tocarBeepGlobal(); }, parseInt(this.value)*60*1000)">
-          <option value="1" ${intervaloMin===1?'selected':''}>1 min</option>
-          <option value="2" ${intervaloMin===2?'selected':''}>2 min</option>
-          <option value="5" ${intervaloMin===5?'selected':''}>5 min</option>
-          <option value="10" ${intervaloMin===10?'selected':''}>10 min</option>
-        </select>
-        até ser fechado
-      </div>
-
       <div style="display:flex;gap:10px;justify-content:center">
         <button id="lem-btn-ok-${favId}"
           style="background:#2563EB;color:white;border:none;border-radius:10px;
@@ -1459,51 +1633,21 @@ function dispararLembrete(nota, favId) {
           📋 Ver Favoritos
         </a>
       </div>
-      <div id="lem-counter-${favId}" style="font-size:11px;color:#9CA3AF;margin-top:10px">
-        Próximo aviso em <span id="lem-sec-${favId}">${intervaloMin * 60}</span>s
-      </div>
     </div>`;
 
   document.body.appendChild(overlay);
-
-  // Exposição global do beep para o select poder chamar
   window.tocarBeepGlobal = tocarBeep;
 
-  // Countdown + repetição
-  let secsLeft = intervaloMin * 60;
-  const countEl = () => document.getElementById(`lem-sec-${favId}`);
-
-  const countdownTimer = setInterval(() => {
-    if (!document.getElementById(overlayId)) { clearInterval(countdownTimer); return; }
-    secsLeft--;
-    if (countEl()) countEl().textContent = secsLeft;
-    if (secsLeft <= 0) {
-      const curInt = parseInt(localStorage.getItem('lt_lem_intervalo')||'2');
-      secsLeft = curInt * 60;
-      tocarBeep();
-    }
-  }, 1000);
-
-  window[`lemTimer_${favId}`] = countdownTimer;
-
-  // Botão Entendido
   setTimeout(() => {
     const btn = document.getElementById(`lem-btn-ok-${favId}`);
-    if (btn) btn.onclick = () => {
-      clearInterval(countdownTimer);
-      delete window[`lemTimer_${favId}`];
-      overlay.remove();
-      applyFilters();
-    };
+    if (btn) btn.onclick = () => { overlay.remove(); applyFilters(); };
   }, 100);
 
-  // Notificação do sistema
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     try { new Notification('🔔 Lembrete LicitaTracker', { body: msg, icon: 'Logo.png' }); }
     catch(e) {}
   }
 
-  // Grava no histórico
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
   fetch(`${SUPABASE_URL}/rest/v1/pncp_acompanhamento`, {
     method:'POST', headers:{...H,'Prefer':'return=minimal'},
@@ -1513,7 +1657,6 @@ function dispararLembrete(nota, favId) {
   applyFilters();
 }
 
-// Solicita permissão de notificação ao carregar a página
 if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
   Notification.requestPermission().then(p => console.log('Notificações:', p));
 }
@@ -1560,7 +1703,6 @@ async function salvarNota() {
   if (!nota) { toast('⚠️','Escreva algo antes de salvar'); return; }
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
   const r    = allFavs.find(x => x.id === acFavId) || {};
-
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/pncp_acompanhamento`, {
       method:'POST',
@@ -1582,29 +1724,25 @@ async function salvarNota() {
   }
 }
 
-// Fecha ao clicar fora
 document.getElementById('acomp-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeAcomp();
 });
 
 // =============================================
-// EDITAR ITENS MODAL
+// EDITAR ITENS
 // =============================================
-let editFavoritoId   = null;
-let editPncp         = null;
-let editItensTemp    = [];
+let editFavoritoId = null;
+let editPncp       = null;
+let editItensTemp  = [];
 
-// Produtos — carregados do Supabase (mesma fonte)
 let PRODUTOS_CACHE_FAV = [];
 async function loadProdutosCacheFav() {
-  if (PRODUTOS_CACHE_FAV.length) return; // já carregou
+  if (PRODUTOS_CACHE_FAV.length) return;
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos?select=nome&order=nome.asc`,
-      {headers:H});
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/lt_produtos?select=nome&order=nome.asc`,{headers:H});
     PRODUTOS_CACHE_FAV = res.ok ? (await res.json()).map(r=>r.nome) : [];
   } catch(e) { PRODUTOS_CACHE_FAV = []; }
 }
-function getProdListFav() { return PRODUTOS_CACHE_FAV; }
 
 const UNIDADE_DEFAULTS_FAV = ['PC - 250Grs','PC - 500Grs','PC - 1 Kg','KG - Quilograma','LT - Litro','MT - Metro','UN - Unidade','CX - Caixa'];
 function getUndListFav() {
@@ -1614,7 +1752,7 @@ function getUndListFav() {
 
 function buildProdOptsFav(cur) {
   let o = `<option value="">— produto —</option>`;
-  getProdListFav().forEach(p => o += `<option value="${p}" ${cur===p?'selected':''}>${p}</option>`);
+  PRODUTOS_CACHE_FAV.forEach(p => o += `<option value="${p}" ${cur===p?'selected':''}>${p}</option>`);
   o += `<option value="__novo__">+ Novo...</option>`;
   return o;
 }
@@ -1628,11 +1766,8 @@ function buildUndOptsFav(cur) {
 async function openEditItens(favId, pncp) {
   editFavoritoId = favId;
   editPncp       = pncp;
-
-  // Garante cache de produtos carregado
   await loadProdutosCacheFav();
 
-  // Busca dados do favorito para preencher readonly
   const fav = allFavs.find(r => r.id === favId) || {};
   document.getElementById('ei-pncp').textContent    = fav.numerocontrolepncp || pncp || '—';
   document.getElementById('ei-objeto').textContent  = fav.objetocompra        || '—';
@@ -1644,7 +1779,6 @@ async function openEditItens(favId, pncp) {
     ? dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
     : '—';
 
-  // Busca itens existentes
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?select=*&favorito_id=eq.${favId}&order=item_numero.asc`,
@@ -1657,7 +1791,6 @@ async function openEditItens(favId, pncp) {
   }
 
   if (!editItensTemp.length) editItensTemp.push(newEditItemRow());
-
   renderEditItens();
   document.getElementById('itens-overlay').classList.add('open');
 }
@@ -1691,57 +1824,47 @@ function renderEditItens() {
     <tr style="border-bottom:1px solid #F3F4F6">
       <td style="padding:6px 8px">
         <input type="text" value="${item.item_numero||''}" placeholder="ex: 01"
-          style="width:52px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none;text-align:center"
+          style="width:52px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:center"
           oninput="editItensTemp[${idx}].item_numero=this.value">
       </td>
       <td style="padding:6px 8px">
-        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none;min-width:110px"
+        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;min-width:110px"
           onchange="handleEditProd(${idx},this.value)">
           ${buildProdOptsFav(item.produto||'')}
         </select>
       </td>
       <td style="padding:6px 8px">
-        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none;min-width:110px"
+        <select style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;min-width:110px"
           onchange="handleEditUnd(${idx},this.value)">
           ${buildUndOptsFav(item.unidade||'')}
         </select>
       </td>
       <td style="padding:6px 8px">
         <input type="number" value="${item.qtd||''}" placeholder="0"
-          style="width:70px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none;text-align:right"
+          style="width:70px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:right"
           oninput="editItensTemp[${idx}].qtd=this.value;calcEditTotal(${idx})">
       </td>
       <td style="padding:6px 8px">
         <input type="number" value="${item.valref||''}" placeholder="0,00"
-          style="width:82px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none;text-align:right"
+          style="width:82px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:right"
           oninput="editItensTemp[${idx}].valref=this.value;calcEditTotal(${idx})">
       </td>
       <td style="padding:6px 8px">
         <input type="number" value="${item.vlr_negociado||''}" placeholder="0,00"
-          style="width:88px;background:#F0FDF4;border:2px solid #A7F3D0;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none;text-align:right;font-weight:600;color:#059669"
-          title="Valor unitário negociado/ganho"
+          style="width:88px;background:#F0FDF4;border:2px solid #A7F3D0;border-radius:6px;padding:5px 7px;font-size:12px;outline:none;text-align:right;font-weight:600;color:#059669"
           oninput="editItensTemp[${idx}].vlr_negociado=this.value;calcEditTotalNeg(${idx})">
       </td>
-      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;
-        color:#059669;font-weight:700;white-space:nowrap" id="etotal-neg-${idx}">
+      <td style="padding:6px 8px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:#059669;font-weight:700;white-space:nowrap" id="etotal-neg-${idx}">
         ${calcTotalStr(item.qtd, item.vlr_negociado||item.valref)}
       </td>
       <td style="padding:6px 8px">
         <input type="text" value="${item.uaseg||''}" placeholder="UASEG"
-          style="width:82px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
-          padding:5px 7px;font-size:12px;outline:none"
+          style="width:82px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;padding:5px 7px;font-size:12px;outline:none"
           oninput="editItensTemp[${idx}].uaseg=this.value">
       </td>
       <td style="padding:6px 8px;text-align:center">
         <button onclick="removeEditItem(${idx})"
-          style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;
-          padding:3px 8px;font-size:11px;color:#DC2626;cursor:pointer;font-weight:700">✕</button>
+          style="background:#FEF2F2;border:1px solid #FECACA;border-radius:5px;padding:3px 8px;font-size:11px;color:#DC2626;cursor:pointer;font-weight:700">✕</button>
       </td>
     </tr>`).join('');
 }
@@ -1772,7 +1895,7 @@ async function handleEditProd(idx, val) {
       method:'POST', headers:{...H,'Prefer':'return=minimal'},
       body: JSON.stringify({nome: n})
     });
-    PRODUTOS_CACHE_FAV = []; // força reload
+    PRODUTOS_CACHE_FAV = [];
     await loadProdutosCacheFav();
     editItensTemp[idx].produto = n;
     renderEditItens();
@@ -1802,13 +1925,10 @@ function removeEditItem(idx) {
 async function saveEditItens() {
   if (!editFavoritoId) return;
   const itensValidos = editItensTemp.filter(i => i.produto || i.qtd || i.item_numero);
-
   try {
-    // Deleta todos os itens antigos
     await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos_itens?favorito_id=eq.${editFavoritoId}`,
       { method:'DELETE', headers:H });
 
-    // Insere os novos
     if (itensValidos.length > 0) {
       const payload = itensValidos.map(i => ({
         favorito_id:        editFavoritoId,
@@ -1822,7 +1942,6 @@ async function saveEditItens() {
         uaseg:              i.uaseg       || null,
         data_favorito:      new Date().toISOString().substring(0,10),
       }));
-
       await fetch(`${SUPABASE_URL}/rest/v1/pncp_favoritos_itens`, {
         method:'POST', headers:{...H,'Prefer':'return=minimal'},
         body: JSON.stringify(payload)
@@ -1831,349 +1950,15 @@ async function saveEditItens() {
 
     toast('✅', `${itensValidos.length} item(ns) salvo(s)!`);
     closeEditItens();
-    loadFavs(); // recarrega a tabela
+    loadFavs();
   } catch(e) {
     toast('❌','Erro ao salvar: '+e.message);
   }
 }
 
-
-function openBoletim() {
-  if (!filtered.length) { toast('⚠️','Nenhum registro para gerar o boletim'); return; }
-
-  const user  = JSON.parse(localStorage.getItem('lt_user')||'{}');
-  const de    = document.getElementById('f-de').value;
-  const ate   = document.getElementById('f-ate').value;
-  const prod  = document.getElementById('f-produto').value || 'Todos os produtos';
-  const now   = new Date();
-
-  // Título e subtítulo
-  document.getElementById('bol-title-text').textContent = `Boletim de Licitações — ${prod}`;
-  const periodo = de && ate ? `${fmtDate(de)} até ${fmtDate(ate)}`
-    : de ? `A partir de ${fmtDate(de)}`
-    : ate ? `Até ${fmtDate(ate)}`
-    : 'Todos os períodos';
-  document.getElementById('bol-subtitle').textContent =
-    `Gerado em: ${now.toLocaleDateString('pt-BR')}, ${now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}  |  Período: ${periodo}  |  Total: ${filtered.length} registro(s)`;
-
-  // Logo — tenta carregar do GitHub Pages
-  const logoImg = document.getElementById('bol-logo-img');
-  logoImg.style.display = 'block';
-  logoImg.src = 'Logo.png';
-  logoImg.onerror = () => { logoImg.style.display = 'none'; };
-
-  // Contato
-  document.getElementById('bol-contact-name').textContent = user.nome || 'Wilson';
-
-  // Rodapé
-  document.getElementById('bol-footer-txt').textContent =
-    `Boletim de Licitações — ${prod} | ${now.toLocaleDateString('pt-BR')}`;
-
-  // Linhas
-  document.getElementById('bol-tbody').innerHTML = filtered.map(r => {
-    const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
-    const dtOk = dt && !isNaN(dt);
-    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
-    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
-    const nPregao = (r.numerocompra && r.anocompra) ? `PE ${r.numerocompra}/${r.anocompra}` : '—';
-    const nCompra = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
-
-    const siteRaw = r.site || r.linksistemaorigem || '';
-    let siteLabel = '—';
-    if (siteRaw) {
-      try { siteLabel = new URL(siteRaw.includes('://')?siteRaw:'https://'+siteRaw).hostname.replace('www.',''); }
-      catch(e) { siteLabel = siteRaw.substring(0,25); }
-    }
-
-    const vEst  = r.valortotalestimado ? fmtM(parseFloat(r.valortotalestimado)) : '—';
-    const vUnit = r.valref ? fmtM(parseFloat(r.valref)) : '—';
-    const qtdStr = r.qtd ? parseFloat(r.qtd).toLocaleString('pt-BR') : '—';
-
-    return `<tr>
-      <td class="num" style="font-size:9px;max-width:120px;word-break:break-all">${r.numerocontrolepncp||'—'}</td>
-      <td class="num">${dStr}</td>
-      <td class="num">${hStr}</td>
-      <td class="num strong">${nPregao}</td>
-      <td style="font-size:10px;max-width:160px">${r.orgao||'—'}</td>
-      <td class="num" style="text-align:center">${r.item_numero||'—'}</td>
-      <td style="text-align:center;font-weight:700">${r.uf||'?'}</td>
-      <td style="font-size:10px">${siteLabel}</td>
-      <td class="money">${vEst}</td>
-      <td class="num" style="text-align:right">${qtdStr}</td>
-      <td class="num">${r.unidade||'—'}</td>
-      <td class="money">${vUnit}</td>
-      <td class="num">${r.uaseg||'—'}</td>
-      <td class="num">${nCompra}</td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('bol-overlay').classList.add('open');
-}
-
-function closeBol() {
-  document.getElementById('bol-overlay').classList.remove('open');
-}
-
-function printBol() {
-  // Garante que gráficos de fundo estejam ativos — lembrete ao usuário
-  toast('💡', 'Ative "Gráficos de fundo" nas opções de impressão para cores corretas');
-  setTimeout(() => window.print(), 400);
-}
-
-function fmtDate(d) {
-  if (!d) return '—';
-  const [y,m,dd] = d.split('-');
-  return `${dd}/${m}/${y}`;
-}
-
-function sortBy(col) {
-  // Remove old sort classes
-  document.querySelectorAll('th').forEach(th=>{th.classList.remove('sort-asc','sort-desc')});
-  if (sortCol===col) sortDir=sortDir==='asc'?'desc':'asc';
-  else { sortCol=col; sortDir='asc'; }
-  event.target.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
-  applyFilters();
-}
-
-// RENDER
-function renderTable() {
-  const tbody = document.getElementById('fav-tbody');
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="19"><div class="empty-state">
-      <div class="empty-icon">⭐</div>
-      <div class="empty-text">Nenhum favorito encontrado</div>
-      <div class="empty-sub">Acesse o Diário → modal + → "Salvar e Favoritar"</div>
-    </div></td></tr>`;
-    document.getElementById('table-footer').textContent = '0 registros';
-    return;
-  }
-
-  // Mapa de posição por favorito único (ignora expansão de itens)
-  const uniqueIds  = [...new Set(filtered.map(r => r.id))];
-  const totalUniq  = uniqueIds.length;
-
-  tbody.innerHTML = filtered.map((r, rowIdx) => {
-    const favPos = uniqueIds.indexOf(r.id) + 1; // posição do favorito único
-    const dt   = r.dataencerramento ? new Date(r.dataencerramento.replace(' ','T')) : null;
-    const dtOk = dt && !isNaN(dt);
-    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
-    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
-    const nPregao = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : '—';
-    const q = parseFloat(r.qtd||0), v = parseFloat(r.valref||0);
-    const total = (q&&v) ? fmtM(q*v) : '—';
-    const st  = r.status||'favorito';
-    const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
-    const lPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
-    const posNum = favPos;
-    const total_f = totalUniq;
-    // Verifica se há lembrete ativo (salvo no localStorage)
-    const lemKey = `lt_lem_ativo_${r.id}`;
-    const hasLem = !!localStorage.getItem(lemKey);
-
-    return `<tr class="st-${st}" data-id="${r.id}">
-      <td>
-        <select class="ed-select" onchange="changeStatus('${r.id}',this.value);refreshRow(this,'${r.id}')">
-          <option value="favorito"  ${st==='favorito' ?'selected':''}>⭐ Favorito</option>
-          <option value="andamento" ${st==='andamento'?'selected':''}>▶ Andamento</option>
-          <option value="ganho"     ${st==='ganho'    ?'selected':''}>🏆 Ganho</option>
-          <option value="perdido"   ${st==='perdido'  ?'selected':''}>✗ Perdido</option>
-        </select>
-      </td>
-      <td class="col-pncp" title="${r.numerocontrolepncp||''}">
-        <span style="display:block;word-break:break-all">${r.numerocontrolepncp||'—'}</span>
-      </td>
-      <td class="col-objeto">
-        <div class="obj-txt" style="-webkit-line-clamp:unset;overflow:visible;white-space:normal">${r.objetocompra||'—'}</div>
-      </td>
-      <td class="col-data">${dStr}</td>
-      <td class="col-hora">${hStr}</td>
-      <td class="col-pregao">${nPregao}</td>
-      <td class="col-orgao"><span title="${r.orgao||''}">${r.orgao||'—'}</span></td>
-      <td><span class="uf-badge">${r.uf||'?'}</span></td>
-      <td><input class="ed" value="${esc(r.produto)}" placeholder="produto"
-        onchange="saveF('${r.id}','produto',this.value)" style="min-width:70px"></td>
-      <td><input class="ed" value="${esc(r.unidade)}" placeholder="unidade"
-        onchange="saveF('${r.id}','unidade',this.value)" style="min-width:70px"></td>
-      <td><input class="ed" value="${esc(r.item_numero)}" placeholder="nº"
-        onchange="saveF('${r.id}','item_numero',this.value)" style="min-width:36px"></td>
-      <td><input class="ed" value="${esc(r.uaseg)}" placeholder="UASEG"
-        onchange="saveF('${r.id}','uaseg',this.value)" style="min-width:70px"></td>
-      <td><input class="ed" type="number" value="${r.qtd||''}" placeholder="0"
-        onchange="saveF('${r.id}','qtd',this.value);recalcTotal('${r.id}')" style="min-width:44px"></td>
-      <td>
-        <input class="ed" id="vr-${r.id}"
-          value="${r.valref ? 'R$ '+parseFloat(r.valref).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : ''}"
-          placeholder="R$ 0,00"
-          onfocus="this.value='${r.valref||''}';this.type='number'"
-          onblur="this.type='text';const v=parseFloat(this.value)||0;this.value=v?'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''"
-          onchange="saveF('${r.id}','valref',this.value);recalcTotal('${r.id}')"
-          style="min-width:80px;font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">
-      </td>
-      <td class="col-total" id="ttl-${r.id}" style="color:var(--green);font-weight:600;font-family:'DM Mono',monospace">${total}</td>
-      <td><a href="${lPncp}" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a></td>
-      <td style="min-width:120px">
-        <input class="ed" value="${esc(r.site)}" placeholder="https://..."
-          onchange="saveF('${r.id}','site',this.value);refreshSiteLink('${r.id}',this.value)"
-          style="min-width:100px;font-size:11px;font-family:'DM Mono',monospace">
-        <div id="slink-${r.id}" style="margin-top:2px">
-          ${r.site ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : ''}
-        </div>
-      </td>
-      <td style="white-space:nowrap">
-        ${hasLem ? `<span title="Lembrete ativo" style="display:inline-flex;align-items:center;gap:2px;
-          background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px;padding:2px 6px;
-          font-size:10px;font-weight:700;color:#D97706;margin-bottom:3px">🔔 Lembrete</span><br>` : ''}
-        <button class="abtn" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#059669"
-          onclick="openAcomp('${r.id}')" title="Acompanhamento / Histórico">📋</button>
-        <button class="abtn" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB"
-          onclick="openEditItens('${r.id}','${esc(r.numerocontrolepncp)}')" title="Editar itens">✏</button>
-        ${st==='favorito'  ? `<button class="abtn abtn-green" onclick="changeStatus('${r.id}','andamento')">▶</button>` : ''}
-        ${st==='andamento' ? `<button class="abtn abtn-blue"  onclick="changeStatus('${r.id}','ganho')">🏆</button>` : ''}
-        <button class="abtn abtn-red" onclick="delFav('${r.id}')">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-
-  const uniqueFiltered = new Set(filtered.map(r=>r.id)).size;
-  document.getElementById('table-footer').textContent = `${uniqueFiltered} de ${uniqueFiltered} registros`;
-}
-
-// SAVE FIELD — debounced
-async function saveF(id, field, value) {
-  const row = allFavs.find(r=>r.id===id);
-  if (row) row[field] = value||null;
-  clearTimeout(saveTimers[id+field]);
-  saveTimers[id+field] = setTimeout(async()=>{
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${FAV_TABLE}?id=eq.${id}`,{
-        method:'PATCH', headers:{...H,'Prefer':'return=minimal'},
-        body:JSON.stringify({[field]:value||null})
-      });
-      if (!res.ok) throw new Error(res.status);
-    } catch(e) { toast('❌','Erro ao salvar: '+e.message); }
-  }, 700);
-}
-
-async function changeStatus(id, st) {
-  saveF(id,'status',st);
-  const row = allFavs.find(r=>r.id===id);
-  if (row) row.status = st;
-
-  // Ao ganhar → cria contrato automaticamente em Meus Editais
-  if (st === 'ganho') {
-    await criarContrato(id);
-    toast('🏆','Parabéns! Contrato criado em Conta Corrente.');
-  } else {
-    toast('✅',`Movido para ${st}`);
-  }
-
-  setTimeout(()=>applyFilters(),200);
-}
-
-async function criarContrato(favoritoId) {
-  const r = allFavs.find(x=>x.id===favoritoId)||{};
-  try {
-    // Verifica se já existe
-    const check = await fetch(
-      `${SB}/rest/v1/pncp_contratos?select=id&favorito_id=eq.${favoritoId}`,{headers:H});
-    const existing = check.ok ? await check.json() : [];
-    if (existing.length > 0) return;
-
-    const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
-
-    // Busca itens do favorito
-    const resI = await fetch(
-      `${SB}/rest/v1/pncp_favoritos_itens?select=*&favorito_id=eq.${favoritoId}`,{headers:H});
-    const itens = resI.ok ? await resI.json() : [];
-
-    // Cria contrato
-    const resC = await fetch(`${SB}/rest/v1/pncp_contratos`,{
-      method:'POST', headers:{...H,'Prefer':'return=representation'},
-      body: JSON.stringify({
-        favorito_id:        favoritoId,
-        numerocontrolepncp: r.numerocontrolepncp||null,
-        orgao:              r.orgao||null,
-        objeto:             r.objetocompra||null,
-        data_ganho:         new Date().toISOString().split('T')[0],
-        usuario:            user.nome||null,
-        concluido:          false,
-      })
-    });
-    const [contrato] = await resC.json();
-
-    // Pré-popula com itens do favorito
-    if (itens.length > 0 && contrato?.id) {
-      const payload = itens.map(i=>({
-        contrato_id:    contrato.id,
-        item_numero:    i.item_numero||null,
-        descricao:      i.produto||null,
-        quantidade:     i.qtd?parseFloat(i.qtd):null,
-        vl_unitario:    i.vlr_negociado ? parseFloat(i.vlr_negociado) : (i.valref?parseFloat(i.valref):null),
-        forma_pagamento:'qtd',
-        total_pago:     0,
-      }));
-      await fetch(`${SB}/rest/v1/pncp_contrato_itens`,{
-        method:'POST', headers:{...H,'Prefer':'return=minimal'},
-        body: JSON.stringify(payload)
-      });
-    }
-  } catch(e) {
-    console.warn('Erro ao criar contrato:', e.message);
-    toast('❌', 'Erro ao criar contrato: ' + e.message);
-  }
-}
-
-function refreshRow(sel, id) {
-  const tr = sel.closest('tr');
-  tr.className = `st-${sel.value}`;
-}
-
-function recalcTotal(id) {
-  const row = allFavs.find(r=>r.id===id);
-  if (!row) return;
-  const q=parseFloat(row.qtd||0), v=parseFloat(row.valref||0);
-  const cell = document.getElementById('ttl-'+id);
-  if (cell) cell.textContent = (q&&v)?fmtM(q*v):'—';
-}
-
-function refreshSiteLink(id, url) {
-  const div = document.getElementById('slink-'+id);
-  if (!div) return;
-  div.innerHTML = url ? `<a href="${url}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : '';
-}
-
-async function delFav(id) {
-  if (!confirm('Remover este favorito?')) return;
-
-  try {
-    const url = `${SUPABASE_URL}/rest/v1/${FAV_TABLE}?id=eq.${id}`;
-    console.log('DELETE URL:', url);
-
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: { ...H, 'Prefer': 'return=minimal' }
-    });
-
-    console.log('DELETE status:', res.status);
-
-    if (!res.ok) {
-      const txt = await res.text();
-      console.error('DELETE error body:', txt);
-      toast('❌', `Erro ${res.status}: ${txt.substring(0,80)}`);
-      return;
-    }
-
-    // Remove todas as linhas com este id (inclusive expandidas por itens)
-    allFavs = allFavs.filter(r => r.id !== id);
-    buildFilters();
-    applyFilters();
-    toast('🗑', 'Favorito removido!');
-  } catch(e) {
-    console.error('delFav exception:', e);
-    toast('❌', 'Erro: ' + e.message);
-  }
-}
-
+// =============================================
+// UTILS
+// =============================================
 function esc(v) { return (v||'').toString().replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function fmtM(v) { return 'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function toast(icon,msg) {
@@ -2190,12 +1975,10 @@ if (currentUser) {
   loadProdutosCacheFav().then(() => loadFavs());
 }
 
-// Fecha modal ao clicar fora
 document.getElementById('itens-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeEditItens();
 });
 
-// Mobile menu
 function toggleMenu(){const n=document.getElementById("main-nav"),b=document.getElementById("ham-btn");n.classList.toggle("open");b.classList.toggle("open");}
 document.addEventListener("click",e=>{const n=document.getElementById("main-nav"),b=document.getElementById("ham-btn");if(n&&!n.contains(e.target)&&b&&!b.contains(e.target)){n.classList.remove("open");b.classList.remove("open");}});
 </script>
