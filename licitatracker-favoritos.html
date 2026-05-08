@@ -207,6 +207,7 @@
     .bol-footer-txt { display: block !important; }
     .bol-table { font-size: 7px !important; }
     .bol-table th, .bol-table td { padding: 3px 3px !important; font-size: 7px !important; white-space: nowrap !important; }
+    .bol-table th:nth-child(5), .bol-table td:nth-child(5) { white-space: normal !important; word-break: break-word !important; width: 130px !important; }
     .bol-logo-img { height: 32px !important; }
     .bol-title { font-size: 16px !important; }
     .bol-subtitle { font-size: 9px !important; }
@@ -257,9 +258,9 @@
   .bol-table th:nth-child(1), .bol-table td:nth-child(1) {
     width:145px; white-space:nowrap; font-size:8px;
   }
-  /* Col 5 — Órgão: trunca com ellipsis se longo */
+  /* Col 5 — Órgão: sem truncamento, scroll horizontal na tela */
   .bol-table th:nth-child(5), .bol-table td:nth-child(5) {
-    width:135px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    width:175px; white-space:nowrap;
   }
   /* Col 11 — Unidade: espaço suficiente para "UN - Unidade" */
   .bol-table th:nth-child(11),.bol-table td:nth-child(11){ width:88px; white-space:nowrap; }
