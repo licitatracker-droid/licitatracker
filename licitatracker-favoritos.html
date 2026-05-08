@@ -205,8 +205,8 @@
     .bol-table td { border: 1px solid #FDE68A !important; }
     .bol-table td.money { color: #065F46 !important; }
     .bol-footer-txt { display: block !important; }
-    .bol-table { font-size: 8px !important; }
-    .bol-table th, .bol-table td { padding: 4px 4px !important; font-size: 8px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    .bol-table { font-size: 7px !important; }
+    .bol-table th, .bol-table td { padding: 3px 3px !important; font-size: 7px !important; white-space: nowrap !important; }
     .bol-logo-img { height: 32px !important; }
     .bol-title { font-size: 16px !important; }
     .bol-subtitle { font-size: 9px !important; }
@@ -253,24 +253,28 @@
   .bol-table td.money{text-align:right;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;color:#065F46}
   .bol-table td.strong{font-weight:700;color:#92400E}
 
+  /* Col 1 — Nº PNCP: sem truncamento, fonte menor */
   .bol-table th:nth-child(1), .bol-table td:nth-child(1) {
-    width:130px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:8px;
+    width:145px; white-space:nowrap; font-size:8px;
   }
+  /* Col 5 — Órgão: trunca com ellipsis se longo */
   .bol-table th:nth-child(5), .bol-table td:nth-child(5) {
-    width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    width:135px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .bol-table th:nth-child(2), .bol-table td:nth-child(2)  { width:76px; }
-  .bol-table th:nth-child(3), .bol-table td:nth-child(3) { width:42px;  }
-  .bol-table th:nth-child(4), .bol-table td:nth-child(4) { width:90px;  }
-  .bol-table th:nth-child(6), .bol-table td:nth-child(6) { width:32px;  }
-  .bol-table th:nth-child(7), .bol-table td:nth-child(7) { width:28px;  }
-  .bol-table th:nth-child(8), .bol-table td:nth-child(8) { width:90px;  }
-  .bol-table th:nth-child(9), .bol-table td:nth-child(9) { width:84px;  }
-  .bol-table th:nth-child(10),.bol-table td:nth-child(10){ width:54px;  }
-  .bol-table th:nth-child(11),.bol-table td:nth-child(11){ width:58px;  }
-  .bol-table th:nth-child(12),.bol-table td:nth-child(12){ width:70px;  }
-  .bol-table th:nth-child(13),.bol-table td:nth-child(13){ width:80px;  }
-  .bol-table th:nth-child(14),.bol-table td:nth-child(14){ width:70px;  }
+  /* Col 11 — Unidade: espaço suficiente para "UN - Unidade" */
+  .bol-table th:nth-child(11),.bol-table td:nth-child(11){ width:88px; white-space:nowrap; }
+
+  .bol-table th:nth-child(2), .bol-table td:nth-child(2)  { width:70px; }
+  .bol-table th:nth-child(3), .bol-table td:nth-child(3)  { width:38px; }
+  .bol-table th:nth-child(4), .bol-table td:nth-child(4)  { width:88px; }
+  .bol-table th:nth-child(6), .bol-table td:nth-child(6)  { width:28px; }
+  .bol-table th:nth-child(7), .bol-table td:nth-child(7)  { width:24px; }
+  .bol-table th:nth-child(8), .bol-table td:nth-child(8)  { width:82px; }
+  .bol-table th:nth-child(9), .bol-table td:nth-child(9)  { width:80px; }
+  .bol-table th:nth-child(10),.bol-table td:nth-child(10) { width:48px; }
+  .bol-table th:nth-child(12),.bol-table td:nth-child(12) { width:66px; }
+  .bol-table th:nth-child(13),.bol-table td:nth-child(13) { width:72px; }
+  .bol-table th:nth-child(14),.bol-table td:nth-child(14) { width:66px; }
 
   .bol-footer-txt{
     font-size:10px;color:#9CA3AF;text-align:right;
