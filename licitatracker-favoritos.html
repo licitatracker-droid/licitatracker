@@ -206,7 +206,7 @@
     .bol-table td.money { color: #065F46 !important; }
     .bol-footer-txt { display: block !important; }
     .bol-table { font-size: 8px !important; }
-    .bol-table th, .bol-table td { padding: 4px 4px !important; font-size: 8px !important; }
+    .bol-table th, .bol-table td { padding: 4px 4px !important; font-size: 8px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
     .bol-logo-img { height: 32px !important; }
     .bol-title { font-size: 16px !important; }
     .bol-subtitle { font-size: 9px !important; }
@@ -254,10 +254,10 @@
   .bol-table td.strong{font-weight:700;color:#92400E}
 
   .bol-table th:nth-child(1), .bol-table td:nth-child(1) {
-    width:110px; white-space:normal; word-break:break-all; font-size:9px;
+    width:130px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:8px;
   }
   .bol-table th:nth-child(5), .bol-table td:nth-child(5) {
-    width:150px; white-space:normal; word-break:break-word;
+    width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   .bol-table th:nth-child(2), .bol-table td:nth-child(2)  { width:76px; }
   .bol-table th:nth-child(3), .bol-table td:nth-child(3) { width:42px;  }
@@ -1284,7 +1284,7 @@ function openBoletim() {
     const qtdStr = r.qtd ? parseFloat(r.qtd).toLocaleString('pt-BR') : '—';
 
     return `<tr>
-      <td class="num" style="font-size:9px;max-width:120px;word-break:break-all">${r.numerocontrolepncp||'—'}</td>
+      <td class="num" style="font-size:8px">${r.numerocontrolepncp||'—'}</td>
       <td class="num">${dStr}</td>
       <td class="num">${hStr}</td>
       <td class="num strong">${nPregao}</td>
