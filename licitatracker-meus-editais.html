@@ -719,7 +719,7 @@ async function openFicha(contratoId) {
   loadFichaAnexos();
 
   // Itens e pagamentos deste contrato
-  fichaItensTemp = allItens.filter(i=>i.contrato_id===contratoId).map(i=>({...i, pagto_tipo_form: i.pagto_tipo_form||'antigo'}));
+  fichaItensTemp = allItens.filter(i=>i.contrato_id===contratoId).map(i=>({...i, tipo_preco: i.tipo_preco||'antigo', pagto_tipo_form: i.pagto_tipo_form||'antigo'}));
   const pags     = allPagamentos.filter(p=>p.contrato_id===contratoId);
 
   renderFichaItens(pags);
@@ -777,17 +777,22 @@ function renderFichaItens(pags) {
             oninput="fichaItensTemp[${idx}].kg_por_pct=this.value;recalcItemTotal(${idx})">
         </div>
       </div>
-      <!-- Preços e Totais -->
-      <div class="item-grid-2">
+      <!-- Tipo Preço + VL único + Totais -->
+      <div style="display:grid;grid-template-columns:auto 1fr 130px 130px;gap:8px;margin-bottom:6px;align-items:end">
         <div>
-          <label class="form-label">Vl Antigo (R$/pct)</label>
-          <input class="form-input" type="number" step="0.01" value="${item.vl_unitario||''}" placeholder="0,00"
-            oninput="fichaItensTemp[${idx}].vl_unitario=this.value;recalcItemTotal(${idx})">
+          <label class="form-label">Tipo Preço</label>
+          <div class="forma-toggle" style="margin-top:4px">
+            <button id="btn-tipo-antigo-${idx}" class="forma-btn ${item.tipo_preco!=='novo'?'active':''}"
+              onclick="setTipoPreco(${idx},'antigo')">💰 Antigo</button>
+            <button id="btn-tipo-novo-${idx}" class="forma-btn ${item.tipo_preco==='novo'?'active':''}"
+              onclick="setTipoPreco(${idx},'novo')">🆕 Novo</button>
+          </div>
         </div>
         <div>
-          <label class="form-label">Vl Novo (R$/pct)</label>
-          <input class="form-input" type="number" step="0.01" value="${item.vl_novo||''}" placeholder="0,00"
-            oninput="fichaItensTemp[${idx}].vl_novo=this.value;recalcItemTotal(${idx})">
+          <label class="form-label" id="vl-label-${idx}">VL ${item.tipo_preco==='novo'?'Novo':'Antigo'} (R$/pct)</label>
+          <input class="form-input" type="number" step="0.01" value="${item.vl_unitario||''}" placeholder="0,00"
+            id="vl-input-${idx}"
+            oninput="fichaItensTemp[${idx}].vl_unitario=this.value;recalcItemTotal(${idx})">
         </div>
         <div>
           <label class="form-label">Total KG</label>
@@ -796,15 +801,9 @@ function renderFichaItens(pags) {
             style="background:#EFF6FF;color:var(--accent);font-weight:700">
         </div>
         <div>
-          <label class="form-label">Total Antigo</label>
+          <label class="form-label">Total Contrato</label>
           <input class="form-input" type="text" id="item-total-antigo-${idx}" readonly
             value="${fmtM(parseFloat(item.quantidade||0)*parseFloat(item.vl_unitario||0))}">
-        </div>
-        <div>
-          <label class="form-label">Total Novo</label>
-          <input class="form-input" type="text" id="item-total-novo-${idx}" readonly
-            value="${fmtM(parseFloat(item.quantidade||0)*parseFloat(item.vl_novo||0))}"
-            style="background:#F0FDF4;color:var(--green);font-weight:700">
         </div>
       </div>
       <!-- Linha pago/saldo -->
@@ -878,8 +877,7 @@ function renderFichaItens(pags) {
           margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px">
           <span>📦 Qtd: <strong>${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} pcts</strong></span>
           <span>⚖️ KG Total: <strong style="color:var(--accent)">${(parseFloat(item.quantidade||0)*parseFloat(item.kg_por_pct||0.5)).toLocaleString('pt-BR',{maximumFractionDigits:3})} kg</strong></span>
-          <span>💰 Antigo: <strong>${fmtM(parseFloat(item.vl_unitario||0))}/pct</strong> = <strong>${fmtM(parseFloat(item.vl_unitario||0)/parseFloat(item.kg_por_pct||0.5))}/kg</strong></span>
-          <span>🆕 Novo: <strong style="color:var(--green)">${fmtM(parseFloat(item.vl_novo||0))}/pct</strong> = <strong style="color:var(--green)">${fmtM(parseFloat(item.vl_novo||0)/parseFloat(item.kg_por_pct||0.5))}/kg</strong></span>
+          <span>${item.tipo_preco==='novo'?'🆕 Novo':'💰 Antigo'}: <strong>${fmtM(parseFloat(item.vl_unitario||0))}/pct</strong> = <strong>${fmtM(parseFloat(item.vl_unitario||0)/parseFloat(item.kg_por_pct||0.5))}/kg</strong></span>
           <span>✅ Pago: <strong style="color:var(--accent)">${fmtM(totalPagoI)}</strong></span>
           <span>⏳ Saldo: <strong style="color:#EA580C">${fmtM(saldo)}</strong></span>
         </div>
@@ -945,7 +943,7 @@ function renderFichaItens(pags) {
                 value="0 kg" style="background:#EFF6FF;color:var(--accent);font-weight:600">
             </div>
             <div>
-              <label class="form-label" id="pag-preco-label-${idx}">Preço/pct (Antigo)</label>
+              <label class="form-label" id="pag-preco-label-${idx}">Preço/pct (${item.tipo_preco==='novo'?'Novo':'Antigo'})</label>
               <input class="form-input" type="text" id="pag-preco-${idx}" readonly
                 value="${fmtM(parseFloat(item.vl_unitario||0))}"
                 style="background:#FFF7ED;color:#EA580C;font-weight:600">
@@ -977,15 +975,15 @@ function recalcItemTotal(idx) {
   const item = fichaItensTemp[idx];
   const q   = parseFloat(item.quantidade||0);
   const va  = parseFloat(item.vl_unitario||0);
-  const vn  = parseFloat(item.vl_novo||0);
   const kp  = parseFloat(item.kg_por_pct||0.5);
 
   const elA  = document.getElementById(`item-total-antigo-${idx}`);
-  const elN  = document.getElementById(`item-total-novo-${idx}`);
   const elKG = document.getElementById(`item-total-kg-${idx}`);
   if (elA)  elA.value  = fmtM(q * va);
-  if (elN)  elN.value  = fmtM(q * vn);
   if (elKG) elKG.value = (q * kp).toLocaleString('pt-BR', {maximumFractionDigits:3}) + ' kg';
+  // Atualiza preço no form de pagamento se estiver aberto
+  const precoEl = document.getElementById(`pag-preco-${idx}`);
+  if (precoEl) precoEl.value = fmtM(va);
   updateFichaTotais();
 }
 
@@ -1001,7 +999,7 @@ function updateFichaTotais(pags) {
 
 function addItemContrato() {
   fichaItensTemp.push({id:null,contrato_id:fichaContratoId,item_numero:'',descricao:'',
-    quantidade:'',vl_unitario:'',vl_novo:'',kg_por_pct:'0.5',forma_pagamento:'qtd',total_pago:0,pagto_tipo_form:'antigo'});
+    quantidade:'',vl_unitario:'',tipo_preco:'antigo',kg_por_pct:'0.5',forma_pagamento:'qtd',total_pago:0,pagto_tipo_form:'antigo'});
   renderFichaItens(allPagamentos.filter(p=>p.contrato_id===fichaContratoId));
 }
 
@@ -1011,19 +1009,25 @@ function removeItemContrato(idx) {
   renderFichaItens(allPagamentos.filter(p=>p.contrato_id===fichaContratoId));
 }
 
+function setTipoPreco(idx, tipo) {
+  fichaItensTemp[idx].tipo_preco = tipo;
+  const btnA = document.getElementById(`btn-tipo-antigo-${idx}`);
+  const btnN = document.getElementById(`btn-tipo-novo-${idx}`);
+  if (btnA) btnA.classList.toggle('active', tipo !== 'novo');
+  if (btnN) btnN.classList.toggle('active', tipo === 'novo');
+  const labelEl = document.getElementById(`vl-label-${idx}`);
+  if (labelEl) labelEl.textContent = `VL ${tipo === 'novo' ? 'Novo' : 'Antigo'} (R$/pct)`;
+  // Atualiza label do preço no form de pagamento se estiver aberto
+  const pagLabelEl = document.getElementById(`pag-preco-label-${idx}`);
+  if (pagLabelEl) pagLabelEl.textContent = `Preço/pct (${tipo === 'novo' ? 'Novo' : 'Antigo'})`;
+}
+
 function setPagtoTipo(idx, tipo) {
   fichaItensTemp[idx].pagto_tipo_form = tipo;
   const btnA = document.getElementById(`btn-pagto-antigo-${idx}`);
   const btnN = document.getElementById(`btn-pagto-novo-${idx}`);
   if (btnA) btnA.classList.toggle('active', tipo === 'antigo');
   if (btnN) btnN.classList.toggle('active', tipo === 'novo');
-
-  const item    = fichaItensTemp[idx];
-  const preco   = tipo === 'novo' ? parseFloat(item.vl_novo||0) : parseFloat(item.vl_unitario||0);
-  const labelEl = document.getElementById(`pag-preco-label-${idx}`);
-  const precoEl = document.getElementById(`pag-preco-${idx}`);
-  if (labelEl) labelEl.textContent = tipo === 'novo' ? 'Preço/pct (Novo)' : 'Preço/pct (Antigo)';
-  if (precoEl) precoEl.value = fmtM(preco);
   calcPagPreview(idx);
 }
 
@@ -1035,8 +1039,7 @@ function addPagamento(idx, itemId) {
 
 function calcPagPreview(idx) {
   const item  = fichaItensTemp[idx];
-  const tipo  = item.pagto_tipo_form || 'antigo';
-  const vu    = tipo === 'novo' ? parseFloat(item.vl_novo||0) : parseFloat(item.vl_unitario||0);
+  const vu    = parseFloat(item.vl_unitario||0);
   const kgPct = parseFloat(item.kg_por_pct||0.5);
   const qtd   = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value || 0);
   const val   = qtd * vu;
@@ -1051,7 +1054,7 @@ function calcPagPreview(idx) {
 async function confirmarPagamento(idx, itemId) {
   const item  = fichaItensTemp[idx];
   const tipo  = item.pagto_tipo_form || 'antigo';
-  const vu    = tipo === 'novo' ? parseFloat(item.vl_novo||0) : parseFloat(item.vl_unitario||0);
+  const vu       = parseFloat(item.vl_unitario||0);
   const data  = document.getElementById(`pag-data-${idx}`)?.value || '';
   const obs   = document.getElementById(`pag-obs-${idx}`)?.value.trim() || '';
   const user  = JSON.parse(localStorage.getItem('lt_user') || '{}');
@@ -1118,7 +1121,7 @@ async function salvarItemContrato(idx) {
         descricao:        item.descricao||null,
         quantidade:       item.quantidade?parseFloat(item.quantidade):null,
         vl_unitario:      item.vl_unitario?parseFloat(item.vl_unitario):null,
-        vl_novo:          item.vl_novo?parseFloat(item.vl_novo):null,
+        tipo_preco:       item.tipo_preco||'antigo',
         kg_por_pct:       item.kg_por_pct?parseFloat(item.kg_por_pct):0.5,
         forma_pagamento:  'qtd',
       })
@@ -1155,7 +1158,7 @@ async function salvarFicha() {
         descricao:       item.descricao||null,
         quantidade:      item.quantidade?parseFloat(item.quantidade):null,
         vl_unitario:     item.vl_unitario?parseFloat(item.vl_unitario):null,
-        vl_novo:         item.vl_novo?parseFloat(item.vl_novo):null,
+        tipo_preco:      item.tipo_preco||'antigo',
         kg_por_pct:      item.kg_por_pct?parseFloat(item.kg_por_pct):0.5,
         forma_pagamento: 'qtd',
         nf_emitida:      item.nf_emitida||null,
