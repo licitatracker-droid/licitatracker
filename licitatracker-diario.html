@@ -232,11 +232,40 @@
   }
   .btn-clear-filters:hover { background: #FEF2F2; border-color: #FECACA; }
 
-  /* TABLE */
+  /* TABLE — sempre oculta no desktop (usa cards) */
   .table-wrap {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    background: transparent; border: none;
+    border-radius: 0; overflow: visible;
+    box-shadow: none;
+  }
+
+  #table-scroll-wrap { display: none !important; }
+  .table-footer      { display: none !important; }
+
+  /* CARDS GRID — sempre visível */
+  #mobile-cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 4px 0;
+  }
+  /* Paginação e empty-state ocupam linha inteira */
+  #mobile-cards > .cards-pagination,
+  #mobile-cards > .cards-empty {
+    grid-column: 1 / -1;
+  }
+  /* Hover suave nos cards no desktop */
+  @media (min-width: 769px) {
+    #mobile-cards > div[style*="border-radius:14px"] {
+      transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+    }
+    #mobile-cards > div[style*="border-radius:14px"]:hover {
+      box-shadow: 0 4px 18px rgba(37,99,235,0.10);
+      transform: translateY(-1px);
+    }
+  }
+  @media (min-width: 1400px) {
+    #mobile-cards { grid-template-columns: repeat(3, 1fr); }
   }
 
   .table-scroll { overflow-x: auto; }
@@ -653,11 +682,13 @@
     .header-bar .hbar-divider { display: none !important; }
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
 
-    /* TABLE → CARDS on mobile */
-    .table-wrap { overflow: visible; }
+    /* TABLE → CARDS on mobile: single column */
     #table-scroll-wrap { display: none !important; }
     .table-footer { display: none !important; }
-    #mobile-cards { display: block !important; }
+    #mobile-cards {
+      display: grid !important;
+      grid-template-columns: 1fr !important;
+    }
 
     /* Revisados bar */
     .revisao-bar { flex-wrap: wrap; gap: 6px; font-size: 12px; }
@@ -1772,10 +1803,26 @@ function saveManual(id, field, value) {
 function toggleStar(e, id) {
   e.stopPropagation();
   if (!manualData[id]) manualData[id] = {};
-  manualData[id].starred = !manualData[id].starred;
+  const novoEstado = !manualData[id].starred;
+  manualData[id].starred = novoEstado;
+  if (novoEstado && !manualData[id].status) manualData[id].status = 'favorito';
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
+
+  // Sempre persiste no Supabase ao favoritar
+  if (novoEstado) {
+    const m    = manualData[id] || {};
+    const hoje = new Date().toISOString().substring(0, 10);
+    insertToFavoritos(id, m.status || 'favorito', {
+      site:       m.site       || '',
+      uf:         m.uf         || '',
+      datamanual: m.datamanual || '',
+      horamanual: m.horamanual || '',
+      itens:      m.itens      || [],
+    }, hoje);
+  }
+
   renderTable();
-  toast('⭐', manualData[id].starred ? 'Favoritado!' : 'Removido dos favoritos');
+  toast('⭐', novoEstado ? 'Favoritado e salvo no Supabase!' : 'Removido dos favoritos');
 }
 
 // =============================================
@@ -2131,15 +2178,14 @@ document.addEventListener('click', e => {
 // =============================================
 function renderMobileCards() {
   const container = document.getElementById('mobile-cards');
-  if (!container || window.innerWidth > 768) return;
-  container.style.display = 'block';
+  if (!container) return;
 
   const pageStart = (currentPage-1)*PAGE_SIZE;
   const pageData  = filtered.slice(pageStart, pageStart+PAGE_SIZE);
   const total     = filtered.length;
 
   if (!pageData.length) {
-    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#6B7280">
+    container.innerHTML = `<div class="cards-empty" style="text-align:center;padding:40px 20px;color:#6B7280">
       <div style="font-size:36px;margin-bottom:12px;opacity:.4">🔍</div>
       <div style="font-size:14px;font-weight:500">Nenhum edital encontrado</div>
       <div style="font-size:12px;margin-top:4px">Tente ajustar os filtros</div>
@@ -2150,7 +2196,7 @@ function renderMobileCards() {
   // ── Paginação mobile ──────────────────────────────
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginationHtml = pages > 1 ? `
-    <div style="display:flex;align-items:center;justify-content:space-between;
+    <div class="cards-pagination" style="display:flex;align-items:center;justify-content:space-between;
       padding:12px 0;margin-top:4px">
       <button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} 
         style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:8px 16px;
@@ -2260,15 +2306,28 @@ function renderMobileCards() {
 function toggleStarMob(e, id) {
   e.stopPropagation();
   if (!manualData[id]) manualData[id] = {};
-  manualData[id].starred = !manualData[id].starred;
+  const novoEstado = !manualData[id].starred;
+  manualData[id].starred = novoEstado;
+  if (novoEstado && !manualData[id].status) manualData[id].status = 'favorito';
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
+
+  // Sempre persiste no Supabase ao favoritar
+  if (novoEstado) {
+    const m    = manualData[id] || {};
+    const hoje = new Date().toISOString().substring(0, 10);
+    insertToFavoritos(id, m.status || 'favorito', {
+      site:       m.site       || '',
+      uf:         m.uf         || '',
+      datamanual: m.datamanual || '',
+      horamanual: m.horamanual || '',
+      itens:      m.itens      || [],
+    }, hoje);
+  }
+
   renderMobileCards();
-  toast('⭐', manualData[id].starred ? 'Favoritado!' : 'Removido dos favoritos');
+  toast('⭐', novoEstado ? 'Favoritado e salvo no Supabase!' : 'Removido dos favoritos');
 }
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) { const mc=document.getElementById('mobile-cards'); if(mc) mc.style.display='none'; }
-  else renderMobileCards();
-});
+window.addEventListener('resize', () => { renderMobileCards(); });
 
 function getProdutosPermitidos() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
