@@ -137,8 +137,9 @@
   .item-editor{background:#F0FDF4;border:1px solid #A7F3D0;border-radius:10px;padding:14px;margin-bottom:10px}
   .item-editor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
   .item-editor-title{font-size:12px;font-weight:700;color:var(--green)}
-  .item-grid{display:grid;grid-template-columns:80px 1fr 120px 130px 120px;gap:8px;margin-bottom:8px}
-  .item-grid-2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .item-grid{display:grid;grid-template-columns:80px 1fr 120px 100px;gap:8px;margin-bottom:8px}
+  .item-grid-2{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:6px}
+  .item-grid-3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .form-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);display:block;margin-bottom:4px}
   .form-input{background:white;border:1px solid var(--border);border-radius:7px;padding:7px 10px;
     font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
@@ -632,8 +633,6 @@ function renderContratos() {
     const totalContrato = calcTotalContrato(itens);
     const totalPago     = calcTotalPago(itens, pags);
     const saldo         = totalContrato - totalPago;
-    const pct           = totalContrato > 0 ? Math.min(100, (totalPago/totalContrato)*100) : 0;
-
     const dt = c.data_ganho ? new Date(c.data_ganho+'T12:00').toLocaleDateString('pt-BR') : '—';
 
     return `<div class="contrato-card">
@@ -662,10 +661,6 @@ function renderContratos() {
             <div class="tb-value">${fmtM(saldo)}</div>
           </div>
         </div>
-        <!-- Progress -->
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">${pct.toFixed(0)}% pago</div>
-        <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
-      </div>
       <div class="card-actions">
         <button class="abtn abtn-green" onclick="openFicha('${c.id}')">📋 Ficha Completa</button>
         <select onchange="mudarStatusContrato('${c.id}', this.value)"
@@ -694,23 +689,12 @@ function calcTotalContrato(itens) {
   return itens.reduce((s,i) => s + (parseFloat(i.quantidade||0) * parseFloat(i.vl_unitario||0)), 0);
 }
 function calcTotalPago(itens, pags) {
-  return pags.reduce((s,p) => {
-    const item = itens.find(i => i.id === p.contrato_item_id);
-    if (!item) return s + parseFloat(p.valor_calculado||0);
-    if (p.tipo === 'pct') {
-      const totalItem = parseFloat(item.quantidade||0) * parseFloat(item.vl_unitario||0);
-      return s + (totalItem * parseFloat(p.percentual_pago||0) / 100);
-    }
-    return s + (parseFloat(p.quantidade_paga||0) * parseFloat(item.vl_unitario||0));
-  }, 0);
+  return pags.reduce((s,p) => s + parseFloat(p.valor_calculado||0), 0);
 }
 function calcSaldoItem(item, pags) {
   const total = parseFloat(item.quantidade||0) * parseFloat(item.vl_unitario||0);
   const pagItem = pags.filter(p => p.contrato_item_id === item.id);
-  const pago = pagItem.reduce((s,p) => {
-    if (p.tipo === 'pct') return s + (total * parseFloat(p.percentual_pago||0) / 100);
-    return s + (parseFloat(p.quantidade_paga||0) * parseFloat(item.vl_unitario||0));
-  }, 0);
+  const pago = pagItem.reduce((s,p) => s + parseFloat(p.valor_calculado||0), 0);
   return total - pago;
 }
 
@@ -735,7 +719,7 @@ async function openFicha(contratoId) {
   loadFichaAnexos();
 
   // Itens e pagamentos deste contrato
-  fichaItensTemp = allItens.filter(i=>i.contrato_id===contratoId).map(i=>({...i}));
+  fichaItensTemp = allItens.filter(i=>i.contrato_id===contratoId).map(i=>({...i, pagto_tipo_form: i.pagto_tipo_form||'antigo'}));
   const pags     = allPagamentos.filter(p=>p.contrato_id===contratoId);
 
   renderFichaItens(pags);
@@ -761,10 +745,7 @@ function renderFichaItens(pags) {
   wrap.innerHTML = fichaItensTemp.map((item, idx) => {
     const totalItem  = parseFloat(item.quantidade||0) * parseFloat(item.vl_unitario||0);
     const pagItem    = (pags||[]).filter(p=>p.contrato_item_id===item.id);
-    const totalPagoI = pagItem.reduce((s,p) => {
-      if (p.tipo==='pct') return s+(totalItem*parseFloat(p.percentual_pago||0)/100);
-      return s+(parseFloat(p.quantidade_paga||0)*parseFloat(item.vl_unitario||0));
-    },0);
+    const totalPagoI = pagItem.reduce((s,p) => s + parseFloat(p.valor_calculado||0), 0);
     const saldo = totalItem - totalPagoI;
     const pct   = totalItem>0 ? Math.min(100,(totalPagoI/totalItem)*100) : 0;
 
@@ -786,23 +767,48 @@ function renderFichaItens(pags) {
             oninput="fichaItensTemp[${idx}].descricao=this.value">
         </div>
         <div>
-          <label class="form-label">Quantidade</label>
-          <input class="form-input" type="number" value="${item.quantidade||''}" placeholder="Ex: 10.000"
+          <label class="form-label">Qtd (pcts)</label>
+          <input class="form-input" type="number" value="${item.quantidade||''}" placeholder="Ex: 2520"
             oninput="fichaItensTemp[${idx}].quantidade=this.value;recalcItemTotal(${idx})">
         </div>
         <div>
-          <label class="form-label">Vl Unitário (R$)</label>
+          <label class="form-label">Kg por Pct</label>
+          <input class="form-input" type="number" step="0.001" value="${item.kg_por_pct||'0.5'}" placeholder="0.5"
+            oninput="fichaItensTemp[${idx}].kg_por_pct=this.value;recalcItemTotal(${idx})">
+        </div>
+      </div>
+      <!-- Preços e Totais -->
+      <div class="item-grid-2">
+        <div>
+          <label class="form-label">Vl Antigo (R$/pct)</label>
           <input class="form-input" type="number" step="0.01" value="${item.vl_unitario||''}" placeholder="0,00"
             oninput="fichaItensTemp[${idx}].vl_unitario=this.value;recalcItemTotal(${idx})">
         </div>
         <div>
-          <label class="form-label">Total Item</label>
-          <input class="form-input" type="text" id="item-total-${idx}" readonly
-            value="${fmtM(totalItem)}">
+          <label class="form-label">Vl Novo (R$/pct)</label>
+          <input class="form-input" type="number" step="0.01" value="${item.vl_novo||''}" placeholder="0,00"
+            oninput="fichaItensTemp[${idx}].vl_novo=this.value;recalcItemTotal(${idx})">
+        </div>
+        <div>
+          <label class="form-label">Total KG</label>
+          <input class="form-input" type="text" id="item-total-kg-${idx}" readonly
+            value="${((parseFloat(item.quantidade||0))*(parseFloat(item.kg_por_pct||0.5))).toLocaleString('pt-BR',{maximumFractionDigits:3})+' kg'}"
+            style="background:#EFF6FF;color:var(--accent);font-weight:700">
+        </div>
+        <div>
+          <label class="form-label">Total Antigo</label>
+          <input class="form-input" type="text" id="item-total-antigo-${idx}" readonly
+            value="${fmtM(parseFloat(item.quantidade||0)*parseFloat(item.vl_unitario||0))}">
+        </div>
+        <div>
+          <label class="form-label">Total Novo</label>
+          <input class="form-input" type="text" id="item-total-novo-${idx}" readonly
+            value="${fmtM(parseFloat(item.quantidade||0)*parseFloat(item.vl_novo||0))}"
+            style="background:#F0FDF4;color:var(--green);font-weight:700">
         </div>
       </div>
       <!-- Linha pago/saldo -->
-      <div class="item-grid-2" style="margin-bottom:6px">
+      <div class="item-grid-3" style="margin-bottom:6px">
         <div>
           <label class="form-label">Valor Pago</label>
           <input class="form-input" type="text" readonly value="${fmtM(totalPagoI)}" style="color:var(--accent)">
@@ -811,13 +817,6 @@ function renderFichaItens(pags) {
           <label class="form-label">Saldo Item</label>
           <input class="form-input" type="text" readonly value="${fmtM(saldo)}"
             style="color:${saldo>0?'#EA580C':var_green()}">
-        </div>
-        <div>
-          <label class="form-label">% Pago</label>
-          <div style="display:flex;align-items:center;gap:8px;padding-top:4px">
-            <div class="prog-wrap" style="flex:1"><div class="prog-bar" style="width:${pct}%"></div></div>
-            <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text-muted)">${pct.toFixed(0)}%</span>
-          </div>
         </div>
       </div>
 
@@ -874,24 +873,13 @@ function renderFichaItens(pags) {
                 padding:3px 10px;font-size:11px;font-weight:600;color:var(--green)">✅ Quitado</span>`}
         </div>
 
-        <!-- Toggle forma — só antes do 1º pagamento -->
-        ${pagItem.length === 0 ? `
-        <div class="forma-toggle" id="forma-toggle-${idx}" style="margin-bottom:8px">
-          <button id="btn-qtd-${idx}" class="forma-btn ${item.forma_pagamento!=='pct'?'active':''}"
-            onclick="setForma(${idx},'qtd')">📦 Por Quantidade (parcial)</button>
-          <button id="btn-pct-${idx}" class="forma-btn ${item.forma_pagamento==='pct'?'active':''}"
-            onclick="setForma(${idx},'pct')">% Por Percentual</button>
-        </div>` : `
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">
-          Forma: <strong>${item.forma_pagamento==='pct'?'% Por Percentual':'📦 Quantidade (parcial)'}</strong>
-        </div>`}
-
         <!-- Resumo do item para referência -->
         <div style="background:#F0FDF4;border:1px solid #A7F3D0;border-radius:6px;padding:8px 10px;
           margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px">
-          <span>📦 Total: <strong>${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} un</strong></span>
-          <span>💰 Vlr Unit: <strong>${fmtM(parseFloat(item.vl_unitario||0))}</strong></span>
-          <span>🏷 Total Item: <strong style="color:var(--green)">${fmtM(totalItem)}</strong></span>
+          <span>📦 Qtd: <strong>${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} pcts</strong></span>
+          <span>⚖️ KG Total: <strong style="color:var(--accent)">${(parseFloat(item.quantidade||0)*parseFloat(item.kg_por_pct||0.5)).toLocaleString('pt-BR',{maximumFractionDigits:3})} kg</strong></span>
+          <span>💰 Antigo: <strong>${fmtM(parseFloat(item.vl_unitario||0))}/pct</strong> = <strong>${fmtM(parseFloat(item.vl_unitario||0)/parseFloat(item.kg_por_pct||0.5))}/kg</strong></span>
+          <span>🆕 Novo: <strong style="color:var(--green)">${fmtM(parseFloat(item.vl_novo||0))}/pct</strong> = <strong style="color:var(--green)">${fmtM(parseFloat(item.vl_novo||0)/parseFloat(item.kg_por_pct||0.5))}/kg</strong></span>
           <span>✅ Pago: <strong style="color:var(--accent)">${fmtM(totalPagoI)}</strong></span>
           <span>⏳ Saldo: <strong style="color:#EA580C">${fmtM(saldo)}</strong></span>
         </div>
@@ -901,9 +889,9 @@ function renderFichaItens(pags) {
           ${pagItem.length ? pagItem.map(p => `
             <div class="pag-item">
               <span class="pag-data">${p.data_pagamento||'—'}</span>
-              <span class="pag-tipo">${p.tipo==='pct'
-                ? `${parseFloat(p.percentual_pago||0).toFixed(1)}%`
-                : `${parseFloat(p.quantidade_paga||0).toLocaleString('pt-BR')} un`}</span>
+              <span class="pag-tipo" style="${p.tipo_pagamento==='novo'?'background:#ECFDF5;color:var(--green);border:1px solid #A7F3D0':'background:#FFF7ED;color:#EA580C;border:1px solid #FCD34D'}">
+                ${p.tipo_pagamento==='novo'?'🆕 Novo':'💰 Antigo'} · ${parseFloat(p.quantidade_paga||0).toLocaleString('pt-BR')} pcts
+              </span>
               <span class="pag-valor">${fmtM(p.valor_calculado||0)}</span>
               <button onclick="deletarPagamento('${p.id}','${item.id||''}')"
                 style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px">✕</button>
@@ -929,60 +917,43 @@ function renderFichaItens(pags) {
             </div>
           </div>
 
-          <!-- Modo QTD -->
-          <div id="pag-qtd-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'none':'block'}">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
-              <div>
-                <label class="form-label">Quantidade a Pagar</label>
-                <input class="form-input" type="number" id="pag-qtd-${idx}"
-                  placeholder="0" min="0" max="${parseFloat(item.quantidade||0)}"
-                  oninput="calcPagPreview(${idx})">
-                <div style="font-size:10px;color:#9CA3AF;margin-top:2px">
-                  Max: ${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} un
-                </div>
-              </div>
-              <div>
-                <label class="form-label">Saldo Disponível</label>
-                <input class="form-input" type="text" readonly
-                  value="${fmtM(saldo)}"
-                  style="color:#EA580C;font-weight:600;background:#FFF7ED">
-              </div>
-              <div>
-                <label class="form-label">Valor a Receber</label>
-                <input class="form-input" type="text" id="pag-preview-${idx}" readonly
-                  style="color:var(--green);font-weight:700;background:#F0FDF4" value="R$ 0,00">
-              </div>
+          <!-- Toggle Antigo / Novo -->
+          <div style="margin-bottom:10px">
+            <label class="form-label">Tipo de Pagamento</label>
+            <div class="forma-toggle" style="margin-top:4px">
+              <button id="btn-pagto-antigo-${idx}" class="forma-btn active"
+                onclick="setPagtoTipo(${idx},'antigo')">💰 Pagto Antigo</button>
+              <button id="btn-pagto-novo-${idx}" class="forma-btn"
+                onclick="setPagtoTipo(${idx},'novo')">🆕 Pagto Novo</button>
             </div>
           </div>
 
-          <!-- Modo PCT -->
-          <div id="pag-pct-wrap-${idx}" style="display:${item.forma_pagamento==='pct'?'block':'none'}">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
-              <div>
-                <label class="form-label">% do Valor Total</label>
-                <div style="position:relative">
-                  <input class="form-input" type="number" id="pag-pct-${idx}"
-                    placeholder="Ex: 50" min="0.01" max="100" step="0.01"
-                    oninput="calcPagPreview(${idx})"
-                    style="padding-right:28px">
-                  <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                    font-size:13px;font-weight:700;color:var(--text-muted)">%</span>
-                </div>
-                <div style="font-size:10px;color:#9CA3AF;margin-top:2px">
-                  Total do item: ${fmtM(totalItem)}
-                </div>
+          <!-- Campos de quantidade + KG + Preço + Valor -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label class="form-label">Quantidade (pcts)</label>
+              <input class="form-input" type="number" id="pag-qtd-${idx}"
+                placeholder="0" min="0" max="${parseFloat(item.quantidade||0)}"
+                oninput="calcPagPreview(${idx})">
+              <div style="font-size:10px;color:#9CA3AF;margin-top:2px">
+                Max: ${parseFloat(item.quantidade||0).toLocaleString('pt-BR')} pcts
               </div>
-              <div>
-                <label class="form-label">Saldo Disponível</label>
-                <input class="form-input" type="text" readonly
-                  value="${fmtM(saldo)}"
-                  style="color:#EA580C;font-weight:600;background:#FFF7ED">
-              </div>
-              <div>
-                <label class="form-label">Valor a Receber</label>
-                <input class="form-input" type="text" id="pag-preview-${idx}" readonly
-                  style="color:var(--green);font-weight:700;background:#F0FDF4" value="R$ 0,00">
-              </div>
+            </div>
+            <div>
+              <label class="form-label">KG Correspondente</label>
+              <input class="form-input" type="text" id="pag-kg-${idx}" readonly
+                value="0 kg" style="background:#EFF6FF;color:var(--accent);font-weight:600">
+            </div>
+            <div>
+              <label class="form-label" id="pag-preco-label-${idx}">Preço/pct (Antigo)</label>
+              <input class="form-input" type="text" id="pag-preco-${idx}" readonly
+                value="${fmtM(parseFloat(item.vl_unitario||0))}"
+                style="background:#FFF7ED;color:#EA580C;font-weight:600">
+            </div>
+            <div>
+              <label class="form-label">Valor a Receber</label>
+              <input class="form-input" type="text" id="pag-preview-${idx}" readonly
+                style="color:var(--green);font-weight:700;background:#F0FDF4" value="R$ 0,00">
             </div>
           </div>
 
@@ -1003,10 +974,18 @@ function renderFichaItens(pags) {
 function var_green() { return '#059669'; }
 
 function recalcItemTotal(idx) {
-  const q = parseFloat(fichaItensTemp[idx].quantidade||0);
-  const v = parseFloat(fichaItensTemp[idx].vl_unitario||0);
-  const el = document.getElementById(`item-total-${idx}`);
-  if (el) el.value = fmtM(q*v);
+  const item = fichaItensTemp[idx];
+  const q   = parseFloat(item.quantidade||0);
+  const va  = parseFloat(item.vl_unitario||0);
+  const vn  = parseFloat(item.vl_novo||0);
+  const kp  = parseFloat(item.kg_por_pct||0.5);
+
+  const elA  = document.getElementById(`item-total-antigo-${idx}`);
+  const elN  = document.getElementById(`item-total-novo-${idx}`);
+  const elKG = document.getElementById(`item-total-kg-${idx}`);
+  if (elA)  elA.value  = fmtM(q * va);
+  if (elN)  elN.value  = fmtM(q * vn);
+  if (elKG) elKG.value = (q * kp).toLocaleString('pt-BR', {maximumFractionDigits:3}) + ' kg';
   updateFichaTotais();
 }
 
@@ -1022,7 +1001,7 @@ function updateFichaTotais(pags) {
 
 function addItemContrato() {
   fichaItensTemp.push({id:null,contrato_id:fichaContratoId,item_numero:'',descricao:'',
-    quantidade:'',vl_unitario:'',forma_pagamento:'qtd',total_pago:0});
+    quantidade:'',vl_unitario:'',vl_novo:'',kg_por_pct:'0.5',forma_pagamento:'qtd',total_pago:0,pagto_tipo_form:'antigo'});
   renderFichaItens(allPagamentos.filter(p=>p.contrato_id===fichaContratoId));
 }
 
@@ -1032,80 +1011,55 @@ function removeItemContrato(idx) {
   renderFichaItens(allPagamentos.filter(p=>p.contrato_id===fichaContratoId));
 }
 
-function setForma(idx, forma) {
-  fichaItensTemp[idx].forma_pagamento = forma;
+function setPagtoTipo(idx, tipo) {
+  fichaItensTemp[idx].pagto_tipo_form = tipo;
+  const btnA = document.getElementById(`btn-pagto-antigo-${idx}`);
+  const btnN = document.getElementById(`btn-pagto-novo-${idx}`);
+  if (btnA) btnA.classList.toggle('active', tipo === 'antigo');
+  if (btnN) btnN.classList.toggle('active', tipo === 'novo');
 
-  // Toggle buttons
-  const btnQtd = document.getElementById(`btn-qtd-${idx}`);
-  const btnPct = document.getElementById(`btn-pct-${idx}`);
-  if (btnQtd) btnQtd.classList.toggle('active', forma === 'qtd');
-  if (btnPct) btnPct.classList.toggle('active', forma === 'pct');
-
-  // Toggle form fields
-  const qtdW = document.getElementById(`pag-qtd-wrap-${idx}`);
-  const pctW = document.getElementById(`pag-pct-wrap-${idx}`);
-  if (qtdW) qtdW.style.display = forma === 'qtd' ? 'block' : 'none';
-  if (pctW) pctW.style.display = forma === 'pct' ? 'block' : 'none';
-
-  // Reset preview and inputs
-  const prev = document.getElementById(`pag-preview-${idx}`);
-  if (prev) prev.value = 'R$ 0,00';
-  const qtdInp = document.getElementById(`pag-qtd-${idx}`);
-  const pctInp = document.getElementById(`pag-pct-${idx}`);
-  if (qtdInp) qtdInp.value = '';
-  if (pctInp) pctInp.value = '';
+  const item    = fichaItensTemp[idx];
+  const preco   = tipo === 'novo' ? parseFloat(item.vl_novo||0) : parseFloat(item.vl_unitario||0);
+  const labelEl = document.getElementById(`pag-preco-label-${idx}`);
+  const precoEl = document.getElementById(`pag-preco-${idx}`);
+  if (labelEl) labelEl.textContent = tipo === 'novo' ? 'Preço/pct (Novo)' : 'Preço/pct (Antigo)';
+  if (precoEl) precoEl.value = fmtM(preco);
+  calcPagPreview(idx);
 }
 
 function addPagamento(idx, itemId) {
   document.getElementById(`pag-form-${idx}`).style.display='block';
-  const forma = fichaItensTemp[idx].forma_pagamento||'qtd';
-  setForma(idx, forma);
+  const tipo = fichaItensTemp[idx].pagto_tipo_form || 'antigo';
+  setPagtoTipo(idx, tipo);
 }
 
 function calcPagPreview(idx) {
   const item  = fichaItensTemp[idx];
-  const forma = item.forma_pagamento || 'qtd';
-  const vu    = parseFloat(item.vl_unitario || 0);
-  const total = parseFloat(item.quantidade  || 0) * vu;
-  let val = 0;
+  const tipo  = item.pagto_tipo_form || 'antigo';
+  const vu    = tipo === 'novo' ? parseFloat(item.vl_novo||0) : parseFloat(item.vl_unitario||0);
+  const kgPct = parseFloat(item.kg_por_pct||0.5);
+  const qtd   = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value || 0);
+  const val   = qtd * vu;
+  const kg    = qtd * kgPct;
 
-  if (forma === 'pct') {
-    const pct = parseFloat(document.getElementById(`pag-pct-${idx}`)?.value || 0);
-    val = total * pct / 100;
-  } else {
-    const qtd = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value || 0);
-    val = qtd * vu;
-  }
-
-  const el = document.getElementById(`pag-preview-${idx}`);
-  if (el) el.value = fmtM(val);
+  const prevEl = document.getElementById(`pag-preview-${idx}`);
+  const kgEl   = document.getElementById(`pag-kg-${idx}`);
+  if (prevEl) prevEl.value = fmtM(val);
+  if (kgEl)   kgEl.value   = kg.toLocaleString('pt-BR', {maximumFractionDigits:3}) + ' kg';
 }
 
 async function confirmarPagamento(idx, itemId) {
   const item  = fichaItensTemp[idx];
-  const forma = item.forma_pagamento || 'qtd';
-  const vu    = parseFloat(item.vl_unitario || 0);
-  const total = parseFloat(item.quantidade  || 0) * vu;
+  const tipo  = item.pagto_tipo_form || 'antigo';
+  const vu    = tipo === 'novo' ? parseFloat(item.vl_novo||0) : parseFloat(item.vl_unitario||0);
   const data  = document.getElementById(`pag-data-${idx}`)?.value || '';
   const obs   = document.getElementById(`pag-obs-${idx}`)?.value.trim() || '';
   const user  = JSON.parse(localStorage.getItem('lt_user') || '{}');
 
-  let qtdPaga = null, pctPago = null, valorCalc = 0;
-
-  if (forma === 'pct') {
-    // Percentual negociado — pode ser qualquer valor entre 0 e 100
-    pctPago = parseFloat(document.getElementById(`pag-pct-${idx}`)?.value || 0);
-    if (pctPago <= 0) { toast('⚠️', 'Informe o percentual negociado'); return; }
-    if (pctPago > 100) { toast('⚠️', 'Percentual não pode ser maior que 100%'); return; }
-    valorCalc = total * pctPago / 100;
-  } else {
-    // Quantidade parcial
-    qtdPaga   = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value || 0);
-    if (qtdPaga <= 0) { toast('⚠️', 'Informe a quantidade paga'); return; }
-    valorCalc = qtdPaga * vu;
-  }
-
-  if (valorCalc <= 0) { toast('⚠️', 'Item sem valor. Preencha Qtd e Vlr Unitário antes.'); return; }
+  const qtdPaga  = parseFloat(document.getElementById(`pag-qtd-${idx}`)?.value || 0);
+  if (qtdPaga <= 0) { toast('⚠️', 'Informe a quantidade paga'); return; }
+  const valorCalc = qtdPaga * vu;
+  if (valorCalc <= 0) { toast('⚠️', 'Item sem valor. Preencha as quantidades e preços antes.'); return; }
 
   // Se item ainda não salvo, persiste primeiro
   let idItem = itemId;
@@ -1122,9 +1076,10 @@ async function confirmarPagamento(idx, itemId) {
         contrato_item_id: idItem,
         contrato_id:      fichaContratoId,
         data_pagamento:   data,
-        tipo:             forma,
+        tipo:             'qtd',
+        tipo_pagamento:   tipo,
         quantidade_paga:  qtdPaga,
-        percentual_pago:  pctPago,
+        percentual_pago:  null,
         valor_calculado:  valorCalc,
         observacao:       obs || null,
         usuario:          user.nome || null,
@@ -1138,9 +1093,7 @@ async function confirmarPagamento(idx, itemId) {
     renderFichaItens(pags);
     updateFichaTotais(pags);
     renderContratos();
-    toast('✅', forma === 'pct'
-      ? `${pctPago}% registrado — ${fmtM(valorCalc)}`
-      : `${qtdPaga} un registradas — ${fmtM(valorCalc)}`);
+    toast('✅', `${qtdPaga} pcts registrados (${tipo === 'novo' ? '🆕 Novo' : '💰 Antigo'}) — ${fmtM(valorCalc)}`);
   } catch(e) { toast('❌', 'Erro: ' + e.message); }
 }
 
@@ -1165,7 +1118,9 @@ async function salvarItemContrato(idx) {
         descricao:        item.descricao||null,
         quantidade:       item.quantidade?parseFloat(item.quantidade):null,
         vl_unitario:      item.vl_unitario?parseFloat(item.vl_unitario):null,
-        forma_pagamento:  item.forma_pagamento||'qtd',
+        vl_novo:          item.vl_novo?parseFloat(item.vl_novo):null,
+        kg_por_pct:       item.kg_por_pct?parseFloat(item.kg_por_pct):0.5,
+        forma_pagamento:  'qtd',
       })
     });
     const [novo] = await res.json();
@@ -1200,7 +1155,9 @@ async function salvarFicha() {
         descricao:       item.descricao||null,
         quantidade:      item.quantidade?parseFloat(item.quantidade):null,
         vl_unitario:     item.vl_unitario?parseFloat(item.vl_unitario):null,
-        forma_pagamento: item.forma_pagamento||'qtd',
+        vl_novo:         item.vl_novo?parseFloat(item.vl_novo):null,
+        kg_por_pct:      item.kg_por_pct?parseFloat(item.kg_por_pct):0.5,
+        forma_pagamento: 'qtd',
         nf_emitida:      item.nf_emitida||null,
         numero_nf:       item.numero_nf||null,
         data_nf:         item.data_nf||null,
