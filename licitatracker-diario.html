@@ -2222,8 +2222,8 @@ function renderMobileCards() {
     const nPrg = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : (r.sequencialcompra ? `${r.sequencialcompra}/${r.anocompra||''}` : null);
     const valRef    = parseFloat(m.valref||0);
     const qtd       = parseFloat(m.qtd||0);
-    const totalValor = (valRef && qtd) ? fmtM(valRef*qtd) : null;
-    const valEst    = r.valortotalestimado ? fmtM(parseFloat(r.valortotalestimado)) : null;
+    const totalValor = (valRef && qtd) ? fmt(valRef*qtd) : null;
+    const valEst    = r.valortotalestimado ? fmt(parseFloat(r.valortotalestimado)) : null;
     const pos       = pageStart + i + 1;
     const totalReg  = filtered.length;   // ← corrigido: totalReg para não colidir
     const vis       = visitados.has(String(r.id));
