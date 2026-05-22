@@ -2218,22 +2218,30 @@ function renderMobileCards() {
     const rawDt = r.dataencerramentoproposta ? r.dataencerramentoproposta.replace(' ','T') : null;
     const dt   = rawDt ? new Date(rawDt) : null;
     const dtOk = dt && !isNaN(dt);
-    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : (m.datamanual ? new Date(m.datamanual+'T00:00').toLocaleDateString('pt-BR') : null);
-    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : (m.horamanual || null);
+
+    // Valores para os inputs (sempre YYYY-MM-DD e HH:MM)
+    const inputDateVal = dtOk
+      ? `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`
+      : (m.datamanual || '');
+    const inputTimeVal = dtOk
+      ? `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+      : (m.horamanual || '');
+
     const nPrg = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : (r.sequencialcompra ? `${r.sequencialcompra}/${r.anocompra||''}` : null);
-    const valRef    = parseFloat(m.valref||0);
-    const qtd       = parseFloat(m.qtd||0);
+    const valRef     = parseFloat(m.valref||0);
+    const qtd        = parseFloat(m.qtd||0);
     const totalValor = (valRef && qtd) ? fmt(valRef*qtd) : null;
-    const valEst    = r.valortotalestimado ? fmt(parseFloat(r.valortotalestimado)) : null;
-    const pos       = pageStart + i + 1;
-    const totalReg  = filtered.length;   // ← corrigido: totalReg para não colidir
-    const vis       = visitados.has(String(r.id));
-    const star      = m.starred;
-    const status    = m.status;
-    const siteVal   = m.site || r.linksistemaorigem || '';
-    const pncpNum   = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
-    const linkPncp  = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
-    const modalidade = r.modalidadenome ? r.modalidadenome.replace(/Pregão\s*-?\s*/i,'PE ').replace(/Concorrência\s*-?\s*/i,'Conc. ') : null;
+    const valEst     = r.valortotalestimado ? fmt(parseFloat(r.valortotalestimado)) : null;
+    const pos        = pageStart + i + 1;
+    const totalReg   = filtered.length;
+    const vis        = visitados.has(String(r.id));
+    const star       = m.starred;
+    const status     = m.status;
+    const siteVal    = m.site || r.linksistemaorigem || '';
+    const pncpNum    = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const linkPncp   = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
+    const modalidade = r.modalidadenome ? r.modalidadenome.replace(/Pregão\s*-?\s*/i,'').replace(/Concorrência\s*-?\s*/i,'Conc.').trim() : null;
+    const hasDate    = !!(inputDateVal);
 
     const accentColor = star ? '#D97706' : status === 'andamento' ? '#059669' : '#2563EB';
     const bgColor     = vis ? '#F0FDF4' : 'white';
@@ -2242,9 +2250,9 @@ function renderMobileCards() {
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
       padding:14px 16px;border-left:4px solid ${accentColor};
-      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:9px">
+      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px">
 
-      <!-- Linha 1: posição + badges + UF -->
+      <!-- L1: posição + badges + UF -->
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
           <span style="font-family:'DM Mono',monospace;font-size:10px;
@@ -2253,81 +2261,84 @@ function renderMobileCards() {
           </span>
           ${vis    ? '<span style="font-size:10px;color:#059669;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:4px;padding:2px 5px;font-weight:600">👁 Visto</span>' : ''}
           ${star   ? '<span style="font-size:10px;color:#D97706;background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:2px 5px;font-weight:600">⭐ Fav</span>' : ''}
-          ${status === 'andamento' ? '<span style="font-size:10px;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:4px;padding:2px 5px;font-weight:600">▶ Andamento</span>' : ''}
+          ${status === 'andamento' ? '<span style="font-size:10px;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:4px;padding:2px 5px;font-weight:600">▶ And.</span>' : ''}
         </div>
         <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;
           background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;
-          border-radius:5px;padding:3px 8px">${r.unidadeorgao_ufsigla||'?'}</span>
+          border-radius:5px;padding:3px 8px;flex-shrink:0">${r.unidadeorgao_ufsigla||'?'}</span>
       </div>
 
-      <!-- Linha 2: Objeto -->
+      <!-- L2: Objeto -->
       <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.45">
         ${r.objetocompra||'—'}
       </div>
 
-      <!-- Linha 3: Data/Hora inline (editável direto no card) + Nº Pregão + Modalidade -->
-      <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
-        ${dStr ? `
-          <span style="display:flex;align-items:center;gap:4px;background:#F8FAFC;
-            border:1px solid #E2E8F0;border-radius:6px;padding:3px 8px;font-size:11px;color:#374151">
-            📅 <strong>${dStr}</strong>&nbsp; ⏰ ${hStr||'--:--'}
-          </span>
-        ` : `
-          <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;
-            background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:4px 8px">
-            <span style="font-size:10px;color:#B45309;font-weight:600">📅</span>
-            <input type="date" id="cdata-${r.id}"
-              onclick="event.stopPropagation()"
-              onchange="saveCardDate('${r.id}')"
-              style="border:none;background:transparent;font-size:11px;color:#374151;
-              outline:none;cursor:pointer;width:108px"
-              ${m.datamanual ? `value="${m.datamanual}"` : ''}>
-            <span style="font-size:10px;color:#B45309;font-weight:600">⏰</span>
-            <input type="time" id="chora-${r.id}"
-              onclick="event.stopPropagation()"
-              onchange="saveCardDate('${r.id}')"
-              style="border:none;background:transparent;font-size:11px;color:#374151;
-              outline:none;cursor:pointer;width:60px"
-              ${m.horamanual ? `value="${m.horamanual}"` : ''}>
-          </span>
-        `}
-        ${nPrg ? `<span style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:6px;
-          padding:3px 8px;font-size:11px;color:#2563EB;font-weight:700">PE ${nPrg}</span>` : ''}
-        ${modalidade ? `<span style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;
-          padding:3px 8px;font-size:10px;color:#7C3AED;font-weight:600">${modalidade}</span>` : ''}
+      <!-- L3: [Data/Hora editável à esquerda] [PE + Modalidade à direita] -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">
+        <!-- Data + Hora (sempre editável) -->
+        <div onclick="event.stopPropagation()"
+          style="display:flex;align-items:center;gap:5px;
+          background:${hasDate?'#F0FDF4':'#FFF7ED'};
+          border:1px solid ${hasDate?'#BBF7D0':'#FED7AA'};
+          border-radius:6px;padding:4px 8px;flex-shrink:0">
+          <span style="font-size:11px">📅</span>
+          <input type="date" id="cdata-${r.id}"
+            value="${inputDateVal}"
+            onchange="saveCardDate('${r.id}')"
+            onclick="event.stopPropagation()"
+            style="border:none;background:transparent;font-size:11px;
+            color:${hasDate?'#065F46':'#92400E'};outline:none;
+            cursor:pointer;width:120px;font-weight:600">
+          <span style="font-size:11px;color:#6B7280">⏰</span>
+          <input type="time" id="chora-${r.id}"
+            value="${inputTimeVal}"
+            onchange="saveCardDate('${r.id}')"
+            onclick="event.stopPropagation()"
+            style="border:none;background:transparent;font-size:11px;
+            color:${hasDate?'#065F46':'#92400E'};outline:none;
+            cursor:pointer;width:58px;font-weight:600">
+        </div>
+        <!-- PE + Modalidade -->
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+          ${nPrg ? `<span style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:6px;
+            padding:3px 7px;font-size:11px;color:#2563EB;font-weight:700;white-space:nowrap">
+            PE ${nPrg}</span>` : ''}
+          ${modalidade ? `<span style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;
+            padding:3px 7px;font-size:10px;color:#7C3AED;font-weight:600;white-space:nowrap">
+            ${modalidade}</span>` : ''}
+        </div>
       </div>
 
-      <!-- Linha 4: Nº PNCP + link -->
+      <!-- L4: Nº PNCP + link -->
       <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#6B7280;
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#9CA3AF;
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">
           📋 ${r.numerocontrolepncp||'—'}
         </span>
         <a href="${linkPncp}" target="_blank" onclick="event.stopPropagation()"
           style="font-size:10px;color:#2563EB;font-weight:600;text-decoration:none;
-          background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:2px 7px;flex-shrink:0">
-          🔗 PNCP</a>
+          background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;
+          padding:2px 7px;flex-shrink:0">🔗 PNCP</a>
       </div>
 
-      <!-- Linha 5: Órgão -->
+      <!-- L5: Órgão -->
       <div style="font-size:11px;color:#6B7280;
         white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
         🏛 ${r.orgaoentidade_razaosocial||'—'}
       </div>
 
-      <!-- Linha 6: Valores -->
-      ${(valEst || totalValor || m.produto) ? `
-      <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+      <!-- L6: Valores -->
+      <div style="display:flex;flex-wrap:wrap;gap:5px;min-height:22px">
         ${valEst ? `<span style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;
           padding:3px 8px;font-size:11px;color:#059669;font-weight:700">💰 ${valEst}</span>` : ''}
         ${totalValor ? `<span style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;
           padding:3px 8px;font-size:11px;color:#EA580C;font-weight:700">📦 ${totalValor}</span>` : ''}
         ${m.produto && !totalValor ? `<span style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;
           padding:3px 8px;font-size:11px;color:#059669;font-weight:600">📦 ${m.produto}</span>` : ''}
-      </div>` : ''}
+      </div>
 
-      <!-- Linha 7: Ações -->
-      <div style="display:flex;gap:6px;align-items:center;padding-top:4px;
+      <!-- L7: Ações -->
+      <div style="display:flex;gap:6px;align-items:center;padding-top:6px;
         border-top:1px solid #F3F4F6">
         <button onclick="toggleStarMob(event,'${r.id}')"
           style="background:${star?'#FFFBEB':'#F9FAFB'};
