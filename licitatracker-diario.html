@@ -248,7 +248,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     padding: 4px 0;
-    align-items: stretch;
+    align-items: start;
   }
   /* Paginação e empty-state ocupam linha inteira */
   #mobile-cards > .cards-pagination,
@@ -2242,8 +2242,7 @@ function renderMobileCards() {
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
       padding:14px 16px;border-left:4px solid ${accentColor};
-      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:9px;
-      min-height:260px">
+      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:9px">
 
       <!-- Linha 1: posição + badges + UF -->
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -2262,19 +2261,36 @@ function renderMobileCards() {
       </div>
 
       <!-- Linha 2: Objeto -->
-      <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.45;flex:1">
+      <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.45">
         ${r.objetocompra||'—'}
       </div>
 
-      <!-- Linha 3: Data/Hora (sempre visível) + Nº Pregão + Modalidade -->
+      <!-- Linha 3: Data/Hora inline (editável direto no card) + Nº Pregão + Modalidade -->
       <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
-        <span style="display:flex;align-items:center;gap:4px;
-          background:${dStr ? '#F8FAFC' : '#FFF7ED'};
-          border:1px solid ${dStr ? '#E2E8F0' : '#FED7AA'};
-          border-radius:6px;padding:3px 8px;font-size:11px;
-          color:${dStr ? '#374151' : '#B45309'}">
-          📅 <strong>${dStr||'a preencher'}</strong>&nbsp; ⏰ ${hStr||'--:--'}
-        </span>
+        ${dStr ? `
+          <span style="display:flex;align-items:center;gap:4px;background:#F8FAFC;
+            border:1px solid #E2E8F0;border-radius:6px;padding:3px 8px;font-size:11px;color:#374151">
+            📅 <strong>${dStr}</strong>&nbsp; ⏰ ${hStr||'--:--'}
+          </span>
+        ` : `
+          <span style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;
+            background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;padding:4px 8px">
+            <span style="font-size:10px;color:#B45309;font-weight:600">📅</span>
+            <input type="date" id="cdata-${r.id}"
+              onclick="event.stopPropagation()"
+              onchange="saveCardDate('${r.id}')"
+              style="border:none;background:transparent;font-size:11px;color:#374151;
+              outline:none;cursor:pointer;width:108px"
+              ${m.datamanual ? `value="${m.datamanual}"` : ''}>
+            <span style="font-size:10px;color:#B45309;font-weight:600">⏰</span>
+            <input type="time" id="chora-${r.id}"
+              onclick="event.stopPropagation()"
+              onchange="saveCardDate('${r.id}')"
+              style="border:none;background:transparent;font-size:11px;color:#374151;
+              outline:none;cursor:pointer;width:60px"
+              ${m.horamanual ? `value="${m.horamanual}"` : ''}>
+          </span>
+        `}
         ${nPrg ? `<span style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:6px;
           padding:3px 8px;font-size:11px;color:#2563EB;font-weight:700">PE ${nPrg}</span>` : ''}
         ${modalidade ? `<span style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;
@@ -2310,8 +2326,8 @@ function renderMobileCards() {
           padding:3px 8px;font-size:11px;color:#059669;font-weight:600">📦 ${m.produto}</span>` : ''}
       </div>` : ''}
 
-      <!-- Linha 7: Ações — sempre fixa no fundo do card -->
-      <div style="display:flex;gap:6px;align-items:center;margin-top:auto;padding-top:4px;
+      <!-- Linha 7: Ações -->
+      <div style="display:flex;gap:6px;align-items:center;padding-top:4px;
         border-top:1px solid #F3F4F6">
         <button onclick="toggleStarMob(event,'${r.id}')"
           style="background:${star?'#FFFBEB':'#F9FAFB'};
@@ -2359,6 +2375,24 @@ function toggleStarMob(e, id) {
   renderMobileCards();
   toast('⭐', novoEstado ? 'Favoritado e salvo no Supabase!' : 'Removido dos favoritos');
 }
+function saveCardDate(id) {
+  const dateEl = document.getElementById('cdata-' + id);
+  const horaEl = document.getElementById('chora-' + id);
+  if (!dateEl || !horaEl) return;
+  const datamanual = dateEl.value;  // "YYYY-MM-DD"
+  const horamanual = horaEl.value;  // "HH:MM"
+  if (!datamanual && !horamanual) return;
+
+  if (!manualData[id]) manualData[id] = {};
+  manualData[id].datamanual = datamanual;
+  manualData[id].horamanual = horamanual || '00:00';
+  localStorage.setItem('lt_manual', JSON.stringify(manualData));
+
+  // Re-renderiza o card atualizado
+  renderMobileCards();
+  toast('📅', 'Data/hora salva!');
+}
+
 window.addEventListener('resize', () => { renderMobileCards(); });
 
 function getProdutosPermitidos() {
