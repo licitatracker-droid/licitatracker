@@ -248,7 +248,6 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     padding: 4px 0;
-    align-items: start;
   }
   /* Paginação e empty-state ocupam linha inteira */
   #mobile-cards > .cards-pagination,
@@ -2250,26 +2249,22 @@ function renderMobileCards() {
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
       padding:14px 16px;border-left:4px solid ${accentColor};
-      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px">
+      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px;
+      height:100%;box-sizing:border-box">
 
       <!-- L1: posição + badges + UF -->
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-          <span style="font-family:'DM Mono',monospace;font-size:10px;
-            color:#6B7280;background:#F3F4F6;border-radius:4px;padding:2px 6px">
-            ${pos}/${totalReg}
-          </span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#6B7280;background:#F3F4F6;border-radius:4px;padding:2px 6px">${pos}/${totalReg}</span>
           ${vis    ? '<span style="font-size:10px;color:#059669;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:4px;padding:2px 5px;font-weight:600">👁 Visto</span>' : ''}
           ${star   ? '<span style="font-size:10px;color:#D97706;background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:2px 5px;font-weight:600">⭐ Fav</span>' : ''}
           ${status === 'andamento' ? '<span style="font-size:10px;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:4px;padding:2px 5px;font-weight:600">▶ And.</span>' : ''}
         </div>
-        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;
-          background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;
-          border-radius:5px;padding:3px 8px;flex-shrink:0">${r.unidadeorgao_ufsigla||'?'}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;border-radius:5px;padding:3px 8px;flex-shrink:0">${r.unidadeorgao_ufsigla||'?'}</span>
       </div>
 
-      <!-- L2: Objeto -->
-      <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.45">
+      <!-- L2: Objeto — flex:1 empurra o resto para baixo uniformemente -->
+      <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.45;flex:1">
         ${r.objetocompra||'—'}
       </div>
 
@@ -2389,19 +2384,24 @@ function toggleStarMob(e, id) {
 function saveCardDate(id) {
   const dateEl = document.getElementById('cdata-' + id);
   const horaEl = document.getElementById('chora-' + id);
-  if (!dateEl || !horaEl) return;
-  const datamanual = dateEl.value;  // "YYYY-MM-DD"
-  const horamanual = horaEl.value;  // "HH:MM"
-  if (!datamanual && !horamanual) return;
+  if (!dateEl) return;
+  const datamanual = dateEl.value;
+  const horamanual = horaEl ? horaEl.value : '00:00';
 
   if (!manualData[id]) manualData[id] = {};
   manualData[id].datamanual = datamanual;
   manualData[id].horamanual = horamanual || '00:00';
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
 
-  // Re-renderiza o card atualizado
-  renderMobileCards();
-  toast('📅', 'Data/hora salva!');
+  // Atualiza só a cor do chip sem re-renderizar o card inteiro
+  const wrap = dateEl.closest('div[id]') || dateEl.parentElement;
+  if (wrap && datamanual) {
+    wrap.style.background = '#F0FDF4';
+    wrap.style.borderColor = '#BBF7D0';
+    dateEl.style.color = '#065F46';
+    if (horaEl) horaEl.style.color = '#065F46';
+  }
+  toast('📅', 'Data salva!');
 }
 
 window.addEventListener('resize', () => { renderMobileCards(); });
