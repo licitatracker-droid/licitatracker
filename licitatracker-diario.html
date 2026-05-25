@@ -653,11 +653,11 @@
     .header-bar .hbar-divider { display: none !important; }
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
 
-    /* TABLE → CARDS on mobile */
+    /* TABLE → CARDS always */
     .table-wrap { overflow: visible; }
     #table-scroll-wrap { display: none !important; }
     .table-footer { display: none !important; }
-    #mobile-cards { display: block !important; }
+    #mobile-cards { display: grid !important; grid-template-columns: 1fr; gap: 12px; padding: 4px 0; }
 
     /* Revisados bar */
     .revisao-bar { flex-wrap: wrap; gap: 6px; font-size: 12px; }
@@ -676,6 +676,17 @@
     .modal-actions { flex-wrap: wrap; gap: 8px; }
     .modal-actions .btn { flex: 1; justify-content: center; font-size: 13px; }
   }
+  /* Desktop: 2 colunas; telas largas: 3 colunas */
+  @media (min-width: 769px) {
+    #mobile-cards { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (min-width: 1400px) {
+    #mobile-cards { grid-template-columns: repeat(3, 1fr) !important; }
+  }
+  /* Hover nos cards */
+  #mobile-cards > div { transition: box-shadow .15s, transform .15s; }
+  #mobile-cards > div:hover { box-shadow: 0 4px 16px rgba(37,99,235,.13); transform: translateY(-1px); }
+  .cards-pagination, .cards-empty { grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -1438,7 +1449,8 @@ function sortBy(col) {
 // RENDER
 // =============================================
 function renderTable() {
-  if (window.innerWidth <= 768) { renderMobileCards(); return; }
+  renderMobileCards(); return;
+  // eslint-disable-next-line no-unreachable
   const tbody = document.getElementById('table-body');
   const total = filtered.length;
   const pages = Math.ceil(total / PAGE_SIZE);
@@ -1547,7 +1559,7 @@ function renderTable() {
           onclick="event.stopPropagation()"
           onchange="saveLinkPregao(event,'${r.id}',this.value)"
           title="Link direto para o pregão">
-        ${(m.linkpregao || siteVal) ? `<a href="${fixUrl(m.linkpregao||siteVal)}" target="_blank"
+        ${(m.linkpregao || siteVal) ? `<a href="${m.linkpregao||siteVal}" target="_blank"
           class="link-btn link-btn-pregao" onclick="event.stopPropagation()" style="margin-top:3px;display:inline-flex">🔗 Abrir</a>` : ''}
       </td>
       <td class="col-status">
@@ -2137,15 +2149,15 @@ document.addEventListener('click', e => {
 // =============================================
 function renderMobileCards() {
   const container = document.getElementById('mobile-cards');
-  if (!container || window.innerWidth > 768) return;
-  container.style.display = 'block';
+  if (!container) return;
+  container.style.display = 'grid';
 
   const pageStart = (currentPage-1)*PAGE_SIZE;
   const pageData  = filtered.slice(pageStart, pageStart+PAGE_SIZE);
   const total     = filtered.length;
 
   if (!pageData.length) {
-    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#6B7280">
+    container.innerHTML = `<div class="cards-empty" style="text-align:center;padding:40px 20px;color:#6B7280">
       <div style="font-size:36px;margin-bottom:12px;opacity:.4">🔍</div>
       <div style="font-size:14px;font-weight:500">Nenhum edital encontrado</div>
       <div style="font-size:12px;margin-top:4px">Tente ajustar os filtros</div>
@@ -2156,7 +2168,7 @@ function renderMobileCards() {
   // ── Paginação mobile ──────────────────────────────
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginationHtml = pages > 1 ? `
-    <div style="display:flex;align-items:center;justify-content:space-between;
+    <div class="cards-pagination" style="display:flex;align-items:center;justify-content:space-between;
       padding:12px 0;margin-top:4px">
       <button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} 
         style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:8px 16px;
@@ -2197,7 +2209,7 @@ function renderMobileCards() {
 
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
-      padding:16px;margin-bottom:10px;border-left:4px solid ${accentColor};
+      padding:16px;border-left:4px solid ${accentColor};
       box-shadow:0 1px 3px rgba(0,0,0,.06)">
 
       <!-- Linha 1: posição + UF + visitado -->
@@ -2277,10 +2289,7 @@ function toggleStarMob(e, id) {
   renderMobileCards();
   toast('⭐', manualData[id].starred ? 'Favoritado!' : 'Removido dos favoritos');
 }
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) { const mc=document.getElementById('mobile-cards'); if(mc) mc.style.display='none'; }
-  else renderMobileCards();
-});
+window.addEventListener('resize', () => { renderMobileCards(); });
 
 function getProdutosPermitidos() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
