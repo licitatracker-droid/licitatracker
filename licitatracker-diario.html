@@ -654,10 +654,9 @@
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
 
     /* TABLE → CARDS always */
-    .table-wrap { overflow: visible; }
     #table-scroll-wrap { display: none !important; }
     .table-footer { display: none !important; }
-    #mobile-cards { display: grid !important; grid-template-columns: 1fr; gap: 12px; padding: 4px 0; }
+    #mobile-cards { display: block !important; }
 
     /* Revisados bar */
     .revisao-bar { flex-wrap: wrap; gap: 6px; font-size: 12px; }
@@ -676,17 +675,6 @@
     .modal-actions { flex-wrap: wrap; gap: 8px; }
     .modal-actions .btn { flex: 1; justify-content: center; font-size: 13px; }
   }
-  /* Desktop: 2 colunas; telas largas: 3 colunas */
-  @media (min-width: 769px) {
-    #mobile-cards { grid-template-columns: repeat(2, 1fr) !important; }
-  }
-  @media (min-width: 1400px) {
-    #mobile-cards { grid-template-columns: repeat(3, 1fr) !important; }
-  }
-  /* Hover nos cards */
-  #mobile-cards > div { transition: box-shadow .15s, transform .15s; }
-  #mobile-cards > div:hover { box-shadow: 0 4px 16px rgba(37,99,235,.13); transform: translateY(-1px); }
-  .cards-pagination, .cards-empty { grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -1450,7 +1438,6 @@ function sortBy(col) {
 // =============================================
 function renderTable() {
   renderMobileCards(); return;
-  // eslint-disable-next-line no-unreachable
   const tbody = document.getElementById('table-body');
   const total = filtered.length;
   const pages = Math.ceil(total / PAGE_SIZE);
@@ -1708,12 +1695,6 @@ function getSiteNome(url) {
   if (found) return found.nome;
   // fallback: extrair domínio
   try { return new URL(url).hostname.replace('www.',''); } catch(e) { return url.substring(0,20); }
-}
-
-function fixUrl(url) {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  return 'https://' + url;
 }
 
 function buildSiteOptions(current) {
@@ -2147,17 +2128,23 @@ document.addEventListener('click', e => {
 // =============================================
 // MOBILE CARDS
 // =============================================
+function fixUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return 'https://' + url;
+}
+
 function renderMobileCards() {
   const container = document.getElementById('mobile-cards');
   if (!container) return;
-  container.style.display = 'grid';
+  container.style.display = 'block';
 
   const pageStart = (currentPage-1)*PAGE_SIZE;
   const pageData  = filtered.slice(pageStart, pageStart+PAGE_SIZE);
   const total     = filtered.length;
 
   if (!pageData.length) {
-    container.innerHTML = `<div class="cards-empty" style="text-align:center;padding:40px 20px;color:#6B7280">
+    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#6B7280">
       <div style="font-size:36px;margin-bottom:12px;opacity:.4">🔍</div>
       <div style="font-size:14px;font-weight:500">Nenhum edital encontrado</div>
       <div style="font-size:12px;margin-top:4px">Tente ajustar os filtros</div>
@@ -2168,7 +2155,7 @@ function renderMobileCards() {
   // ── Paginação mobile ──────────────────────────────
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginationHtml = pages > 1 ? `
-    <div class="cards-pagination" style="display:flex;align-items:center;justify-content:space-between;
+    <div style="display:flex;align-items:center;justify-content:space-between;
       padding:12px 0;margin-top:4px">
       <button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} 
         style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:8px 16px;
@@ -2199,8 +2186,6 @@ function renderMobileCards() {
     const star   = m.starred;
     const status = m.status;
     const siteVal = m.site || r.linksistemaorigem || '';
-    const pncpNum  = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
-    const linkPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
 
     // Cor do status / visitado
     const accentColor = star ? '#D97706' : status === 'andamento' ? '#059669' : '#2563EB';
@@ -2209,7 +2194,7 @@ function renderMobileCards() {
 
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
-      padding:16px;border-left:4px solid ${accentColor};
+      padding:16px;margin-bottom:10px;border-left:4px solid ${accentColor};
       box-shadow:0 1px 3px rgba(0,0,0,.06)">
 
       <!-- Linha 1: posição + UF + visitado -->
@@ -2253,22 +2238,32 @@ function renderMobileCards() {
         🏛 ${r.orgaoentidade_razaosocial||'—'}
       </div>
 
-      <!-- Linha 5: Ações -->
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <!-- Linha 5: Site (input editável) -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:11px;color:#9CA3AF;flex-shrink:0">🔗</span>
+        <input
+          type="url"
+          value="${siteVal ? fixUrl(siteVal) : ''}"
+          placeholder="Cole o link do pregão..."
+          onclick="event.stopPropagation()"
+          onchange="saveManual('${r.id}','site',this.value.trim());renderMobileCards()"
+          style="flex:1;font-size:11px;font-family:'DM Mono',monospace;color:#374151;
+            background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;
+            padding:5px 8px;outline:none;min-width:0">
+        ${siteVal ? `<a href="${fixUrl(siteVal)}" target="_blank" onclick="event.stopPropagation()"
+          style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:6px;
+          padding:5px 8px;font-size:11px;font-weight:600;text-decoration:none;flex-shrink:0;white-space:nowrap">
+          Abrir ↗</a>` : ''}
+      </div>
+
+      <!-- Linha 6: Ações -->
+      <div style="display:flex;gap:8px;align-items:center">
         <button onclick="toggleStarMob(event,'${r.id}')" id="star-mob-${r.id}"
           style="background:${star?'#FFFBEB':'#F9FAFB'};
           border:1px solid ${star?'#FDE68A':'#E5E7EB'};
           border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer;flex-shrink:0">
           ${star?'★':'☆'}
         </button>
-        <a href="${linkPncp}" target="_blank"
-          style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;border-radius:8px;
-          padding:9px 12px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0">
-          🔗 PNCP</a>
-        ${siteVal ? `<a href="${fixUrl(siteVal)}" target="_blank"
-          style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:8px;
-          padding:9px 12px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0">
-          🔗 Site</a>` : ''}
         <button onclick="openDetail(event,'${r.id}');marcarVisitado('${r.id}')"
           style="flex:1;background:#2563EB;color:white;border:none;border-radius:8px;
           padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer">
