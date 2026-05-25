@@ -880,10 +880,16 @@ function getSiteLabelFav(url) {
   catch(e) { return url.substring(0,22); }
 }
 
+function fixUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return 'https://' + url;
+}
+
 function refreshLinkPregao(id, url) {
   const td = document.getElementById('lpreg-'+id);
   if (td) td.innerHTML = url
-    ? `<a href="${url}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>`
+    ? `<a href="${fixUrl(url)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>`
     : '<span style="font-size:10px;color:#D1D5DB">—</span>';
   const lbl = document.getElementById('slabel-'+id);
   if (lbl) lbl.textContent = getSiteLabelFav(url);
@@ -1197,7 +1203,7 @@ function renderTable() {
       </td>
       <td><a href="${lPncp}" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a></td>
       <td id="lpreg-${r.id}" style="white-space:nowrap">
-        ${r.site ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : '<span style="font-size:10px;color:#D1D5DB">—</span>'}
+        ${r.site ? `<a href="${fixUrl(esc(r.site))}" target="_blank" class="lbtn lbtn-preg">🔗 Pregão</a>` : '<span style="font-size:10px;color:#D1D5DB">—</span>'}
       </td>
       <td style="white-space:nowrap">
         ${hasLem ? `<span title="Lembrete ativo" style="display:inline-flex;align-items:center;gap:2px;
@@ -1443,7 +1449,7 @@ async function openAcomp(favId) {
     `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
   const slinkEl = document.getElementById('ac-link-preg');
   slinkEl.innerHTML = r.site
-    ? `<a href="${esc(r.site)}" target="_blank" class="lbtn lbtn-preg">🔗 ${getSiteLabelFav(r.site)}</a>` : '';
+    ? `<a href="${fixUrl(esc(r.site))}" target="_blank" class="lbtn lbtn-preg">🔗 ${getSiteLabelFav(r.site)}</a>` : '';
 
   document.getElementById('ac-status').value = r.status || 'favorito';
   document.getElementById('ac-lem-ativo').checked = false;
@@ -2109,7 +2115,7 @@ function renderMobileCardsFav() {
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <a href="${lPncp}" target="_blank" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none">🔗 PNCP</a>
-        ${r.site?`<a href="${r.site}" target="_blank" style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none">🔗 Pregão</a>`:''}
+        ${r.site?`<a href="${fixUrl(r.site)}" target="_blank" style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;text-decoration:none">🔗 Pregão</a>`:''}
         <button onclick="openAcomp('${r.id}')" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#059669;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">📋</button>
         <button onclick="changeStatus('${r.id}','${st==='favorito'?'andamento':st==='andamento'?'ganho':'favorito'}')" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer">
           ${{favorito:'▶',andamento:'🏆',ganho:'✓',perdido:'↩'}[st]||'▶'}

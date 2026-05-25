@@ -232,40 +232,11 @@
   }
   .btn-clear-filters:hover { background: #FEF2F2; border-color: #FECACA; }
 
-  /* TABLE — sempre oculta no desktop (usa cards) */
+  /* TABLE */
   .table-wrap {
-    background: transparent; border: none;
-    border-radius: 0; overflow: visible;
-    box-shadow: none;
-  }
-
-  #table-scroll-wrap { display: none !important; }
-  .table-footer      { display: none !important; }
-
-  /* CARDS GRID — sempre visível */
-  #mobile-cards {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding: 4px 0;
-  }
-  /* Paginação e empty-state ocupam linha inteira */
-  #mobile-cards > .cards-pagination,
-  #mobile-cards > .cards-empty {
-    grid-column: 1 / -1;
-  }
-  /* Hover suave nos cards no desktop */
-  @media (min-width: 769px) {
-    #mobile-cards > div[style*="border-radius:14px"] {
-      transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
-    }
-    #mobile-cards > div[style*="border-radius:14px"]:hover {
-      box-shadow: 0 4px 18px rgba(37,99,235,0.10);
-      transform: translateY(-1px);
-    }
-  }
-  @media (min-width: 1400px) {
-    #mobile-cards { grid-template-columns: repeat(3, 1fr); }
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
 
   .table-scroll { overflow-x: auto; }
@@ -682,13 +653,11 @@
     .header-bar .hbar-divider { display: none !important; }
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
 
-    /* TABLE → CARDS on mobile: single column */
+    /* TABLE → CARDS on mobile */
+    .table-wrap { overflow: visible; }
     #table-scroll-wrap { display: none !important; }
     .table-footer { display: none !important; }
-    #mobile-cards {
-      display: grid !important;
-      grid-template-columns: 1fr !important;
-    }
+    #mobile-cards { display: block !important; }
 
     /* Revisados bar */
     .revisao-bar { flex-wrap: wrap; gap: 6px; font-size: 12px; }
@@ -1578,7 +1547,7 @@ function renderTable() {
           onclick="event.stopPropagation()"
           onchange="saveLinkPregao(event,'${r.id}',this.value)"
           title="Link direto para o pregão">
-        ${(m.linkpregao || siteVal) ? `<a href="${m.linkpregao||siteVal}" target="_blank"
+        ${(m.linkpregao || siteVal) ? `<a href="${fixUrl(m.linkpregao||siteVal)}" target="_blank"
           class="link-btn link-btn-pregao" onclick="event.stopPropagation()" style="margin-top:3px;display:inline-flex">🔗 Abrir</a>` : ''}
       </td>
       <td class="col-status">
@@ -1729,6 +1698,12 @@ function getSiteNome(url) {
   try { return new URL(url).hostname.replace('www.',''); } catch(e) { return url.substring(0,20); }
 }
 
+function fixUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  return 'https://' + url;
+}
+
 function buildSiteOptions(current) {
   const list = getSiteList();
   let opts = `<option value="">— selecionar —</option>`;
@@ -1803,26 +1778,10 @@ function saveManual(id, field, value) {
 function toggleStar(e, id) {
   e.stopPropagation();
   if (!manualData[id]) manualData[id] = {};
-  const novoEstado = !manualData[id].starred;
-  manualData[id].starred = novoEstado;
-  if (novoEstado && !manualData[id].status) manualData[id].status = 'favorito';
+  manualData[id].starred = !manualData[id].starred;
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
-
-  // Sempre persiste no Supabase ao favoritar
-  if (novoEstado) {
-    const m    = manualData[id] || {};
-    const hoje = new Date().toISOString().substring(0, 10);
-    insertToFavoritos(id, m.status || 'favorito', {
-      site:       m.site       || '',
-      uf:         m.uf         || '',
-      datamanual: m.datamanual || '',
-      horamanual: m.horamanual || '',
-      itens:      m.itens      || [],
-    }, hoje);
-  }
-
   renderTable();
-  toast('⭐', novoEstado ? 'Favoritado e salvo no Supabase!' : 'Removido dos favoritos');
+  toast('⭐', manualData[id].starred ? 'Favoritado!' : 'Removido dos favoritos');
 }
 
 // =============================================
@@ -2178,14 +2137,15 @@ document.addEventListener('click', e => {
 // =============================================
 function renderMobileCards() {
   const container = document.getElementById('mobile-cards');
-  if (!container) return;
+  if (!container || window.innerWidth > 768) return;
+  container.style.display = 'block';
 
   const pageStart = (currentPage-1)*PAGE_SIZE;
   const pageData  = filtered.slice(pageStart, pageStart+PAGE_SIZE);
   const total     = filtered.length;
 
   if (!pageData.length) {
-    container.innerHTML = `<div class="cards-empty" style="text-align:center;padding:40px 20px;color:#6B7280">
+    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:#6B7280">
       <div style="font-size:36px;margin-bottom:12px;opacity:.4">🔍</div>
       <div style="font-size:14px;font-weight:500">Nenhum edital encontrado</div>
       <div style="font-size:12px;margin-top:4px">Tente ajustar os filtros</div>
@@ -2196,7 +2156,7 @@ function renderMobileCards() {
   // ── Paginação mobile ──────────────────────────────
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginationHtml = pages > 1 ? `
-    <div class="cards-pagination" style="display:flex;align-items:center;justify-content:space-between;
+    <div style="display:flex;align-items:center;justify-content:space-between;
       padding:12px 0;margin-top:4px">
       <button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} 
         style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:8px 16px;
@@ -2214,140 +2174,92 @@ function renderMobileCards() {
   // ── Cards ──────────────────────────────────────────
   const cardsHtml = pageData.map((r, i) => {
     const m    = manualData[r.id] || {};
-    const rawDt = r.dataencerramentoproposta ? r.dataencerramentoproposta.replace(' ','T') : null;
-    const dt   = rawDt ? new Date(rawDt) : null;
+    const dt   = r.dataencerramentoproposta ? new Date(r.dataencerramentoproposta.replace(' ','T')) : null;
     const dtOk = dt && !isNaN(dt);
+    const dStr = dtOk ? dt.toLocaleDateString('pt-BR') : '—';
+    const hStr = dtOk ? dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const nPrg = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : null;
+    const valRef = parseFloat(m.valref||0);
+    const qtd    = parseFloat(m.qtd||0);
+    const total  = (valRef && qtd) ? fmtM(valRef*qtd) : null;
+    const pos    = pageStart + i + 1;
+    const vis    = visitados.has(String(r.id));
+    const star   = m.starred;
+    const status = m.status;
+    const siteVal = m.site || r.linksistemaorigem || '';
+    const pncpNum  = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const linkPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
 
-    // Valores para os inputs (sempre YYYY-MM-DD e HH:MM)
-    const inputDateVal = dtOk
-      ? `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`
-      : (m.datamanual || '');
-    const inputTimeVal = dtOk
-      ? `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
-      : (m.horamanual || '');
-
-    const nPrg = (r.numerocompra && r.anocompra) ? `${r.numerocompra}/${r.anocompra}` : (r.sequencialcompra ? `${r.sequencialcompra}/${r.anocompra||''}` : null);
-    const valRef     = parseFloat(m.valref||0);
-    const qtd        = parseFloat(m.qtd||0);
-    const totalValor = (valRef && qtd) ? fmt(valRef*qtd) : null;
-    const valEst     = r.valortotalestimado ? fmt(parseFloat(r.valortotalestimado)) : null;
-    const pos        = pageStart + i + 1;
-    const totalReg   = filtered.length;
-    const vis        = visitados.has(String(r.id));
-    const star       = m.starred;
-    const status     = m.status;
-    const siteVal    = m.site || r.linksistemaorigem || '';
-    const pncpNum    = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
-    const linkPncp   = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${pncpNum}`;
-    const modalidade = r.modalidadenome ? r.modalidadenome.replace(/Pregão\s*-?\s*/i,'').replace(/Concorrência\s*-?\s*/i,'Conc.').trim() : null;
-    const hasDate    = !!(inputDateVal);
-
+    // Cor do status / visitado
     const accentColor = star ? '#D97706' : status === 'andamento' ? '#059669' : '#2563EB';
-    const bgColor     = vis ? '#F0FDF4' : 'white';
+    const bgColor = vis ? '#F0FDF4' : 'white';
     const borderColor = vis ? '#A7F3D0' : '#E5E7EB';
 
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
-      padding:14px 16px;border-left:4px solid ${accentColor};
-      box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px;
-      height:100%;box-sizing:border-box">
+      padding:16px;margin-bottom:10px;border-left:4px solid ${accentColor};
+      box-shadow:0 1px 3px rgba(0,0,0,.06)">
 
-      <!-- L1: posição + badges + UF -->
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#6B7280;background:#F3F4F6;border-radius:4px;padding:2px 6px">${pos}/${totalReg}</span>
-          ${vis    ? '<span style="font-size:10px;color:#059669;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:4px;padding:2px 5px;font-weight:600">👁 Visto</span>' : ''}
-          ${star   ? '<span style="font-size:10px;color:#D97706;background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:2px 5px;font-weight:600">⭐ Fav</span>' : ''}
-          ${status === 'andamento' ? '<span style="font-size:10px;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:4px;padding:2px 5px;font-weight:600">▶ And.</span>' : ''}
+      <!-- Linha 1: posição + UF + visitado -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;
+            color:#6B7280;background:#F3F4F6;border-radius:4px;padding:2px 6px">
+            ${pos}/${total}
+          </span>
+          ${vis ? '<span style="font-size:10px;color:#059669;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:4px;padding:2px 6px;font-weight:600">👁 Visto</span>' : ''}
+          ${star ? '<span style="font-size:10px;color:#D97706;background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:2px 6px;font-weight:600">⭐</span>' : ''}
+          ${status === 'andamento' ? '<span style="font-size:10px;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:4px;padding:2px 6px;font-weight:600">▶ Andamento</span>' : ''}
         </div>
-        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;border-radius:5px;padding:3px 8px;flex-shrink:0">${r.unidadeorgao_ufsigla||'?'}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;
+          background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;
+          border-radius:5px;padding:3px 8px">${r.unidadeorgao_ufsigla||'?'}</span>
       </div>
 
-      <!-- L2: Objeto — flex:1 empurra o resto para baixo uniformemente -->
-      <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.45;flex:1">
+      <!-- Linha 2: Objeto (título principal) -->
+      <div style="font-size:14px;font-weight:600;color:#111827;line-height:1.45;margin-bottom:10px">
         ${r.objetocompra||'—'}
       </div>
 
-      <!-- L3: [Data/Hora editável à esquerda] [PE + Modalidade à direita] -->
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">
-        <!-- Data + Hora (sempre editável) -->
-        <div onclick="event.stopPropagation()"
-          style="display:flex;align-items:center;gap:5px;
-          background:${hasDate?'#F0FDF4':'#FFF7ED'};
-          border:1px solid ${hasDate?'#BBF7D0':'#FED7AA'};
-          border-radius:6px;padding:4px 8px;flex-shrink:0">
-          <span style="font-size:11px">📅</span>
-          <input type="date" id="cdata-${r.id}"
-            value="${inputDateVal}"
-            onchange="saveCardDate('${r.id}')"
-            onclick="event.stopPropagation()"
-            style="border:none;background:transparent;font-size:11px;
-            color:${hasDate?'#065F46':'#92400E'};outline:none;
-            cursor:pointer;width:120px;font-weight:600">
-          <span style="font-size:11px;color:#6B7280">⏰</span>
-          <input type="time" id="chora-${r.id}"
-            value="${inputTimeVal}"
-            onchange="saveCardDate('${r.id}')"
-            onclick="event.stopPropagation()"
-            style="border:none;background:transparent;font-size:11px;
-            color:${hasDate?'#065F46':'#92400E'};outline:none;
-            cursor:pointer;width:58px;font-weight:600">
-        </div>
-        <!-- PE + Modalidade -->
-        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
-          ${nPrg ? `<span style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:6px;
-            padding:3px 7px;font-size:11px;color:#2563EB;font-weight:700;white-space:nowrap">
-            PE ${nPrg}</span>` : ''}
-          ${modalidade ? `<span style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;
-            padding:3px 7px;font-size:10px;color:#7C3AED;font-weight:600;white-space:nowrap">
-            ${modalidade}</span>` : ''}
-        </div>
-      </div>
-
-      <!-- L4: Nº PNCP + link -->
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:#9CA3AF;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">
-          📋 ${r.numerocontrolepncp||'—'}
+      <!-- Linha 3: metadados em chips -->
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">
+        <span style="display:flex;align-items:center;gap:4px;background:#F8FAFC;
+          border:1px solid #E2E8F0;border-radius:6px;padding:4px 8px;font-size:11px;color:#374151">
+          📅 <strong>${dStr}</strong> ${hStr}
         </span>
-        <a href="${linkPncp}" target="_blank" onclick="event.stopPropagation()"
-          style="font-size:10px;color:#2563EB;font-weight:600;text-decoration:none;
-          background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;
-          padding:2px 7px;flex-shrink:0">🔗 PNCP</a>
+        ${nPrg ? `<span style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:6px;
+          padding:4px 8px;font-size:11px;color:#2563EB;font-weight:600">PE ${nPrg}</span>` : ''}
+        ${m.produto ? `<span style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;
+          padding:4px 8px;font-size:11px;color:#059669;font-weight:600">📦 ${m.produto}</span>` : ''}
+        ${total ? `<span style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;
+          padding:4px 8px;font-size:11px;color:#059669;font-weight:700">${total}</span>` : ''}
       </div>
 
-      <!-- L5: Órgão -->
-      <div style="font-size:11px;color:#6B7280;
+      <!-- Linha 4: Órgão -->
+      <div style="font-size:11px;color:#6B7280;margin-bottom:12px;
         white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
         🏛 ${r.orgaoentidade_razaosocial||'—'}
       </div>
 
-      <!-- L6: Valores -->
-      <div style="display:flex;flex-wrap:wrap;gap:5px;min-height:22px">
-        ${valEst ? `<span style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;
-          padding:3px 8px;font-size:11px;color:#059669;font-weight:700">💰 ${valEst}</span>` : ''}
-        ${totalValor ? `<span style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:6px;
-          padding:3px 8px;font-size:11px;color:#EA580C;font-weight:700">📦 ${totalValor}</span>` : ''}
-        ${m.produto && !totalValor ? `<span style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;
-          padding:3px 8px;font-size:11px;color:#059669;font-weight:600">📦 ${m.produto}</span>` : ''}
-      </div>
-
-      <!-- L7: Ações -->
-      <div style="display:flex;gap:6px;align-items:center;padding-top:6px;
-        border-top:1px solid #F3F4F6">
-        <button onclick="toggleStarMob(event,'${r.id}')"
+      <!-- Linha 5: Ações -->
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button onclick="toggleStarMob(event,'${r.id}')" id="star-mob-${r.id}"
           style="background:${star?'#FFFBEB':'#F9FAFB'};
           border:1px solid ${star?'#FDE68A':'#E5E7EB'};
-          border-radius:7px;padding:6px 10px;font-size:13px;cursor:pointer;flex-shrink:0">
+          border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer;flex-shrink:0">
           ${star?'★':'☆'}
         </button>
-        ${siteVal ? `<a href="${siteVal}" target="_blank" onclick="event.stopPropagation()"
-          style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:7px;
-          padding:6px 10px;font-size:11px;font-weight:600;text-decoration:none;flex-shrink:0">
+        <a href="${linkPncp}" target="_blank"
+          style="background:#EEF2FF;border:1px solid #C7D2FE;color:#2563EB;border-radius:8px;
+          padding:9px 12px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0">
+          🔗 PNCP</a>
+        ${siteVal ? `<a href="${fixUrl(siteVal)}" target="_blank"
+          style="background:#ECFDF5;border:1px solid #A7F3D0;color:#059669;border-radius:8px;
+          padding:9px 12px;font-size:12px;font-weight:600;text-decoration:none;flex-shrink:0">
           🔗 Site</a>` : ''}
         <button onclick="openDetail(event,'${r.id}');marcarVisitado('${r.id}')"
-          style="flex:1;background:#2563EB;color:white;border:none;border-radius:7px;
-          padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">
+          style="flex:1;background:#2563EB;color:white;border:none;border-radius:8px;
+          padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer">
           ＋ Ver Detalhes
         </button>
       </div>
@@ -2360,51 +2272,15 @@ function renderMobileCards() {
 function toggleStarMob(e, id) {
   e.stopPropagation();
   if (!manualData[id]) manualData[id] = {};
-  const novoEstado = !manualData[id].starred;
-  manualData[id].starred = novoEstado;
-  if (novoEstado && !manualData[id].status) manualData[id].status = 'favorito';
+  manualData[id].starred = !manualData[id].starred;
   localStorage.setItem('lt_manual', JSON.stringify(manualData));
-
-  // Sempre persiste no Supabase ao favoritar
-  if (novoEstado) {
-    const m    = manualData[id] || {};
-    const hoje = new Date().toISOString().substring(0, 10);
-    insertToFavoritos(id, m.status || 'favorito', {
-      site:       m.site       || '',
-      uf:         m.uf         || '',
-      datamanual: m.datamanual || '',
-      horamanual: m.horamanual || '',
-      itens:      m.itens      || [],
-    }, hoje);
-  }
-
   renderMobileCards();
-  toast('⭐', novoEstado ? 'Favoritado e salvo no Supabase!' : 'Removido dos favoritos');
+  toast('⭐', manualData[id].starred ? 'Favoritado!' : 'Removido dos favoritos');
 }
-function saveCardDate(id) {
-  const dateEl = document.getElementById('cdata-' + id);
-  const horaEl = document.getElementById('chora-' + id);
-  if (!dateEl) return;
-  const datamanual = dateEl.value;
-  const horamanual = horaEl ? horaEl.value : '00:00';
-
-  if (!manualData[id]) manualData[id] = {};
-  manualData[id].datamanual = datamanual;
-  manualData[id].horamanual = horamanual || '00:00';
-  localStorage.setItem('lt_manual', JSON.stringify(manualData));
-
-  // Atualiza só a cor do chip sem re-renderizar o card inteiro
-  const wrap = dateEl.closest('div[id]') || dateEl.parentElement;
-  if (wrap && datamanual) {
-    wrap.style.background = '#F0FDF4';
-    wrap.style.borderColor = '#BBF7D0';
-    dateEl.style.color = '#065F46';
-    if (horaEl) horaEl.style.color = '#065F46';
-  }
-  toast('📅', 'Data salva!');
-}
-
-window.addEventListener('resize', () => { renderMobileCards(); });
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) { const mc=document.getElementById('mobile-cards'); if(mc) mc.style.display='none'; }
+  else renderMobileCards();
+});
 
 function getProdutosPermitidos() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
@@ -2772,29 +2648,18 @@ function saveDetailAndAndamento() {
 }
 
 // Monta a data de encerramento: usa base se tiver, senão usa data/hora manual
-// Converte data+hora local para ISO com offset (ex: "2026-05-22T10:00:00-03:00")
-// Evita que o Supabase interprete como UTC e defase 3h no Brasil
-function localISOWithOffset(dateStr, horaStr) {
-  const dt  = new Date(`${dateStr}T${horaStr}:00`);
-  const off = -dt.getTimezoneOffset();              // offset em minutos (ex: +180 para BRT)
-  const sig = off >= 0 ? '+' : '-';
-  const hh  = String(Math.floor(Math.abs(off) / 60)).padStart(2, '0');
-  const mm  = String(Math.abs(off) % 60).padStart(2, '0');
-  return `${dateStr}T${horaStr}:00${sig}${hh}:${mm}`;
-}
-
 function buildDataEncerramento(r, d) {
-  // 1. Campo base do PNCP — já vem com timezone ou sem; mantém como está
+  // 1. Campo base do PNCP
   if (r.dataencerramentoproposta) return r.dataencerramentoproposta;
 
   // 2. Data manual digitada no modal OU salva no localStorage
-  const m       = manualData[String(r.id)] || {};
+  const m = manualData[String(r.id)] || {};
   const dataStr = d?.datamanual || m.datamanual || '';
   const horaStr = d?.horamanual || m.horamanual || '00:00';
 
   if (dataStr) {
-    // Envia com offset local para não perder 3h no Supabase (timestamptz)
-    return localISOWithOffset(dataStr, horaStr);
+    // Constrói ISO string: "2026-05-04T09:00:00"
+    return `${dataStr}T${horaStr}:00`;
   }
   return null;
 }
