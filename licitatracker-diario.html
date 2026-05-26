@@ -656,7 +656,14 @@
     /* TABLE → CARDS always */
     #table-scroll-wrap { display: none !important; }
     .table-footer { display: none !important; }
-    #mobile-cards { display: block !important; }
+    #mobile-cards {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 4px 0;
+    }
+    @media (max-width: 1100px) { #mobile-cards { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 680px)  { #mobile-cards { grid-template-columns: 1fr; } }
 
     /* Revisados bar */
     .revisao-bar { flex-wrap: wrap; gap: 6px; font-size: 12px; }
@@ -1283,9 +1290,11 @@ async function loadData() {
     let allRows = [];
     let from    = 0;
     const pageSize = 1000;
+    const maxPages = 20; // segurança: máximo 20.000 registros
+    let pageNum = 0;
 
     // Busca em páginas até não ter mais registros
-    while (true) {
+    while (pageNum < maxPages) {
       const url = `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=data_carga.desc,dataencerramentoproposta.asc&limit=${pageSize}&offset=${from}`;
       const res = await fetch(url, { method: 'GET', headers });
 
@@ -1302,6 +1311,7 @@ async function loadData() {
       // Se veio menos que o pageSize, chegamos ao fim
       if (page.length < pageSize) break;
       from += pageSize;
+      pageNum++;
     }
 
     allData = allRows;
@@ -2137,7 +2147,7 @@ function fixUrl(url) {
 function renderMobileCards() {
   const container = document.getElementById('mobile-cards');
   if (!container) return;
-  container.style.display = 'block';
+  container.style.display = 'grid';
 
   const pageStart = (currentPage-1)*PAGE_SIZE;
   const pageData  = filtered.slice(pageStart, pageStart+PAGE_SIZE);
@@ -2171,6 +2181,7 @@ function renderMobileCards() {
     </div>` : '';
 
   // ── Cards ──────────────────────────────────────────
+  const filteredTotal = filtered.length;
   const cardsHtml = pageData.map((r, i) => {
     const m    = manualData[r.id] || {};
     const dt   = r.dataencerramentoproposta ? new Date(r.dataencerramentoproposta.replace(' ','T')) : null;
@@ -2194,7 +2205,7 @@ function renderMobileCards() {
 
     return `
     <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;
-      padding:16px;margin-bottom:10px;border-left:4px solid ${accentColor};
+      padding:16px;border-left:4px solid ${accentColor};
       box-shadow:0 1px 3px rgba(0,0,0,.06)">
 
       <!-- Linha 1: posição + UF + visitado -->
@@ -2202,7 +2213,7 @@ function renderMobileCards() {
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-family:'DM Mono',monospace;font-size:10px;
             color:#6B7280;background:#F3F4F6;border-radius:4px;padding:2px 6px">
-            ${pos}/${total}
+            ${pos}/${filteredTotal}
           </span>
           ${vis ? '<span style="font-size:10px;color:#059669;background:#DCFCE7;border:1px solid #BBF7D0;border-radius:4px;padding:2px 6px;font-weight:600">👁 Visto</span>' : ''}
           ${star ? '<span style="font-size:10px;color:#D97706;background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:2px 6px;font-weight:600">⭐</span>' : ''}
