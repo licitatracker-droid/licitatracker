@@ -654,16 +654,7 @@
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
 
     /* TABLE → CARDS always */
-    #table-scroll-wrap { display: none !important; }
-    .table-footer { display: none !important; }
-    #mobile-cards {
-      display: grid !important;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      padding: 4px 0;
-    }
-    @media (max-width: 1100px) { #mobile-cards { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 680px)  { #mobile-cards { grid-template-columns: 1fr; } }
+    .table-wrap { overflow: visible; }
 
     /* Revisados bar */
     .revisao-bar { flex-wrap: wrap; gap: 6px; font-size: 12px; }
@@ -682,6 +673,17 @@
     .modal-actions { flex-wrap: wrap; gap: 8px; }
     .modal-actions .btn { flex: 1; justify-content: center; font-size: 13px; }
   }
+  /* ── ALWAYS CARDS — table sempre oculta ── */
+  #table-scroll-wrap { display: none !important; }
+  .table-footer      { display: none !important; }
+  #mobile-cards {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    padding: 4px 0;
+  }
+  @media (max-width: 1100px) { #mobile-cards { grid-template-columns: repeat(2, 1fr) !important; } }
+  @media (max-width: 680px)  { #mobile-cards { grid-template-columns: 1fr !important; } }
 </style>
 </head>
 <body>
@@ -854,7 +856,7 @@
         </table>
       </div>
       <!-- Cards mobile (visível só em ≤768px) -->
-      <div id="mobile-cards" style="display:none;padding:4px 0"></div>
+      <div id="mobile-cards" style="padding:4px 0"></div>
       <div class="table-footer">
         <div class="page-info" id="page-info">— — —</div>
         <div class="pagination" id="pagination"></div>
