@@ -2245,6 +2245,10 @@ function renderMobileCards() {
           padding:4px 8px;font-size:11px;color:#059669;font-weight:600">📦 ${m.produto}</span>` : ''}
         ${total ? `<span style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;
           padding:4px 8px;font-size:11px;color:#059669;font-weight:700">${total}</span>` : ''}
+        ${r.numerocontrolepncp ? `<a href="https://pncp.gov.br/app/editais/${encodeURIComponent(r.numerocontrolepncp)}" target="_blank" onclick="event.stopPropagation()"
+          style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:6px;
+          padding:4px 8px;font-size:11px;color:#0369A1;font-weight:600;text-decoration:none;
+          display:inline-flex;align-items:center;gap:3px">🔗 PNCP</a>` : ''}
       </div>
 
       <!-- Linha 4: Órgão -->
