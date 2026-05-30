@@ -268,8 +268,8 @@
   .bol-table th:nth-child(2), .bol-table td:nth-child(2)  { width:70px; }
   .bol-table th:nth-child(3), .bol-table td:nth-child(3)  { width:38px; }
   .bol-table th:nth-child(4), .bol-table td:nth-child(4)  { width:88px; }
-  .bol-table th:nth-child(6), .bol-table td:nth-child(6)  { width:28px; }
-  .bol-table th:nth-child(7), .bol-table td:nth-child(7)  { width:24px; }
+  .bol-table th:nth-child(6), .bol-table td:nth-child(6)  { width:32px; text-align:center; }
+  .bol-table th:nth-child(7), .bol-table td:nth-child(7)  { width:34px; text-align:center; }
   .bol-table th:nth-child(8), .bol-table td:nth-child(8)  { width:82px; }
   .bol-table th:nth-child(9), .bol-table td:nth-child(9)  { width:80px; }
   .bol-table th:nth-child(10),.bol-table td:nth-child(10) { width:48px; }
@@ -886,17 +886,6 @@ function fixUrl(url) {
   return 'https://' + url;
 }
 
-function buildPncpUrl(numerocontrolepncp) {
-  if (!numerocontrolepncp) return '#';
-  // Formato: 46737219000179-1-000081/2026 → pncp.gov.br/app/editais/46737219000179/2026/81
-  const partes = numerocontrolepncp.split('/');
-  const left   = (partes[0] || '').split('-');
-  const cnpj   = left[0] || '';
-  const num    = parseInt(left[2] || '0', 10);
-  const ano    = partes[1] || '';
-  return `https://pncp.gov.br/app/editais/${cnpj}/${ano}/${num}`;
-}
-
 function refreshLinkPregao(id, url) {
   const td = document.getElementById('lpreg-'+id);
   if (td) td.innerHTML = url
@@ -1161,7 +1150,8 @@ function renderTable() {
     const q = parseFloat(r.qtd||0), v = parseFloat(r.valref||0);
     const total = (q&&v) ? fmtM(q*v) : '—';
     const st  = r.status||'favorito';
-    const lPncp = buildPncpUrl(r.numerocontrolepncp);
+    const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const lPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
     const hasLem = !!localStorage.getItem(`lt_lem_ativo_${r.id}`);
     const siteLabel = getSiteLabelFav(r.site);
 
@@ -1205,11 +1195,8 @@ function renderTable() {
           style="min-width:80px;font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">
       </td>
       <td class="col-total" id="ttl-${r.id}">${total}</td>
-      <td style="min-width:110px">
-        <div id="slabel-${r.id}" style="font-size:11px;font-weight:600;color:var(--text-soft);margin-bottom:3px">${siteLabel}</div>
-        <input class="ed" value="${esc(r.site)}" placeholder="https://..."
-          onchange="saveF('${r.id}','site',this.value);refreshLinkPregao('${r.id}',this.value)"
-          style="min-width:90px;font-size:10px;font-family:'DM Mono',monospace;color:var(--text-muted)">
+      <td style="min-width:90px">
+        <span id="slabel-${r.id}" style="font-size:11px;font-weight:600;color:var(--text-soft)">${siteLabel}</span>
       </td>
       <td><a href="${lPncp}" target="_blank" class="lbtn lbtn-pncp">🔗 PNCP</a></td>
       <td id="lpreg-${r.id}" style="white-space:nowrap">
@@ -1396,7 +1383,7 @@ function openBoletim() {
       <td class="num strong">${nPregao}</td>
       <td style="font-size:10px;max-width:160px">${r.orgao||'—'}</td>
       <td class="num" style="text-align:center">${r.item_numero||'—'}</td>
-      <td style="text-align:center;font-weight:700">${r.uf||'?'}</td>
+      <td style="text-align:center;font-weight:700;white-space:nowrap">${r.uf||'?'}</td>
       <td style="font-size:10px">${siteLabel}</td>
       <td class="money">${vEst}</td>
       <td class="num" style="text-align:right">${qtdStr}</td>
@@ -1454,7 +1441,9 @@ async function openAcomp(favId) {
   document.getElementById('ac-valores').textContent = v
     ? `${fmtM(v)} = ${(q&&v) ? fmtM(q*v) : '—'}` : '—';
 
-  document.getElementById('ac-link-pncp').href = buildPncpUrl(r.numerocontrolepncp);
+  const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+  document.getElementById('ac-link-pncp').href =
+    `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
   const slinkEl = document.getElementById('ac-link-preg');
   slinkEl.innerHTML = r.site
     ? `<a href="${fixUrl(esc(r.site))}" target="_blank" class="lbtn lbtn-preg">🔗 ${getSiteLabelFav(r.site)}</a>` : '';
@@ -2104,7 +2093,8 @@ function renderMobileCardsFav() {
     const total = (q&&v) ? fmtM(q*v) : '—';
     const st = r.status||'favorito';
     const stColor = {favorito:'#D97706',andamento:'#059669',ganho:'#2563EB',perdido:'#9CA3AF'}[st]||'#D97706';
-    const lPncp = buildPncpUrl(r.numerocontrolepncp);
+    const enc = (r.numerocontrolepncp||'').replace(/\//g,'%2F');
+    const lPncp = `https://pncp.gov.br/app/editais?status=recebendo_proposta&pagina=1&q=${enc}`;
     return `<div style="background:white;border:1px solid #E5E7EB;border-radius:12px;padding:14px;
       margin-bottom:10px;border-left:4px solid ${stColor}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px">
