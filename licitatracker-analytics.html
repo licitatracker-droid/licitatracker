@@ -201,7 +201,17 @@ body{font-family:'DM Sans',sans-serif;background:#F1F3F9;color:var(--text);min-h
 
 <main class="main">
   <div class="page-label">Painel de Inteligência</div>
-  <h1 class="page-title">📊 Analytics de <span>Licitações</span></h1>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+    <h1 class="page-title" style="margin-bottom:0">📊 Analytics de <span>Licitações</span></h1>
+    <div style="display:flex;align-items:center;gap:8px">
+      <label style="font-size:12px;font-weight:600;color:var(--text-muted)">🔍 Produto:</label>
+      <select id="filtro-produto" onchange="renderAll()"
+        style="font-size:13px;font-family:'DM Sans',sans-serif;padding:6px 12px;border:1px solid var(--border);
+        border-radius:8px;background:white;color:var(--text);cursor:pointer;min-width:180px;max-width:260px">
+        <option value="">Todos os produtos</option>
+      </select>
+    </div>
+  </div>
 
   <!-- KPIs -->
   <div class="kpi-grid">
@@ -384,22 +394,40 @@ async function loadAll() {
     ]);
     allFavs  = rFavs.ok  ? await rFavs.json()  : [];
     allItens = rItens.ok ? await rItens.json()  : [];
+    populateProdutoFilter();
     renderAll();
   } catch(e) { toast('❌','Erro ao carregar dados: '+e.message); }
+}
+
+// POPULATE PRODUTO FILTER
+function populateProdutoFilter() {
+  const sel = document.getElementById('filtro-produto');
+  if (!sel) return;
+  const produtos = [...new Set(allFavs.map(f=>f.produto).filter(Boolean))].sort();
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Todos os produtos</option>' +
+    produtos.map(p=>`<option value="${p}"${p===current?' selected':''}>${p}</option>`).join('');
+}
+
+// GET FILTERED FAVS
+function getFavsFiltrados() {
+  const prod = document.getElementById('filtro-produto')?.value || '';
+  return prod ? allFavs.filter(f=>f.produto===prod) : allFavs;
 }
 
 // =============================================
 // RENDER
 // =============================================
 function renderAll() {
-  const total   = allFavs.length;
-  const favorito= allFavs.filter(f=>f.status==='favorito'||!f.status).length;
-  const and     = allFavs.filter(f=>f.status==='andamento').length;
-  const ganho   = allFavs.filter(f=>f.status==='ganho').length;
-  const perdido = allFavs.filter(f=>f.status==='perdido').length;
+  const favsFiltrados = getFavsFiltrados();
+  const total   = favsFiltrados.length;
+  const favorito= favsFiltrados.filter(f=>f.status==='favorito'||!f.status).length;
+  const and     = favsFiltrados.filter(f=>f.status==='andamento').length;
+  const ganho   = favsFiltrados.filter(f=>f.status==='ganho').length;
+  const perdido = favsFiltrados.filter(f=>f.status==='perdido').length;
 
   // Valor potencial em andamento (vlr ref × qtd dos itens em andamento)
-  const idsAnd = new Set(allFavs.filter(f=>f.status==='andamento').map(f=>f.id));
+  const idsAnd = new Set(favsFiltrados.filter(f=>f.status==='andamento').map(f=>f.id));
   const valorAnd = allItens.filter(i=>idsAnd.has(i.favorito_id))
     .reduce((s,i)=>s+(parseFloat(i.qtd||0)*parseFloat(i.valref||0)),0);
 
@@ -418,13 +446,13 @@ function renderAll() {
 
   renderFunil(favorito, and, ganho, perdido, total);
   renderDonut(favorito, and, ganho, perdido);
-  renderBarras('chart-prod', allFavs.filter(f=>f.status==='andamento'), 'produto', '#F59E0B');
-  renderBarras('chart-uf',   allFavs.filter(f=>f.status==='andamento'), 'uf', '#3B82F6');
-  renderTimeline();
-  renderVencimentos();
-  renderFinanceiro();
-  renderOrgaosGanhos();
-  renderNegociado();
+  renderBarras('chart-prod', favsFiltrados.filter(f=>f.status==='andamento'), 'produto', '#F59E0B');
+  renderBarras('chart-uf',   favsFiltrados.filter(f=>f.status==='andamento'), 'uf', '#3B82F6');
+  renderTimeline(favsFiltrados);
+  renderVencimentos(favsFiltrados);
+  renderFinanceiro(favsFiltrados);
+  renderOrgaosGanhos(favsFiltrados);
+  renderNegociado(favsFiltrados);
 }
 
 // FUNIL
@@ -500,9 +528,10 @@ function renderBarras(elId, favs, campo, color) {
 
 // TIMELINE — favoritos por mês
 let timelineChart = null;
-function renderTimeline() {
+function renderTimeline(favs) {
+  favs = favs || allFavs;
   const map = {};
-  allFavs.forEach(f => {
+  favs.forEach(f => {
     const d = f.data_favorito || f.created_at || '';
     if (!d) return;
     const m = d.substring(0,7); // "2026-04"
@@ -544,9 +573,10 @@ function renderTimeline() {
 }
 
 // VENCIMENTOS
-function renderVencimentos() {
+function renderVencimentos(favs) {
+  favs = favs || allFavs;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const andamento = allFavs.filter(f=>f.status==='andamento' && f.dataencerramento);
+  const andamento = favs.filter(f=>f.status==='andamento' && f.dataencerramento);
   const sorted = andamento.map(f=>{
     const dt = new Date(f.dataencerramento.replace(' ','T'));
     const diff = Math.floor((dt-hoje)/(1000*60*60*24));
@@ -566,7 +596,7 @@ function renderVencimentos() {
     const pncp  = (f.numerocontrolepncp||'').substring(0,20);
     const orgao = (f.orgao||'—').substring(0,28);
     const dtStr = f.dt.toLocaleDateString('pt-BR');
-    return `<div class="venc-item" onclick="window.open('licitatracker-favoritos.html','_blank')">
+    return `<div class="venc-item" onclick="window.open('licitatracker-favoritos.html?status=andamento','_blank')">
       <span class="venc-badge ${cls}">${lbl}</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:11px;font-weight:600;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${orgao}</div>
@@ -578,10 +608,11 @@ function renderVencimentos() {
 
 // FINANCEIRO
 let finChart = null;
-function renderFinanceiro() {
+function renderFinanceiro(favs) {
+  favs = favs || allFavs;
   // Valor por status
   const getValor = (status) => {
-    const ids = new Set(allFavs.filter(f=>f.status===status||(status==='favorito'&&(!f.status||f.status==='favorito'))).map(f=>f.id));
+    const ids = new Set(favs.filter(f=>f.status===status||(status==='favorito'&&(!f.status||f.status==='favorito'))).map(f=>f.id));
     return allItens.filter(i=>ids.has(i.favorito_id))
       .reduce((s,i)=>s+(parseFloat(i.qtd||0)*parseFloat(i.valref||0)),0);
   };
@@ -590,6 +621,23 @@ function renderFinanceiro() {
   const vGan  = getValor('ganho');
   const total = vFav+vAnd+vGan;
   document.getElementById('fin-total').textContent = fmtM(total);
+
+  // Subtotais por status abaixo do total
+  let subEl = document.getElementById('fin-subtotals');
+  if (!subEl) {
+    subEl = document.createElement('div');
+    subEl.id = 'fin-subtotals';
+    subEl.style.cssText = 'display:flex;justify-content:center;gap:16px;margin:-4px 0 10px;flex-wrap:wrap';
+    document.getElementById('fin-total').insertAdjacentElement('afterend', subEl);
+  }
+  subEl.innerHTML = [
+    {label:'⭐ Favorito', val:vFav, color:'#3B82F6'},
+    {label:'▶ Andamento', val:vAnd, color:'#F59E0B'},
+    {label:'🏆 Ganho',    val:vGan, color:'#10B981'},
+  ].map(s=>`<div style="text-align:center">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:${s.color};letter-spacing:.06em">${s.label}</div>
+    <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:${s.color}">${fmtM(s.val)}</div>
+  </div>`).join('');
 
   if (finChart) finChart.destroy();
   const ctx = document.getElementById('fin-chart').getContext('2d');
@@ -616,9 +664,10 @@ function renderFinanceiro() {
 }
 
 // TOP ÓRGÃOS GANHOS
-function renderOrgaosGanhos() {
+function renderOrgaosGanhos(favs) {
+  favs = favs || allFavs;
   const el = document.getElementById('chart-orgao-ganho');
-  const ganhos = allFavs.filter(f=>f.status==='ganho');
+  const ganhos = favs.filter(f=>f.status==='ganho');
   const map = {};
   ganhos.forEach(f=>{ const o=f.orgao||'—'; map[o]=(map[o]||0)+1; });
   const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -636,8 +685,9 @@ function renderOrgaosGanhos() {
 
 // VLR REF × NEGOCIADO
 let negocChart = null;
-function renderNegociado() {
-  const ganhos = allFavs.filter(f=>f.status==='andamento'||f.status==='ganho');
+function renderNegociado(favs) {
+  favs = favs || allFavs;
+  const ganhos = favs.filter(f=>f.status==='andamento'||f.status==='ganho');
   const comNeg = allItens.filter(i=>
     ganhos.some(f=>f.id===i.favorito_id) && i.vlr_negociado && i.valref
   ).slice(0,8);
