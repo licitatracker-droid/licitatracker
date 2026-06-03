@@ -652,7 +652,6 @@
     .header-bar { padding: 10px 12px !important; gap: 8px !important; }
     .header-bar .hbar-divider { display: none !important; }
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
-    #filter-cidade { display: none !important; }
 
     /* TABLE → CARDS always */
     .table-wrap { overflow: visible; }
@@ -781,10 +780,9 @@
           <option value="SC">SC</option><option value="GO">GO</option>
           <option value="PE">PE</option><option value="CE">CE</option>
         </select>
-        <div class="search-box" style="min-width:150px;max-width:190px">
-          <span class="search-icon">🏙</span>
-          <input type="text" id="filter-cidade" placeholder="Cidade..." oninput="applyFilters()">
-        </div>
+        <select class="filter-select" id="filter-cidade" onchange="applyFilters()">
+          <option value="">Cidade: Todas</option>
+        </select>
         <select class="filter-select" id="filter-modal" onchange="applyFilters()">
           <option value="">Modalidade: Todas</option>
           <option value="Pregão">Pregão</option>
@@ -1325,6 +1323,7 @@ async function loadData() {
     allData = allRows;
     document.getElementById('last-update').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
     buildDateList();
+    buildCidadeList();
     updateStats();
     applyFilters();
     toast('✅', `${allData.length} editais carregados`);
@@ -1333,6 +1332,7 @@ async function loadData() {
     document.getElementById('last-update').textContent = '❌ Erro: ' + err.message;
     allData = getDemoData();
     buildDateList();
+    buildCidadeList();
     updateStats();
     applyFilters();
     toast('⚠️', 'Modo demo — ' + err.message.substring(0, 40));
@@ -1367,7 +1367,39 @@ function buildDateList() {
   }
 }
 
-// (date nav handled by dropdown select)
+// =============================================
+// CIDADE LIST — cidades disponíveis na base
+// =============================================
+function buildCidadeList() {
+  const sel = document.getElementById('filter-cidade');
+  const current = sel.value; // preserva seleção atual
+
+  // Extrai nome da cidade do campo orgaoentidade_razaosocial
+  // Ex: "MUNICIPIO DE SAO GOTARDO" → "SAO GOTARDO"
+  //     "CAMARA MUNICIPAL DE BELO HORIZONTE" → "BELO HORIZONTE"
+  //     "SERVICO AUTONOMO DE AGUA E ESGOTO" → mantém como está
+  function extrairCidade(razao) {
+    if (!razao) return '';
+    const s = razao.toUpperCase().trim();
+    // Padrões comuns: "... DE NOME", "... DO NOME", "... DA NOME"
+    const m = s.match(/\bD[EAO]S?\s+(.+)$/);
+    return m ? m[1].trim() : s;
+  }
+
+  const set = new Set();
+  allData.forEach(r => {
+    const cidade = extrairCidade(r.orgaoentidade_razaosocial);
+    if (cidade) set.add(cidade);
+  });
+
+  const cidades = [...set].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  sel.innerHTML = `<option value="">Cidade: Todas</option>` +
+    cidades.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  // Restaura seleção se ainda existir
+  if (current && cidades.includes(current)) sel.value = current;
+}
 
 // =============================================
 // DEMO DATA (para visualização sem API)
@@ -1424,7 +1456,12 @@ function applyFilters() {
       const qClean    = q.replace(/[-\/]/g, '');
       return obj.includes(q) || orgao.includes(q) || pncp.includes(q) || pncpClean.includes(qClean);
     })();
-    const matchCidade  = !cidade || normStr(r.orgaoentidade_razaosocial).includes(cidade);
+    const matchCidade  = !cidade || (() => {
+      const s = (r.orgaoentidade_razaosocial||'').toUpperCase().trim();
+      const m = s.match(/\bD[EAO]S?\s+(.+)$/);
+      const c = m ? m[1].trim() : s;
+      return c === cidade.toUpperCase();
+    })();
     const matchUF      = !uf      || (r.unidadeorgao_ufsigla||'') === uf;
     const matchModal   = !modal   || (r.modalidadenome||'').includes(modal);
     const matchProduto = !produto || (m.produto||'') === produto;
