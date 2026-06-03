@@ -652,6 +652,7 @@
     .header-bar { padding: 10px 12px !important; gap: 8px !important; }
     .header-bar .hbar-divider { display: none !important; }
     .header-bar .filter-select:not(#filter-data):not(#filter-produto) { display: none !important; }
+    #filter-cidade { display: none !important; }
 
     /* TABLE → CARDS always */
     .table-wrap { overflow: visible; }
@@ -780,6 +781,10 @@
           <option value="SC">SC</option><option value="GO">GO</option>
           <option value="PE">PE</option><option value="CE">CE</option>
         </select>
+        <div class="search-box" style="min-width:150px;max-width:190px">
+          <span class="search-icon">🏙</span>
+          <input type="text" id="filter-cidade" placeholder="Cidade..." oninput="applyFilters()">
+        </div>
         <select class="filter-select" id="filter-modal" onchange="applyFilters()">
           <option value="">Modalidade: Todas</option>
           <option value="Pregão">Pregão</option>
@@ -1383,8 +1388,16 @@ function getDemoData() {
 // =============================================
 // FILTERS & SORT
 // =============================================
+// Normaliza string: minúsculo + sem acento + sem espaços duplos
+function normStr(s) {
+  return (s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ').trim();
+}
+
 function applyFilters() {
-  const q       = document.getElementById('search-input').value.toLowerCase();
+  const q       = normStr(document.getElementById('search-input').value);
+  const cidade  = normStr(document.getElementById('filter-cidade')?.value || '');
   const uf      = document.getElementById('filter-uf').value;
   const modal   = document.getElementById('filter-modal').value;
   const produto = document.getElementById('filter-produto').value;
@@ -1402,15 +1415,21 @@ function applyFilters() {
       if (!prodRow || !permitidos.includes(prodRow)) return false;
     }
 
-    const matchQ = !q ||
-      (r.objetocompra||'').toLowerCase().includes(q) ||
-      (r.orgaoentidade_razaosocial||'').toLowerCase().includes(q) ||
-      (r.numerocontrolepncp||'').toLowerCase().includes(q);
+    // Busca geral: normaliza campo e query, e testa também sem barras/traços para PNCP
+    const matchQ = !q || (() => {
+      const obj   = normStr(r.objetocompra);
+      const orgao = normStr(r.orgaoentidade_razaosocial);
+      const pncp  = normStr(r.numerocontrolepncp);
+      const pncpClean = pncp.replace(/[-\/]/g, '');
+      const qClean    = q.replace(/[-\/]/g, '');
+      return obj.includes(q) || orgao.includes(q) || pncp.includes(q) || pncpClean.includes(qClean);
+    })();
+    const matchCidade  = !cidade || normStr(r.orgaoentidade_razaosocial).includes(cidade);
     const matchUF      = !uf      || (r.unidadeorgao_ufsigla||'') === uf;
     const matchModal   = !modal   || (r.modalidadenome||'').includes(modal);
     const matchProduto = !produto || (m.produto||'') === produto;
     const matchData    = !dataSel || (r.data_carga||'').substring(0,10) === dataSel;
-    return matchQ && matchUF && matchModal && matchProduto && matchData;
+    return matchQ && matchCidade && matchUF && matchModal && matchProduto && matchData;
   });
 
   // sort
@@ -1430,6 +1449,7 @@ function applyFilters() {
 
 function clearFilters() {
   document.getElementById('search-input').value = '';
+  document.getElementById('filter-cidade').value = '';
   document.getElementById('filter-uf').value    = '';
   document.getElementById('filter-modal').value = '';
   document.getElementById('filter-produto').value = '';
