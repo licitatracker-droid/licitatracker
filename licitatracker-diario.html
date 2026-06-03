@@ -911,7 +911,7 @@
           <div class="form-group">
             <label class="form-label">Ano</label>
             <input class="form-input" id="man-ano" type="number" placeholder="2026"
-              value="${new Date().getFullYear()}">
+              value="2026">
           </div>
         </div>
 
@@ -2311,7 +2311,13 @@ function toggleStarMob(e, id) {
   renderMobileCards();
   toast('⭐', manualData[id].starred ? 'Favoritado!' : 'Removido dos favoritos');
 }
-window.addEventListener('resize', () => { renderMobileCards(); });
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (filtered && filtered.length > 0) renderMobileCards();
+  }, 150);
+});
 
 function getProdutosPermitidos() {
   const user = JSON.parse(localStorage.getItem('lt_user')||'{}');
