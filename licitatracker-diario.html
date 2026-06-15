@@ -772,7 +772,7 @@
             <option value="">Todas as datas</option>
           </select>
         </div>
-        <select class="filter-select" id="filter-uf" onchange="document.getElementById('filter-cidade').value=''; buildCidadeList(); applyFilters()">
+        <select class="filter-select" id="filter-uf" onchange="applyFilters()">
           <option value="">UF: Todas</option>
           <option value="SP">SP</option><option value="RJ">RJ</option>
           <option value="MG">MG</option><option value="RS">RS</option>
@@ -1320,7 +1320,14 @@ async function loadData() {
       pageNum++;
     }
 
-    allData = allRows;
+    // Deduplica por numerocontrolepncp, mantendo o registro mais recente (primeiro da lista, já ordenada desc)
+    const seenPncp = new Set();
+    allData = allRows.filter(r => {
+      const key = r.numerocontrolepncp || String(r.id);
+      if (seenPncp.has(key)) return false;
+      seenPncp.add(key);
+      return true;
+    });
     document.getElementById('last-update').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
     buildDateList();
     buildCidadeList();
@@ -1371,15 +1378,24 @@ function buildDateList() {
 // CIDADE LIST — cidades disponíveis na base
 // =============================================
 function buildCidadeList() {
-  const sel    = document.getElementById('filter-cidade');
-  const ufSel  = document.getElementById('filter-uf').value;
-  const current = sel.value;
+  const sel = document.getElementById('filter-cidade');
+  const current = sel.value; // preserva seleção atual
+
+  // Extrai nome da cidade do campo orgaoentidade_razaosocial
+  // Ex: "MUNICIPIO DE SAO GOTARDO" → "SAO GOTARDO"
+  //     "CAMARA MUNICIPAL DE BELO HORIZONTE" → "BELO HORIZONTE"
+  //     "SERVICO AUTONOMO DE AGUA E ESGOTO" → mantém como está
+  function extrairCidade(razao) {
+    if (!razao) return '';
+    const s = razao.toUpperCase().trim();
+    // Padrões comuns: "... DE NOME", "... DO NOME", "... DA NOME"
+    const m = s.match(/\bD[EAO]S?\s+(.+)$/);
+    return m ? m[1].trim() : s;
+  }
 
   const set = new Set();
   allData.forEach(r => {
-    // Filtra por UF se estiver selecionada
-    if (ufSel && (r.unidadeorgao_ufsigla||'') !== ufSel) return;
-    const cidade = (r.unidadeorgao_municipionome||'').trim().toUpperCase();
+    const cidade = extrairCidade(r.orgaoentidade_razaosocial);
     if (cidade) set.add(cidade);
   });
 
@@ -1388,6 +1404,7 @@ function buildCidadeList() {
   sel.innerHTML = `<option value="">Cidade: Todas</option>` +
     cidades.map(c => `<option value="${c}">${c}</option>`).join('');
 
+  // Restaura seleção se ainda existir
   if (current && cidades.includes(current)) sel.value = current;
 }
 
@@ -1446,7 +1463,12 @@ function applyFilters() {
       const qClean    = q.replace(/[-\/]/g, '');
       return obj.includes(q) || orgao.includes(q) || pncp.includes(q) || pncpClean.includes(qClean);
     })();
-    const matchCidade  = !cidade || (r.unidadeorgao_municipionome||'').trim().toUpperCase() === cidade.toUpperCase();
+    const matchCidade  = !cidade || (() => {
+      const s = (r.orgaoentidade_razaosocial||'').toUpperCase().trim();
+      const m = s.match(/\bD[EAO]S?\s+(.+)$/);
+      const c = m ? m[1].trim() : s;
+      return c === cidade.toUpperCase();
+    })();
     const matchUF      = !uf      || (r.unidadeorgao_ufsigla||'') === uf;
     const matchModal   = !modal   || (r.modalidadenome||'').includes(modal);
     const matchProduto = !produto || (m.produto||'') === produto;
@@ -1936,16 +1958,6 @@ function renderManItens() {
   });
 }
 
-// Reinicia itens ao abrir o modal
-const _origOpenManualModal = openManualModal;
-async function openManualModal() {
-  manItensTemp = [];
-  manItemIdx   = 0;
-  renderManItens();
-  // Adiciona 1 item vazio por padrão
-  addManItem();
-  await _origOpenManualModal();
-}
 async function openManualModal() {
   // Gera número sequencial MANUAL-YYYY-NNN
   const ano = new Date().getFullYear();
