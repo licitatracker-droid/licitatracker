@@ -1929,8 +1929,7 @@ function renderManItens() {
         <select id="man-und-${i}"
           style="width:100%;border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:11px;background:white"
           onchange="manItensTemp[${i}].unidade=this.value">
-          <option value="">— un —</option>
-          ${getUnidades().map(u=>`<option value="${u}">${u}</option>`).join('')}
+          ${buildUnidadeOptions('')}
         </select>
       </td>
       <td style="padding:6px 8px">
@@ -1966,10 +1965,8 @@ async function openManualModal() {
   const pncp = `MANUAL-${ano}-${seq}`;
   document.getElementById('manual-pncp-preview').textContent = pncp;
 
-  // Preenche selects
-  document.getElementById('man-produto').innerHTML = buildProdutoOptions('');
-  document.getElementById('man-unidade').innerHTML = buildUnidadeOptions('');
-  document.getElementById('man-site').innerHTML    = buildSiteOptions('');
+  // Preenche select de site
+  document.getElementById('man-site').innerHTML = buildSiteOptions('');
 
   // Limpa campos
   ['man-objeto','man-ncompra','man-link','man-valor','man-uaseg','man-orgao','man-uf','man-hora','man-pncp-ext'].forEach(id => {
@@ -2010,6 +2007,14 @@ function updateManualSiteNome() {
     }
   }
 }
+
+// Headers Supabase para uso nas funções manuais
+const H_SUPA = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+};
 
 async function salvarManual(favoritar) {
   const ano       = parseInt(document.getElementById('man-ano').value) || new Date().getFullYear();
@@ -2099,7 +2104,12 @@ async function salvarManual(favoritar) {
     closeManualModal();
 
     if (favoritar) {
-      const d = { ...m, datamanual: dataVal, horamanual: horaVal };
+      const d = {
+        datamanual: dataVal,
+        horamanual: horaVal,
+        site: document.getElementById('man-site')?.value || link,
+        uaseg: document.getElementById('man-uaseg')?.value.trim() || ''
+      };
       const hoje2 = new Date().toISOString().split('T')[0];
       await insertToFavoritos(novo.id, 'favorito', d, hoje2);
       toast('⭐', `"${pncp}" criado e favoritado!`);
@@ -2115,14 +2125,6 @@ async function salvarManual(favoritar) {
     console.error(e);
   }
 }
-
-// Headers Supabase para uso nas funções manuais
-const H_SUPA = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`,
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
-};
 
 // Anexos do modal manual — temporários, migram para chave PNCP ao salvar
 let manAnexosTemp = [];
