@@ -1150,6 +1150,15 @@
         <div class="dr-label">Órgão</div>
         <div class="dr-val" id="det-orgao">—</div>
       </div>
+      <div class="detail-readonly">
+        <div class="dr-label">Site / Portal</div>
+        <input class="form-input" id="det-site" type="text"
+          list="det-site-list"
+          placeholder="Digite ou selecione o site"
+          autocomplete="off"
+          style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;background:white;outline:none">
+        <datalist id="det-site-list"></datalist>
+      </div>
     </div>
 
     <!-- ITENS DO PREGÃO -->
@@ -2575,7 +2584,16 @@ function openDetail(e, id) {
       <div style="font-size:10px;color:var(--gold);margin-top:4px">⚠ Data não encontrada — preencha manualmente</div>`;
   }
   document.getElementById('det-orgao').textContent = r.orgaoentidade_razaosocial || '—';
-  // det-uf and det-site removed from modal — site/UF edited directly in table
+
+  // Campo site/portal editável
+  const detSiteEl = document.getElementById('det-site');
+  if (detSiteEl) {
+    detSiteEl.value = m.site || r.site || '';
+    const detSiteDatalist = document.getElementById('det-site-list');
+    if (detSiteDatalist) {
+      detSiteDatalist.innerHTML = getSiteList().map(s => `<option value="${s.nome}">`).join('');
+    }
+  }
 
   // Carrega itens do localStorage (ou vazio)
   detItemsTemp = (m.itens || []).map(i => ({...i}));
